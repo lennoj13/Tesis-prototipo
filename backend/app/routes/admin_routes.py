@@ -1,0 +1,4 @@
+# TODO: Rutas de administración - gestión de usuarios
+from flask import Blueprint
+
+admin_bp = Blueprint('admin', __name__)
