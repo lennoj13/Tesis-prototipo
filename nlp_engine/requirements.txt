@@ -1,7 +1,7 @@
 # Motor NLP - Dependencias
-sentence-transformers==3.4.1
-spacy==3.8.4
-scikit-learn==1.6.1
-numpy==2.2.3
-pandas==2.2.3
-nltk==3.9.1
+sentence-transformers
+spacy>=3.7
+scikit-learn
+numpy
+pandas
+nltk
