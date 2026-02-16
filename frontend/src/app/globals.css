@@ -1,110 +1,83 @@
+@import "tailwindcss";
+
 /* ============================================
-   MatchPP — Design System
+   MatchPP — Design System (Tailwind CSS v4)
    Colores: Azul institucional + Blanco
    ============================================ */
 
-/* --- CSS Variables (Design Tokens) --- */
-:root {
+@theme {
   /* Primary — Azul institucional */
-  --primary-50: #e8f0fe;
-  --primary-100: #c5dafc;
-  --primary-200: #9ec1fa;
-  --primary-300: #74a8f7;
-  --primary-400: #5293f5;
-  --primary-500: #2f7df2;
-  --primary-600: #1a65d6;
-  --primary-700: #124db5;
-  --primary-800: #0d3a8f;
-  --primary-900: #082768;
-
-  /* Neutros */
-  --white: #ffffff;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
+  --color-primary-50: #e8f0fe;
+  --color-primary-100: #c5dafc;
+  --color-primary-200: #9ec1fa;
+  --color-primary-300: #74a8f7;
+  --color-primary-400: #5293f5;
+  --color-primary-500: #2f7df2;
+  --color-primary-600: #1a65d6;
+  --color-primary-700: #124db5;
+  --color-primary-800: #0d3a8f;
+  --color-primary-900: #082768;
 
   /* Semánticos */
-  --success: #22c55e;
-  --success-light: #dcfce7;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --danger: #ef4444;
-  --danger-light: #fee2e2;
-  --info: #3b82f6;
-  --info-light: #dbeafe;
+  --color-success: #22c55e;
+  --color-success-light: #dcfce7;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
 
-  /* Sombras */
+  /* Font family */
+  --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
+  /* Animations */
+  --animate-fade-in: fadeIn 250ms ease-out;
+  --animate-slide-in: slideInLeft 250ms ease-out;
+  --animate-spin-slow: spin 0.7s linear infinite;
+}
 
-  /* Transiciones */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 350ms ease;
-
-  /* Tipografía */
-  --font-sans: var(--font-geist-sans), 'Montserrat', system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), 'Fira Code', monospace;
-
-  /* Sidebar */
+/* Layout variables */
+:root {
   --sidebar-width: 260px;
-  --sidebar-collapsed: 72px;
   --navbar-height: 64px;
 }
 
-/* --- Reset & Base --- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* --- Base Styles (in @layer base so utilities override them) --- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
 
-body {
-  font-family: var(--font-sans);
-  color: var(--gray-800);
-  background-color: var(--gray-50);
-  line-height: 1.6;
-  min-height: 100vh;
-}
+  a {
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
 
-a {
-  color: var(--primary-600);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
+  a:hover {
+    color: var(--color-primary-700);
+  }
 
-a:hover {
-  color: var(--primary-700);
-}
-
-img {
-  max-width: 100%;
-  display: block;
+  img {
+    max-width: 100%;
+    display: block;
+  }
 }
 
 /* --- Scrollbar personalizada --- */
@@ -113,39 +86,19 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--gray-100);
+  background: var(--color-slate-100, #f1f5f9);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: var(--radius-full);
+  background: var(--color-slate-300, #cbd5e1);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
+  background: var(--color-slate-400, #94a3b8);
 }
 
-/* --- Utilidades --- */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* --- Animaciones reutilizables --- */
+/* --- Keyframes --- */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -156,20 +109,52 @@ img {
   to { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-.animate-fadeIn {
-  animation: fadeIn var(--transition-base) ease-out;
+/* --- Hamburger Icon Transition --- */
+.hamburger-icon {
+  position: absolute;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.animate-slideIn {
-  animation: slideInLeft var(--transition-base) ease-out;
+.icon-visible {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.1s;
+}
+
+.icon-hidden {
+  opacity: 0;
+  transform: scale(0.5);
+  transition-delay: 0s;
+}
+
+/* --- Login branding panel decorative pseudo-elements --- */
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -30%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+}
+
+/* --- Input error warning icon --- */
+.input-error-msg::before {
+  content: '⚠';
+  font-size: 0.75rem;
 }

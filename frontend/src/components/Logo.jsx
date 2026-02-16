@@ -3,27 +3,20 @@
 /**
  * Logo reutilizable de MatchPP.
  * Demuestra: componente React reutilizable con props.
- * 
- * @param {Object} props
- * @param {'sm'|'md'|'lg'} props.size - Tamaño del logo
- * @param {boolean} props.showText - Mostrar texto junto al icono
- * @param {string} props.className - Clases adicionales
  */
 
-import styles from './Logo.module.css';
-
 const sizes = {
-  sm: { icon: 28, font: '1rem' },
-  md: { icon: 36, font: '1.25rem' },
-  lg: { icon: 48, font: '1.75rem' },
+  sm: { icon: 28, font: 'text-base' },
+  md: { icon: 36, font: 'text-xl' },
+  lg: { icon: 48, font: 'text-3xl' },
 };
 
 export default function Logo({ size = 'md', showText = true, className = '' }) {
   const s = sizes[size];
 
   return (
-    <div className={`${styles.logo} ${className}`}>
-      <div className={styles.icon} style={{ width: s.icon, height: s.icon }}>
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <div className="flex-shrink-0">
         <svg
           viewBox="0 0 40 40"
           fill="none"
@@ -31,8 +24,7 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
           width={s.icon}
           height={s.icon}
         >
-          {/* Icono: dos flechas cruzadas = matching bidireccional */}
-          <rect width="40" height="40" rx="10" fill="var(--primary-600)" />
+          <rect width="40" height="40" rx="10" fill="var(--color-primary-600)" />
           <path
             d="M12 20L18 14L24 20M18 14V28"
             stroke="white"
@@ -42,7 +34,7 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
           />
           <path
             d="M28 20L22 26L16 20M22 26V12"
-            stroke="var(--primary-200)"
+            stroke="var(--color-primary-200)"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -50,8 +42,8 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
         </svg>
       </div>
       {showText && (
-        <span className={styles.text} style={{ fontSize: s.font }}>
-          Match<span className={styles.highlight}>PP</span>
+        <span className={`${s.font} font-bold text-slate-800`}>
+          Match<span className="text-primary-600">PP</span>
         </span>
       )}
     </div>

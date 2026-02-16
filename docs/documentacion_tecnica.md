@@ -1,6 +1,6 @@
 # Documentación Técnica — Plataforma de Matching Bidireccional
 
-> Documento actualizado: 13 de febrero de 2026
+> Documento actualizado: 15 de febrero de 2026
 
 ---
 
@@ -52,10 +52,12 @@ Plataforma web de matching bidireccional para prácticas preprofesionales, basad
 | `next` | 16.x | Framework React con SSR/SSG |
 | `react` | 19.x | Librería de UI |
 | `react-dom` | 19.x | Renderizado DOM |
+| `tailwindcss` | 4.x | Framework CSS utility-first |
+| `@tailwindcss/postcss` | 4.x | Plugin PostCSS para Tailwind v4 |
 | `axios` | latest | Cliente HTTP para consumir la API |
 | `react-hook-form` | latest | Manejo eficiente de formularios |
 | `recharts` | latest | Gráficos y visualizaciones del dashboard |
-| `react-icons` | latest | Librería de iconos |
+| `react-icons` | latest | Librería de iconos (Feather Icons) |
 
 ### Backend (Python)
 
@@ -92,20 +94,21 @@ Tesis prototipo/
 ├── frontend/                     # Next.js (React) — Puerto 3000
 │   ├── src/
 │   │   ├── app/                  # Páginas (App Router)
-│   │   │   ├── layout.js         # Layout principal
-│   │   │   ├── page.js           # Landing
+│   │   │   ├── globals.css       # Tailwind CSS v4 + tema personalizado
+│   │   │   ├── layout.jsx        # Layout principal
+│   │   │   ├── page.jsx          # Landing → redirige a /login
 │   │   │   ├── login/            # Inicio de sesión
 │   │   │   ├── register/         # Registro
 │   │   │   └── dashboard/        # Dashboards por rol
 │   │   │       ├── estudiante/
 │   │   │       ├── empresa/
 │   │   │       └── admin/
-│   │   ├── components/           # Componentes reutilizables
+│   │   ├── components/           # Componentes reutilizables (.jsx)
 │   │   ├── hooks/                # Custom hooks (useAuth, etc.)
 │   │   ├── context/              # Context API (AuthContext)
 │   │   ├── services/             # Llamadas a la API Flask
-│   │   ├── styles/               # CSS global
 │   │   └── utils/                # Constantes, helpers
+│   ├── postcss.config.mjs        # Configuración PostCSS (Tailwind v4)
 │   ├── package.json
 │   └── next.config.mjs
 │
@@ -204,7 +207,9 @@ Texto (perfil/vacante)
 ## 7. Estado Actual
 
 - ✅ Estructura de carpetas creada
-- ✅ Dependencias frontend instaladas (Next.js + paquetes npm)
+- ✅ Dependencias frontend instaladas (Next.js + Tailwind CSS v4 + paquetes npm)
 - ✅ Dependencias backend instaladas (Flask + venv)
 - ✅ Dependencias NLP instaladas (SBERT, spaCy, scikit-learn)
-- ⏳ Implementación de código (Fase 1 del roadmap)
+- ✅ Frontend Fase 1: Design system, Login, Dashboards, Sidebar responsive
+- ✅ Migración de CSS Modules → Tailwind CSS v4
+- ⏳ Frontend Fase 2: Registro, Perfil estudiante, CRUD vacantes

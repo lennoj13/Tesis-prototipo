@@ -3,17 +3,9 @@
 /**
  * Input reutilizable de MatchPP.
  * Demuestra: React forwardRef, estados de error, composición.
- * 
- * @param {Object} props
- * @param {string} props.label - Label del campo
- * @param {string} props.error - Mensaje de error
- * @param {React.ReactNode} props.icon - Icono a la izquierda
- * @param {boolean} props.required
- * @param {string} props.helperText - Texto de ayuda
  */
 
 import { forwardRef } from 'react';
-import styles from './Input.module.css';
 
 const Input = forwardRef(function Input(
   { label, error, icon, required, helperText, type = 'text', id, className = '', ...rest },
@@ -22,32 +14,43 @@ const Input = forwardRef(function Input(
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <div className={`${styles.field} ${error ? styles.hasError : ''} ${className}`}>
+    <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
-        <label htmlFor={inputId} className={styles.label}>
+        <label htmlFor={inputId} className="text-sm font-semibold text-slate-700">
           {label}
-          {required && <span className={styles.required}>*</span>}
+          {required && <span className="text-danger ml-0.5">*</span>}
         </label>
       )}
-      <div className={styles.inputWrapper}>
-        {icon && <span className={styles.icon}>{icon}</span>}
+      <div className="relative flex items-center">
+        {icon && (
+          <span className="absolute left-3.5 text-slate-400 text-[1.1rem] flex items-center pointer-events-none">
+            {icon}
+          </span>
+        )}
         <input
           ref={ref}
           id={inputId}
           type={type}
-          className={`${styles.input} ${icon ? styles.withIcon : ''}`}
+          className={`w-full py-2.5 px-3.5 font-sans text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-lg outline-none transition-all duration-150
+            ${icon ? 'pl-[42px]' : ''}
+            ${error
+              ? 'border-danger focus:ring-3 focus:ring-danger-light'
+              : 'border-slate-300 focus:border-primary-500 focus:ring-3 focus:ring-primary-100'
+            }
+            placeholder:text-slate-400
+            disabled:bg-slate-100 disabled:cursor-not-allowed`}
           aria-invalid={!!error}
           aria-describedby={error ? `${inputId}-error` : undefined}
           {...rest}
         />
       </div>
       {error && (
-        <p id={`${inputId}-error`} className={styles.error} role="alert">
+        <p id={`${inputId}-error`} className="input-error-msg text-[0.8125rem] text-danger flex items-center gap-1" role="alert">
           {error}
         </p>
       )}
       {!error && helperText && (
-        <p className={styles.helper}>{helperText}</p>
+        <p className="text-[0.8125rem] text-slate-500">{helperText}</p>
       )}
     </div>
   );

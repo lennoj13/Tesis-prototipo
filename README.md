@@ -38,7 +38,7 @@ cd frontend
 npm install
 ```
 
-Esto lee el `package.json` e instala automáticamente: Next.js, React, Axios, Recharts, React Hook Form, React Icons.
+Esto lee el `package.json` e instala automáticamente: Next.js, React, Tailwind CSS, Axios, Recharts, React Hook Form, React Icons.
 
 ### 3. Configurar el Backend
 
@@ -125,7 +125,7 @@ Para más detalles sobre la arquitectura, módulos y dependencias, ver [docs/doc
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | Next.js 16 + React 19 |
+| Frontend | Next.js 16 + React 19 + Tailwind CSS 4 |
 | Backend | Python 3.13 + Flask 3.1 |
 | Motor NLP | SBERT 5.2 + spaCy 3.8 + scikit-learn 1.8 |
 | Base de Datos | PostgreSQL |
