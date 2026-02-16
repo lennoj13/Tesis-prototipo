@@ -136,4 +136,4 @@ Para más detalles sobre la arquitectura, módulos y dependencias, ver [docs/doc
 ## Autores
 
 - Bryan Guillermo Galarza Indacochea
--
+- Naldo Jonnel Anchundia Caicedo
