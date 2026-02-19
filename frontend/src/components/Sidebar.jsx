@@ -10,40 +10,45 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   FiHome,
-  FiUser,
   FiFileText,
   FiUsers,
   FiBarChart2,
   FiBriefcase,
-  FiBell,
   FiPlusCircle,
   FiInbox,
+  FiSend,
+  FiTarget,
+  FiLogOut,
 } from 'react-icons/fi';
 
 const menuConfig = {
   estudiante: [
+    { section: 'PRINCIPAL' },
     { label: 'Feed de Vacantes', href: '/dashboard/estudiante', icon: FiHome },
-    { label: 'Mi Perfil', href: '/dashboard/estudiante/perfil', icon: FiUser },
-    { label: 'Mis Postulaciones', href: '/dashboard/estudiante/postulaciones', icon: FiFileText },
-    { label: 'Notificaciones', href: '/dashboard/estudiante/notificaciones', icon: FiBell },
+    { label: 'Mis Postulaciones', href: '/dashboard/estudiante/postulaciones', icon: FiSend },
+    { section: 'PERFIL' },
+    { label: 'Mi Perfil', href: '/dashboard/estudiante/perfil', icon: FiTarget },
   ],
   empresa: [
+    { section: 'PRINCIPAL' },
     { label: 'Postulantes', href: '/dashboard/empresa', icon: FiUsers },
+    { section: 'VACANTES' },
     { label: 'Mis Vacantes', href: '/dashboard/empresa/vacantes', icon: FiBriefcase },
     { label: 'Nueva Vacante', href: '/dashboard/empresa/vacantes/nueva', icon: FiPlusCircle },
-    { label: 'Notificaciones', href: '/dashboard/empresa/notificaciones', icon: FiBell },
   ],
   admin: [
+    { section: 'GENERAL' },
     { label: 'Dashboard', href: '/dashboard/admin', icon: FiHome },
+    { label: 'Reportes', href: '/dashboard/admin/reportes', icon: FiBarChart2 },
+    { section: 'GESTIÓN' },
     { label: 'Usuarios', href: '/dashboard/admin/usuarios', icon: FiUsers },
     { label: 'Empresas', href: '/dashboard/admin/empresas', icon: FiBriefcase },
     { label: 'Vacantes', href: '/dashboard/admin/vacantes', icon: FiInbox },
-    { label: 'Reportes', href: '/dashboard/admin/reportes', icon: FiBarChart2 },
   ],
 };
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
 
   const items = menuConfig[user?.rol] || menuConfig.estudiante;
@@ -52,13 +57,24 @@ export default function Sidebar({ isOpen, onClose }) {
     <aside
       className={`fixed top-16 left-0 bottom-0 w-[260px] bg-white border-r border-slate-200 flex flex-col z-[90] overflow-y-auto
         transition-transform duration-250 ease-in-out
-        max-md:shadow-xl max-md:${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+        ${isOpen ? 'translate-x-0 shadow-xl' : 'max-md:-translate-x-full'}
       `}
-      style={{ transform: `translateX(${typeof window !== 'undefined' && window.innerWidth <= 768 && !isOpen ? '-100%' : '0'})` }}
     >
       <nav className="flex-1 p-4 px-3">
-        <ul className="list-none flex flex-col gap-1">
-          {items.map((item) => {
+        <ul className="list-none flex flex-col gap-0.5">
+          {items.map((item, index) => {
+            // Section label
+            if (item.section) {
+              return (
+                <li key={`section-${index}`} className={`${index > 0 ? 'mt-5' : ''}`}>
+                  <span className="block px-3.5 pb-1.5 text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest">
+                    {item.section}
+                  </span>
+                </li>
+              );
+            }
+
             const Icon = item.icon;
             const isActive = pathname === item.href;
 
@@ -85,10 +101,24 @@ export default function Sidebar({ isOpen, onClose }) {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-slate-200">
-        <div className="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg text-[0.8125rem] text-slate-600 font-medium">
-          <span>{user?.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : 'Usuario'}</span>
+      {/* Footer — mini perfil + logout */}
+      <div className="p-3 border-t border-slate-200">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-1.5">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white font-bold text-sm flex items-center justify-center flex-shrink-0">
+            {user?.nombre?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold text-slate-800 truncate">{user?.nombre || 'Usuario'}</span>
+            <span className="text-xs text-slate-500 truncate">{user?.email || ''}</span>
+          </div>
         </div>
+        <button
+          onClick={logout}
+          className="flex items-center gap-2.5 w-full py-2 px-3 border-none bg-transparent text-sm text-slate-500 rounded-lg cursor-pointer transition-colors hover:bg-danger-light hover:text-danger font-medium"
+        >
+          <FiLogOut size={16} />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
     </aside>
   );

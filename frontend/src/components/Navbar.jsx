@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Logo from './Logo';
-import { FiBell, FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft } from 'react-icons/fi';
+import { FiBell, FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSearch, FiSettings } from 'react-icons/fi';
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
@@ -32,6 +32,12 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
     admin: 'Administrador',
   };
 
+  const profileRoutes = {
+    estudiante: '/dashboard/estudiante/perfil',
+    empresa: '/dashboard/empresa',
+    admin: '/dashboard/admin',
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-50 shadow-sm">
       <div className="flex items-center gap-2">
@@ -45,6 +51,18 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
           <FiArrowLeft size={22} className={`hamburger-icon ${sidebarOpen ? 'icon-visible' : 'icon-hidden'}`} />
         </button>
         <Logo size="sm" />
+      </div>
+
+      {/* Barra de búsqueda central */}
+      <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="relative w-full">
+          <FiSearch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar vacantes, estudiantes..."
+            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
@@ -81,13 +99,27 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute top-[calc(100%+8px)] right-0 min-w-[200px] bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 animate-fade-in z-[200]">
-              <button
-                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
+            <div className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 animate-fade-in z-[200]">
+              {/* Info del usuario */}
+              <div className="px-3 py-2.5 mb-1">
+                <p className="text-sm font-semibold text-slate-800">{user?.nombre || 'Usuario'}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{user?.email || ''}</p>
+              </div>
+              <div className="h-px bg-slate-200 mx-2 my-1" />
+              <a
+                href={profileRoutes[user?.rol] || '/dashboard/estudiante/perfil'}
+                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100 no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 <FiUser size={16} />
                 <span>Mi Perfil</span>
+              </a>
+              <button
+                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                <FiSettings size={16} />
+                <span>Configuración</span>
               </button>
               <div className="h-px bg-slate-200 mx-2 my-1" />
               <button

@@ -18,7 +18,7 @@ export default function AdminDashboard() {
           Panel de Administración
         </h1>
         <p className="text-base text-slate-500">
-          Bienvenido, {user?.nombre || 'Admin'}. Vista general del sistema MatchPP.
+          Bienvenido, {user?.nombre || 'Admin'}. Vista general de la plataforma — Universidad de Guayaquil.
         </p>
       </header>
 

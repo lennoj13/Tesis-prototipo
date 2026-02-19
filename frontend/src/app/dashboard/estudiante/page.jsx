@@ -18,7 +18,7 @@ export default function EstudianteDashboard() {
           Bienvenido, {user?.nombre || 'Estudiante'}
         </h1>
         <p className="text-base text-slate-500">
-          Estas son las vacantes que mejor se ajustan a tu perfil
+          Vacantes de prácticas preprofesionales con mayor afinidad a tu perfil
         </p>
       </header>
 
@@ -47,7 +47,7 @@ export default function EstudianteDashboard() {
           </div>
           <div>
             <p className="text-2xl font-bold text-slate-900 leading-none m-0">85%</p>
-            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Match más alto</p>
+            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Afinidad más alta</p>
           </div>
         </div>
       </div>

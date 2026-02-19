@@ -42,6 +42,7 @@
   --animate-fade-in: fadeIn 250ms ease-out;
   --animate-slide-in: slideInLeft 250ms ease-out;
   --animate-spin-slow: spin 0.7s linear infinite;
+  --animate-modal-in: modalIn 200ms ease-out;
 }
 
 /* Layout variables */
@@ -112,6 +113,11 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* --- Hamburger Icon Transition --- */

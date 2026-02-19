@@ -18,7 +18,7 @@ export default function EmpresaDashboard() {
           Panel de {user?.nombre || 'Empresa'}
         </h1>
         <p className="text-base text-slate-500">
-          Gestiona tus vacantes y revisa los candidatos compatibles
+          Gestiona tus vacantes de prácticas y revisa los estudiantes de la UG compatibles
         </p>
       </header>
 
@@ -38,7 +38,7 @@ export default function EmpresaDashboard() {
           </div>
           <div>
             <p className="text-2xl font-bold text-slate-900 leading-none m-0">28</p>
-            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Candidatos totales</p>
+            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Estudiantes postulados</p>
           </div>
         </div>
         <div className="flex items-center gap-3.5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm transition-shadow duration-150 hover:shadow-md">
