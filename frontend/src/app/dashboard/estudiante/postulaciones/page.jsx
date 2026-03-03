@@ -1,29 +1,56 @@
 'use client';
 
 /**
- * Estudiante Postulaciones — Lista de postulaciones realizadas.
+ * Estudiante Postulaciones — Lista real de postulaciones.
  * Módulo 5: Postulación y Seguimiento
- * Contexto: Prácticas preprofesionales — Universidad de Guayaquil
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import applicationService from '@/services/applicationService';
 import PageHeader from '@/components/PageHeader';
 import DataTable from '@/components/DataTable';
 import StatusBadge from '@/components/StatusBadge';
 import Modal from '@/components/Modal';
-import Button from '@/components/Button';
-import { FiEye, FiExternalLink, FiMapPin, FiCalendar, FiBriefcase } from 'react-icons/fi';
+import { FiEye, FiMapPin, FiCalendar, FiBriefcase } from 'react-icons/fi';
 
-const mockPostulaciones = [
-  { id: 1, vacante: 'Practicante Desarrollo Frontend', empresa: 'TechSolutions GYE', match: 92, estado: 'pendiente', fecha: '2026-02-15', area: 'Desarrollo Web', modalidad: 'Híbrido', ubicacion: 'Guayaquil' },
-  { id: 2, vacante: 'Practicante Análisis de Datos', empresa: 'DataMind Ecuador', match: 85, estado: 'aprobado', fecha: '2026-02-10', area: 'Data Science', modalidad: 'Remoto', ubicacion: 'Remoto' },
-  { id: 3, vacante: 'Practicante Diseño UX/UI', empresa: 'InnovaGroup S.A.', match: 78, estado: 'pendiente', fecha: '2026-02-12', area: 'Diseño', modalidad: 'Presencial', ubicacion: 'Guayaquil' },
-  { id: 4, vacante: 'Practicante DevOps', empresa: 'CloudNet Ecuador', match: 70, estado: 'rechazado', fecha: '2026-02-01', area: 'Infraestructura', modalidad: 'Remoto', ubicacion: 'Remoto' },
-  { id: 5, vacante: 'Practicante Community Manager', empresa: 'InnovaGroup S.A.', match: 65, estado: 'pendiente', fecha: '2026-02-18', area: 'Marketing Digital', modalidad: 'Híbrido', ubicacion: 'Guayaquil' },
-];
+const statusMap = {
+  pending: 'pendiente',
+  approved: 'aprobado',
+  rejected: 'rechazado',
+};
 
 export default function EstudiantePostulaciones() {
+  const { user } = useAuth();
+  const [postulaciones, setPostulaciones] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await applicationService.getMyApplications(user?.profile_id);
+        if (res.result) {
+          setPostulaciones((res.data || []).map(a => ({
+            id: a.application_id,
+            vacante: a.title,
+            empresa: a.company_name,
+            match: a.match_percentage || 0,
+            estado: statusMap[a.status] || a.status,
+            fecha: a.created_at,
+            area: a.area || '',
+            modalidad: a.modality || '',
+            ubicacion: a.location || '',
+          })));
+        }
+      } catch (err) {
+        console.error('Error cargando postulaciones:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [user]);
 
   const columns = [
     {
@@ -52,19 +79,19 @@ export default function EstudiantePostulaciones() {
     },
     { key: 'area', label: 'Área' },
     { key: 'estado', label: 'Estado', render: (val) => <StatusBadge status={val} /> },
-    { key: 'fecha', label: 'Fecha', render: (val) => new Date(val).toLocaleDateString('es-EC') },
+    { key: 'fecha', label: 'Fecha', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Mis Postulaciones"
-        subtitle={`${mockPostulaciones.length} postulaciones a prácticas preprofesionales`}
+        subtitle={loading ? 'Cargando...' : `${postulaciones.length} postulaciones a prácticas preprofesionales`}
       />
 
       <DataTable
         columns={columns}
-        data={mockPostulaciones}
+        data={postulaciones}
         searchKeys={['vacante', 'empresa', 'area']}
         actions={(row) => (
           <button
@@ -99,21 +126,21 @@ export default function EstudiantePostulaciones() {
                 <FiMapPin size={14} className="text-slate-400" />
                 <div>
                   <p className="text-xs text-slate-500 m-0">Modalidad</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.modalidad}</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.modalidad || '-'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <FiBriefcase size={14} className="text-slate-400" />
                 <div>
                   <p className="text-xs text-slate-500 m-0">Ubicación</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.ubicacion}</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.ubicacion || '-'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <FiCalendar size={14} className="text-slate-400" />
                 <div>
                   <p className="text-xs text-slate-500 m-0">Fecha postulación</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{new Date(viewModal.fecha).toLocaleDateString('es-EC')}</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.fecha ? new Date(viewModal.fecha).toLocaleDateString('es-EC') : '-'}</p>
                 </div>
               </div>
               <div>
@@ -125,12 +152,12 @@ export default function EstudiantePostulaciones() {
             {viewModal.estado === 'aprobado' && (
               <div className="p-4 bg-success-light border border-green-200 rounded-xl">
                 <p className="text-sm font-semibold text-green-800 mb-1">🎉 ¡Felicidades!</p>
-                <p className="text-sm text-green-700">Tu postulación ha sido aprobada. La empresa se pondrá en contacto contigo a través de tu correo institucional @ug.edu.ec para coordinar el inicio de tus prácticas preprofesionales.</p>
+                <p className="text-sm text-green-700">Tu postulación ha sido aprobada. La empresa se pondrá en contacto contigo.</p>
               </div>
             )}
             {viewModal.estado === 'rechazado' && (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                <p className="text-sm text-slate-600">Tu postulación no fue seleccionada en esta oportunidad. El sistema te seguirá recomendando vacantes con alta afinidad a tu perfil.</p>
+                <p className="text-sm text-slate-600">Tu postulación no fue seleccionada en esta oportunidad.</p>
               </div>
             )}
           </div>

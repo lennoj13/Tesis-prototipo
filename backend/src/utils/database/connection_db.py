@@ -1,4 +1,4 @@
-#Permitir conectarme a una base de datos PostgreSQl
+# Permitir conectarme a una base de datos PostgreSQL
 import psycopg2
 import psycopg2.extras
 from psycopg2.extras import RealDictCursor
@@ -17,9 +17,11 @@ def conn_db():
                             cursor_factory=RealDictCursor)
 
 class DataBaseHandle:
-    #ejecuta metodos de tipo select
+    # Ejecuta métodos de tipo SELECT
     @staticmethod
-    def getRecords(query,  tamanio, record=()):
+    def getRecords(query, tamanio, record=()):
+        conn = None
+        cursor = None
         try:
             result = False
             message = None
@@ -31,7 +33,7 @@ class DataBaseHandle:
                 cursor.execute(query)
             else:
                 cursor.execute(query, record)
-            # tamanio es 0 todos, 1 solo uno, > 1 n registros
+
             if tamanio == 0:
                 res = cursor.fetchall()
             elif tamanio == 1:
@@ -45,41 +47,17 @@ class DataBaseHandle:
             HandleLogs.write_error(ex)
             message = ex.__str__()
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
             return internal_response(result, data, message)
 
-    #ejecuta metodos de tipo INSERT-UPDATE-DELETE
-    # @staticmethod
-    # def ExecuteNonQuery(query, record):
-    #     try:
-    #         result = False
-    #         message = None
-    #         data = None
-    #         conn = conn_db()
-    #         cursor = conn.cursor()
-    #         if len(record) == 0:
-    #             cursor.execute(query)
-    #         else:
-    #             cursor.execute(query, record)
-
-    #         if query.find('INSERT') > -1:
-    #             cursor.execute('SELECT LASTVAL()')
-    #             ult_id = cursor.fetchone()['lastval']
-    #             conn.commit()
-    #             data = ult_id
-    #         else:
-    #             data = 0
-    #         result = True
-    #     except Exception as ex:
-    #         HandleLogs.write_error(ex)
-    #         message = ex.__str__()
-    #     finally:
-    #         cursor.close()
-    #         conn.close()
-    #         return internal_response(result, data, message)
+    # Ejecuta métodos de tipo INSERT-UPDATE-DELETE
     @staticmethod
     def ExecuteNonQuery(query, record):
+        conn = None
+        cursor = None
         try:
             result = False
             message = None
@@ -87,28 +65,21 @@ class DataBaseHandle:
             conn = conn_db()
             cursor = conn.cursor()
             
-            # Ejecutamos la sentencia principal
             cursor.execute(query, record)
 
-            # Verificamos si es un INSERT
             if 'INSERT' in query.upper():
-                # PRIMERO: Intentamos ver si la consulta ya traía un RETURNING
                 try:
                     row = cursor.fetchone()
                     if row:
-                        # Si el cursor tiene datos (por el RETURNING), tomamos el primer valor
                         data = list(row.values())[0]
                     else:
-                        #Si no hubo RETURNING, intentamos LASTVAL() con un try interno
                         cursor.execute('SELECT LASTVAL()')
                         data = cursor.fetchone()['lastval']
                 except Exception:
-                    # Si falla el RETURNING y falla el LASTVAL no rompemos el proceso
                     data = 0
                 
                 conn.commit()
             else:
-                # Para UPDATE o DELETE
                 conn.commit()
                 data = 0
             
@@ -117,7 +88,8 @@ class DataBaseHandle:
             HandleLogs.write_error(ex)
             message = ex.__str__()
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
             return internal_response(result, data, message)
-

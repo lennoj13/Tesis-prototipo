@@ -1,10 +1,13 @@
 'use client';
 
 /**
- * Admin Reportes — Dashboard de reportes con gráficos.
+ * Admin Reportes — Dashboard con estadísticas reales.
  * Módulo 5: Reportes y Analítica
+ * Nota: Los gráficos de recharts usan datos estáticos por ahora (se conectarán cuando haya suficiente data acumulada)
  */
 
+import { useState, useEffect } from 'react';
+import adminService from '@/services/adminService';
 import PageHeader from '@/components/PageHeader';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,6 +17,7 @@ import {
 } from 'recharts';
 import { FiTrendingUp, FiUsers, FiTarget, FiAward } from 'react-icons/fi';
 
+// Datos para gráficos (se poblarán con datos reales cuando haya historial)
 const matchingsPorMes = [
   { mes: 'Sep', matchings: 18 },
   { mes: 'Oct', matchings: 32 },
@@ -51,14 +55,26 @@ const topEmpresas = [
 
 const COLORS = ['#2f7df2', '#1a65d6', '#5293f5', '#74a8f7', '#9ec1fa', '#c5dafc'];
 
-const kpiCards = [
-  { label: 'Matchings este mes', value: '61', change: '+17%', icon: FiTarget, color: 'bg-primary-50 text-primary-600' },
-  { label: 'Tasa de colocación', value: '74%', change: '+6%', icon: FiTrendingUp, color: 'bg-success-light text-green-600' },
-  { label: 'Usuarios activos', value: '156', change: '+23', icon: FiUsers, color: 'bg-info-light text-blue-600' },
-  { label: 'Satisfacción', value: '4.6/5', change: '+0.3', icon: FiAward, color: 'bg-warning-light text-amber-600' },
-];
-
 export default function AdminReportes() {
+  const [stats, setStats] = useState({ students: 0, companies: 0, vacancies: 0, applications: 0 });
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await adminService.getStats();
+        if (res.result && res.data) setStats(res.data);
+      } catch (err) { console.error(err); }
+    }
+    load();
+  }, []);
+
+  const kpiCards = [
+    { label: 'Total usuarios', value: stats.students + stats.companies, icon: FiUsers, color: 'bg-primary-50 text-primary-600' },
+    { label: 'Vacantes activas', value: stats.vacancies, icon: FiTarget, color: 'bg-success-light text-green-600' },
+    { label: 'Postulaciones', value: stats.applications, icon: FiTrendingUp, color: 'bg-info-light text-blue-600' },
+    { label: 'Empresas', value: stats.companies, icon: FiAward, color: 'bg-warning-light text-amber-600' },
+  ];
+
   return (
     <div className="animate-fade-in">
       <PageHeader
@@ -66,7 +82,7 @@ export default function AdminReportes() {
         subtitle="Estadísticas del sistema de prácticas preprofesionales — UG"
       />
 
-      {/* KPI Cards */}
+      {/* KPI Cards — datos reales */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
         {kpiCards.map((kpi) => {
           const Icon = kpi.icon;
@@ -77,10 +93,7 @@ export default function AdminReportes() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900 leading-none m-0">{kpi.value}</p>
-                <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0 flex items-center gap-1.5">
-                  {kpi.label}
-                  <span className="text-xs font-semibold text-green-600 bg-success-light px-1.5 py-0.5 rounded-full">{kpi.change}</span>
-                </p>
+                <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">{kpi.label}</p>
               </div>
             </div>
           );
@@ -89,7 +102,6 @@ export default function AdminReportes() {
 
       {/* Charts grid */}
       <div className="grid grid-cols-2 gap-6 mb-6 max-md:grid-cols-1">
-        {/* Matchings por mes */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Matchings por Mes</h3>
           <ResponsiveContainer width="100%" height={260}>
@@ -103,44 +115,27 @@ export default function AdminReportes() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#94a3b8' }} />
               <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} />
-              <Tooltip
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-              />
+              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
               <Area type="monotone" dataKey="matchings" stroke="#2f7df2" strokeWidth={2.5} fill="url(#colorMatchings)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Distribución por área */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Distribución por Área</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie
-                data={distribucionArea}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={95}
-                paddingAngle={3}
-                dataKey="value"
-              >
+              <Pie data={distribucionArea} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value">
                 {distribucionArea.map((_, i) => (
                   <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-              />
-              <Legend
-                iconType="circle"
-                wrapperStyle={{ fontSize: '12px', color: '#64748b' }}
-              />
+              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Tasa de colocación */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Tasa de Colocación (%)</h3>
           <ResponsiveContainer width="100%" height={260}>
@@ -148,15 +143,12 @@ export default function AdminReportes() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#94a3b8' }} />
               <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 100]} />
-              <Tooltip
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-              />
+              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
               <Line type="monotone" dataKey="tasa" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 5, fill: '#22c55e' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Top empresas */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
           <h3 className="text-sm font-bold text-slate-700 mb-4">Top Empresas por Practicantes</h3>
           <ResponsiveContainer width="100%" height={260}>
@@ -164,9 +156,7 @@ export default function AdminReportes() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis type="number" tick={{ fontSize: 12, fill: '#94a3b8' }} />
               <YAxis dataKey="nombre" type="category" tick={{ fontSize: 12, fill: '#64748b' }} width={100} />
-              <Tooltip
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-              />
+              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
               <Bar dataKey="practicantes" fill="#2f7df2" radius={[0, 6, 6, 0]} barSize={24} />
             </BarChart>
           </ResponsiveContainer>

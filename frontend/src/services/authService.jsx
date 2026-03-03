@@ -1,1 +1,45 @@
-// TODO: Servicio de autenticación (login, registro, logout)
+import api from './api';
+
+/**
+ * Servicio de autenticación — conecta con Flask /security/*
+ */
+const authService = {
+  /**
+   * Login de usuario
+   * @param {string} login - Email o nombre de usuario
+   * @param {string} password - Contraseña
+   */
+  login: async (login, password) => {
+    const response = await api.post('/security/login', {
+      login_user: login,
+      login_password: password,
+    });
+    return response.data;
+  },
+
+  /**
+   * Registro de nuevo usuario
+   */
+  register: async (userData) => {
+    const response = await api.post('/security/register', userData);
+    return response.data;
+  },
+
+  /**
+   * Obtener datos del usuario autenticado
+   */
+  getCurrentUser: async () => {
+    const response = await api.get('/security/current-user');
+    return response.data;
+  },
+
+  /**
+   * Cerrar sesión (solo limpia localStorage)
+   */
+  logout: () => {
+    localStorage.removeItem('matchpp_token');
+    localStorage.removeItem('matchpp_user');
+  },
+};
+
+export default authService;

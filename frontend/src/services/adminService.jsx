@@ -1,0 +1,38 @@
+import api from './api';
+
+/**
+ * Servicio de administración — conecta con Flask /admin/*
+ */
+const adminService = {
+  /** Obtener estadísticas del dashboard admin */
+  getStats: async () => {
+    const response = await api.get('/admin/stats');
+    return response.data;
+  },
+
+  /** Obtener todos los usuarios */
+  getUsers: async () => {
+    const response = await api.get('/user/list');
+    return response.data;
+  },
+
+  /** Obtener todas las empresas */
+  getCompanies: async () => {
+    const response = await api.get('/admin/companies');
+    return response.data;
+  },
+
+  /** Aprobar/rechazar empresa */
+  updateCompanyStatus: async (companyId, status) => {
+    const response = await api.put(`/admin/companies/${companyId}/status`, { status });
+    return response.data;
+  },
+
+  /** Obtener todas las habilidades */
+  getSkills: async () => {
+    const response = await api.get('/skills');
+    return response.data;
+  },
+};
+
+export default adminService;
