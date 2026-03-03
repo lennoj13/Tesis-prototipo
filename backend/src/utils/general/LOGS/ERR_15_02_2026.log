@@ -1,0 +1,7 @@
+23:29:07 - ERR - create_vacancy - (TypeError("'int' object is not subscriptable"),)
+23:48:32 - ERR - ExecuteNonQuery - (ObjectNotInPrerequisiteState('lastval no está definido en esta sesión\n'),)
+23:48:32 - ERR - ExecuteNonQuery - (ObjectNotInPrerequisiteState('lastval no está definido en esta sesión\n'),)
+23:48:32 - ERR - ExecuteNonQuery - (ObjectNotInPrerequisiteState('lastval no está definido en esta sesión\n'),)
+23:48:32 - ERR - ExecuteNonQuery - (ObjectNotInPrerequisiteState('lastval no está definido en esta sesión\n'),)
+23:48:32 - ERR - ExecuteNonQuery - (ObjectNotInPrerequisiteState('lastval no está definido en esta sesión\n'),)
+23:48:32 - ERR - post - (TypeError('response_success() takes 1 positional argument but 2 were given'),)

@@ -1,0 +1,4 @@
+10:55:48 - ERR - getRecords - (SyntaxError("error de sintaxis en o cerca de «=»\nLINE 1: ... count(*) as valor From dawa.tb_UserWhere u_login = 'admin' ...\n                                                             ^\n"),)
+10:58:31 - ERR - getRecords - (InsufficientPrivilege('permiso denegado a la tabla tb_user\n'),)
+10:59:09 - ERR - getRecords - (SyntaxError("error de sintaxis en o cerca de «=»\nLINE 1: ... count(*) as valor FROM dawa.tb_userWhere u_login = 'admin' ...\n                                                             ^\n"),)
+10:59:34 - ERR - getRecords - (InsufficientPrivilege('permiso denegado a la tabla tb_user\n'),)

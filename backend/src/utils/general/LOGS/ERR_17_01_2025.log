@@ -1,0 +1,8 @@
+16:20:41 - ERR - getRecords - (UndefinedTable('no existe la relación «dawa.tb_post»\nLINE 3:                 FROM dawa.tb_post\n                             ^\n'),)
+16:45:31 - ERR - getRecords - (InsufficientPrivilege('permiso denegado a la tabla tb_post\n'),)
+16:53:35 - ERR - create_post - (AttributeError("type object 'DataBaseHandle' has no attribute 'execute'"),)
+16:57:06 - ERR - create_post - (AttributeError("type object 'DataBaseHandle' has no attribute 'execute'"),)
+16:57:19 - ERR - create_post - (AttributeError("type object 'DataBaseHandle' has no attribute 'execute'"),)
+17:05:05 - ERR - ExecuteNonQuery - (UndefinedColumn('no existe la columna «poat_group_id» en la relación «tb_post»\nLINE 2: ...b_post(post_content , post_media, post_author_id, poat_group...\n                                                             ^\n'),)
+17:06:09 - ERR - ExecuteNonQuery - (ForeignKeyViolation('inserción o actualización en la tabla «tb_post» viola la llave foránea «tb_post_post_group_id_fkey»\nDETAIL:  La llave (post_group_id)=(0) no está presente en la tabla «tb_academic_group».\n'),)
+17:12:38 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)

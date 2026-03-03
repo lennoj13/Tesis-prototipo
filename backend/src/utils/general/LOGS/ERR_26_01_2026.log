@@ -1,0 +1,4 @@
+16:19:35 - ERR - create_vacancy - (TypeError("'int' object is not subscriptable"),)
+18:24:38 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)
+19:38:02 - ERR - create_vacancy - (TypeError("'int' object is not subscriptable"),)
+19:38:21 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)
