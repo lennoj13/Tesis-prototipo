@@ -18,6 +18,12 @@ class RegisterService(Resource):
                 if field not in rq_json or not rq_json[field]:
                     return response_error(f"El campo '{field}' es requerido")
 
+            # Validar dominio de correo para estudiantes
+            if rq_json['role'] == 'student':
+                email = rq_json['email'].strip().lower()
+                if not email.endswith('@ug.edu.ec'):
+                    return response_error("Los estudiantes deben registrarse con un correo institucional (@ug.edu.ec)")
+
             result = RegisterComponent.register_user(
                 login=rq_json['login'],
                 password=rq_json['password'],

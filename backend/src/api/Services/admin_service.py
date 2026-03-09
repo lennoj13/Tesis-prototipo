@@ -27,6 +27,27 @@ class AdminStatsService(Resource):
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))
 
+class AdminUserDetailService(Resource):
+    @staticmethod
+    def get(user_id):
+        """Obtener detalle completo de un usuario (admin)"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') != 'admin':
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            result = AdminComponent.get_user_detail(user_id)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
 class AdminCompanyService(Resource):
     @staticmethod
     def get():
@@ -63,6 +84,28 @@ class AdminCompanyStatusService(Resource):
                 return response_error("Estado no válido")
 
             result = AdminComponent.update_company_status(company_id, new_status)
+            if result['result']:
+                return response_success(None)
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminDeleteUserService(Resource):
+    @staticmethod
+    def delete(user_id):
+        """Eliminar (desactivar) un usuario"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') != 'admin':
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            admin_user_id = auth['data'].get('user_id')
+            result = AdminComponent.delete_user(user_id, admin_user_id)
             if result['result']:
                 return response_success(None)
             return response_error(result['message'])

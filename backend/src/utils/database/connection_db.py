@@ -9,12 +9,18 @@ from ...utils.general.response import internal_response
 
 
 def conn_db():
-    return psycopg2.connect(host=Parametros.db_host,
-                            port=int(Parametros.db_port),
-                            user=Parametros.db_user,
-                            password=Parametros.db_pass,
-                            database=Parametros.db_name,
-                            cursor_factory=RealDictCursor)
+    connection = psycopg2.connect(
+        host=Parametros.db_host,
+        port=int(Parametros.db_port),
+        user=Parametros.db_user,
+        password=Parametros.db_pass,
+        database=Parametros.db_name,
+        cursor_factory=RealDictCursor,
+        options='-c client_encoding=UTF8'
+    )
+    # Asegurar encoding UTF-8 para soportar tildes y ñ
+    connection.set_client_encoding('UTF8')
+    return connection
 
 class DataBaseHandle:
     # Ejecuta métodos de tipo SELECT

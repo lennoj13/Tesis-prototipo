@@ -56,7 +56,7 @@ const topEmpresas = [
 const COLORS = ['#2f7df2', '#1a65d6', '#5293f5', '#74a8f7', '#9ec1fa', '#c5dafc'];
 
 export default function AdminReportes() {
-  const [stats, setStats] = useState({ students: 0, companies: 0, vacancies: 0, applications: 0 });
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -68,11 +68,12 @@ export default function AdminReportes() {
     load();
   }, []);
 
+  const s = stats || {};
   const kpiCards = [
-    { label: 'Total usuarios', value: stats.students + stats.companies, icon: FiUsers, color: 'bg-primary-50 text-primary-600' },
-    { label: 'Vacantes activas', value: stats.vacancies, icon: FiTarget, color: 'bg-success-light text-green-600' },
-    { label: 'Postulaciones', value: stats.applications, icon: FiTrendingUp, color: 'bg-info-light text-blue-600' },
-    { label: 'Empresas', value: stats.companies, icon: FiAward, color: 'bg-warning-light text-amber-600' },
+    { label: 'Total usuarios', value: (s.total_students || 0) + (s.total_companies || 0), icon: FiUsers, color: 'bg-primary-50 text-primary-600' },
+    { label: 'Vacantes activas', value: s.total_vacancies || 0, icon: FiTarget, color: 'bg-success-light text-green-600' },
+    { label: 'Postulaciones', value: s.total_applications || 0, icon: FiTrendingUp, color: 'bg-info-light text-blue-600' },
+    { label: 'Empresas', value: s.total_companies || 0, icon: FiAward, color: 'bg-warning-light text-amber-600' },
   ];
 
   return (

@@ -16,6 +16,12 @@ const adminService = {
     return response.data;
   },
 
+  /** Obtener detalle completo de un usuario */
+  getUserDetail: async (userId) => {
+    const response = await api.get(`/admin/users/${userId}/detail`);
+    return response.data;
+  },
+
   /** Obtener todas las empresas */
   getCompanies: async () => {
     const response = await api.get('/admin/companies');
@@ -31,6 +37,12 @@ const adminService = {
   /** Obtener todas las habilidades */
   getSkills: async () => {
     const response = await api.get('/skills');
+    return response.data;
+  },
+
+  /** Eliminar (desactivar) un usuario */
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/admin/users/${userId}`);
     return response.data;
   },
 };
