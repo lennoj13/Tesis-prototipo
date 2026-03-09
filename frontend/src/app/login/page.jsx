@@ -166,9 +166,9 @@ export default function LoginPage() {
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
               <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Credenciales de prueba:</strong> (contraseña: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">Test2026!</code>)
             </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">👨‍💼 Admin: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">admin@ug.edu.ec</code></p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">👨‍🎓 Estudiante: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">bryan.galarzaind@ug.edu.ec</code></p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">🏢 Empresa: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">rrhh@techsolutionsgye.com</code></p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Admin: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">admin@ug.edu.ec</code></p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Estudiante: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">carlos.mendoza@ug.edu.ec</code></p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Empresa: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">rrhh@techsolutionsgye.com</code></p>
           </div>
         </div>
       </div>

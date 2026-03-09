@@ -31,7 +31,7 @@ const menuConfig = {
   ],
   empresa: [
     { section: 'PRINCIPAL' },
-    { label: 'Postulantes', href: '/dashboard/empresa', icon: FiUsers },
+    { label: 'Postulantes', href: '/dashboard/empresa/postulantes', icon: FiUsers },
     { section: 'VACANTES' },
     { label: 'Mis Vacantes', href: '/dashboard/empresa/vacantes', icon: FiBriefcase },
     { label: 'Nueva Vacante', href: '/dashboard/empresa/vacantes/nueva', icon: FiPlusCircle },

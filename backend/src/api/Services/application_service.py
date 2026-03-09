@@ -25,6 +25,25 @@ class ApplicationService(Resource):
 
             result = ApplicationComponent.create_application(student_id, vacancy_id, match_percentage)
             if result['result']:
+                # === Novedad: Notificar a la empresa ===
+                try:
+                    from ...api.Components.notification_component import NotificationComponent
+                    details_res = ApplicationComponent.get_details_for_notification(student_id, vacancy_id)
+                    if details_res['result']:
+                        details = details_res['data']
+                        notif_title = "Nuevo postulante"
+                        notif_msg = f"{details['student_name']} se postuló a \"{details['vacancy_title']}\""
+                        NotificationComponent.create_notification(
+                            user_id=details['company_user_id'],
+                            notif_type='applicant',
+                            title=notif_title,
+                            message=notif_msg,
+                            related_id=result['data'].get('application_id')
+                        )
+                except Exception as e:
+                    HandleLogs.write_error(f"Error creando notificación: {e}")
+                # ========================================
+
                 return response_inserted(result['data'])
             return response_error(result['message'])
 
@@ -42,8 +61,11 @@ class ApplicationService(Resource):
 
             student_id = request.args.get('student_id')
             vacancy_id = request.args.get('vacancy_id')
+            company_id = request.args.get('company_id')
 
-            if student_id:
+            if company_id:
+                result = ApplicationComponent.get_applications_by_company(int(company_id))
+            elif student_id:
                 result = ApplicationComponent.get_applications_by_student(int(student_id))
             elif vacancy_id:
                 result = ApplicationComponent.get_applications_by_vacancy(int(vacancy_id))
@@ -79,6 +101,30 @@ class ApplicationStatusService(Resource):
 
             result = ApplicationComponent.update_application_status(application_id, new_status)
             if result['result']:
+                # === Novedad: Notificar al estudiante ===
+                try:
+                    from ...api.Components.notification_component import NotificationComponent
+                    details_res = ApplicationComponent.get_application_user_details(application_id)
+                    if details_res['result']:
+                        details = details_res['data']
+                        if new_status == 'approved':
+                            notif_title = "Postulación aprobada"
+                            notif_msg = f"Tu postulación a \"{details['vacancy_title']}\" en {details['company_name']} ha sido aceptada."
+                        elif new_status == 'rejected':
+                            notif_title = "Postulación rechazada"
+                            notif_msg = f"Tu perfil no fue seleccionado para \"{details['vacancy_title']}\"."
+
+                        if new_status in ['approved', 'rejected']:
+                            NotificationComponent.create_notification(
+                                user_id=details['student_user_id'],
+                                notif_type='application',
+                                title=notif_title,
+                                message=notif_msg,
+                                related_id=application_id
+                            )
+                except Exception as e:
+                    HandleLogs.write_error(f"Error creando notificación: {e}")
+                # ========================================
                 return response_success(None)
             return response_error(result['message'])
 

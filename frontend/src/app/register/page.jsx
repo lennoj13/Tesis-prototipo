@@ -154,7 +154,7 @@ export default function RegisterPage() {
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  👨‍🎓 Estudiante
+                  Estudiante
                 </button>
                 <button
                   type="button"
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  🏢 Empresa
+                  Empresa
                 </button>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function RegisterPage() {
               <Input
                 label="Nombre"
                 name="name"
-                placeholder="Bryan"
+                placeholder="Carlos"
                 value={formData.name}
                 onChange={handleChange}
                 error={errors.name}
@@ -184,7 +184,7 @@ export default function RegisterPage() {
               <Input
                 label="Apellido"
                 name="lastname"
-                placeholder="Galarza"
+                placeholder="Mendoza"
                 value={formData.lastname}
                 onChange={handleChange}
                 error={errors.lastname}
@@ -209,7 +209,7 @@ export default function RegisterPage() {
               <Input
                 label="Usuario"
                 name="login"
-                placeholder="bryan.galarza"
+                placeholder="carlos.mendoza"
                 value={formData.login}
                 onChange={handleChange}
                 error={errors.login}

@@ -33,6 +33,12 @@ const applicationService = {
     const response = await api.put(`/applications/${applicationId}`, { status });
     return response.data;
   },
+
+  /** Obtener todos los postulantes de una empresa */
+  getByCompany: async (companyId) => {
+    const response = await api.get(`/applications?company_id=${companyId}`);
+    return response.data;
+  },
 };
 
 export default applicationService;

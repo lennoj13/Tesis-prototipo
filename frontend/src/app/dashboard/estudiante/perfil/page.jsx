@@ -66,7 +66,7 @@ export default function EstudiantePerfil() {
           setHabilidades((d.skills || []).map(s => s.skill_name || s.name));
         }
         if (skillsRes.result) {
-          setAllSkills((skillsRes.data || []).map(s => s.name));
+          setAllSkills(skillsRes.data || []);
         }
       } catch (err) {
         console.error('Error cargando perfil:', err);
@@ -89,8 +89,8 @@ export default function EstudiantePerfil() {
       await profileService.updateProfile({
         ...form,
         skills: habilidades.map(name => {
-          const skill = allSkills.find(s => s === name);
-          return { skill_id: skill?.id || null, name, level: 3 };
+          const skillObj = allSkills.find(s => s.name === name);
+          return { skill_id: skillObj?.skill_id || null, name, level: 3 };
         }),
       });
       setGuardado(true);
@@ -103,7 +103,7 @@ export default function EstudiantePerfil() {
   };
 
   const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] border-slate-300 rounded-lg outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-100`;
-  const displaySkills = allSkills.length > 0 ? allSkills : [
+  const displaySkills = allSkills.length > 0 ? allSkills.map(s => s.name) : [
     'JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'Java',
     'TypeScript', 'Git', 'Excel', 'Power BI', 'Figma', 'Flask',
   ];

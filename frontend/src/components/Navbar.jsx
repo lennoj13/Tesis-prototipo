@@ -8,7 +8,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Logo from './Logo';
-import { FiBell, FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSearch, FiSettings } from 'react-icons/fi';
+import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSearch, FiSettings } from 'react-icons/fi';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
@@ -66,17 +67,8 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Notificaciones */}
-        <button
-          className="relative flex items-center justify-center w-10 h-10 border-none bg-transparent text-slate-500 rounded-lg cursor-pointer transition-all duration-150 hover:bg-slate-100 hover:text-slate-700"
-          title="Notificaciones"
-          aria-label="Notificaciones"
-        >
-          <FiBell size={20} />
-          <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-danger text-white text-[0.6875rem] font-bold rounded-full flex items-center justify-center px-1">
-            3
-          </span>
-        </button>
+        {/* Notificaciones Reales */}
+        <NotificationDropdown />
 
         {/* Menú de usuario */}
         <div className="relative" ref={menuRef}>

@@ -1,18 +1,16 @@
-import configparser
 import os
+from urllib.parse import urlparse
+from dotenv import load_dotenv
 
-CFG = configparser.ConfigParser()
-config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.cfg')
-CFG.read(config_path, encoding='utf-8')
+load_dotenv()
 
-AMBIENTE = CFG.get('AMBIENTE', 'env')
+# Parsear DATABASE_URL en sus componentes
+_db_url = urlparse(os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/matching_db'))
 
 class Parametros:
-    db_user = CFG[AMBIENTE]['db_user']
-    db_pass = CFG[AMBIENTE]['db_pass']
-    db_host = CFG[AMBIENTE]['db_host']
-    db_name = CFG[AMBIENTE]['db_name']
-    db_port = CFG[AMBIENTE]['db_port']
-    secret_jwt = CFG[AMBIENTE]['secret_jwt']
-
-
+    db_user = _db_url.username
+    db_pass = _db_url.password
+    db_host = _db_url.hostname
+    db_name = _db_url.path.lstrip('/')
+    db_port = str(_db_url.port or 5432)
+    secret_jwt = os.getenv('JWT_SECRET_KEY', 'MatchUG_JWT_Secret_2026!')

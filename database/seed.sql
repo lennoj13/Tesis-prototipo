@@ -45,13 +45,13 @@ INSERT INTO public.skills (name, category) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- USUARIOS DE PRUEBA (password para todos: Test2026!)
--- Hash generado con bcrypt
+-- Hash bcrypt válido para Test2026!
 INSERT INTO public.users (login, password, name, lastname, email, phone, role_id) VALUES 
-    ('admin', '$2b$12$LJ3m4ys3GzMRHzPnXcFJr$2b$12$BFu3zm6Xo6abCG473eGnp.KHluowUaYTc2SQmtb/.EAgZO553PlDi', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 3),
-    ('bryan.galarza', '$2b$12$LJ3m4ys3GzMRHzPnXcFJr$2b$12$BFu3zm6Xo6abCG473eGnp.KHluowUaYTc2SQmtb/.EAgZO553PlDi', 'Bryan', 'Galarza', 'bryan.galarzaind@ug.edu.ec', '0998094515', 1),
-    ('maria.lopez', '$2b$12$LJ3m4ys3GzMRHzPnXcFJr$2b$12$BFu3zm6Xo6abCG473eGnp.KHluowUaYTc2SQmtb/.EAgZO553PlDi', 'María', 'López', 'maria.lopezr@ug.edu.ec', '0991234567', 1),
-    ('techsolutions', '$2b$12$LJ3m4ys3GzMRHzPnXcFJr$2b$12$BFu3zm6Xo6abCG473eGnp.KHluowUaYTc2SQmtb/.EAgZO553PlDi', 'Ana', 'García', 'rrhh@techsolutionsgye.com', '0994567890', 2),
-    ('datamind', '$2b$12$LJ3m4ys3GzMRHzPnXcFJr$2b$12$BFu3zm6Xo6abCG473eGnp.KHluowUaYTc2SQmtb/.EAgZO553PlDi', 'Pedro', 'Sánchez', 'contacto@datamindgye.com', '0995678901', 2)
+    ('admin', '$2b$12$mJ6sG/hxsat0pSQ4g4nWne5hCDCmA6BzlaWiUEje03iUxNvH4qore', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 3),
+    ('carlos.mendoza', '$2b$12$mJ6sG/hxsat0pSQ4g4nWne5hCDCmA6BzlaWiUEje03iUxNvH4qore', 'Carlos', 'Mendoza', 'carlos.mendoza@ug.edu.ec', '0998094515', 1),
+    ('maria.lopez', '$2b$12$mJ6sG/hxsat0pSQ4g4nWne5hCDCmA6BzlaWiUEje03iUxNvH4qore', 'María', 'López', 'maria.lopezr@ug.edu.ec', '0991234567', 1),
+    ('techsolutions', '$2b$12$mJ6sG/hxsat0pSQ4g4nWne5hCDCmA6BzlaWiUEje03iUxNvH4qore', 'Ana', 'García', 'rrhh@techsolutionsgye.com', '0994567890', 2),
+    ('datamind', '$2b$12$mJ6sG/hxsat0pSQ4g4nWne5hCDCmA6BzlaWiUEje03iUxNvH4qore', 'Pedro', 'Sánchez', 'contacto@datamindgye.com', '0995678901', 2)
 ON CONFLICT (login) DO NOTHING;
 
 -- PERFILES DE ESTUDIANTE
@@ -96,5 +96,5 @@ ON CONFLICT (student_id, vacancy_id) DO NOTHING;
 INSERT INTO public.notifications (user_id, type, title, message, is_read) VALUES 
     (2, 'vacancy', 'Nueva vacante compatible', '"Practicante Desarrollo Frontend" en TechSolutions GYE tiene 92% de afinidad con tu perfil', false),
     (2, 'application', 'Postulación aprobada', 'Tu postulación a "Practicante Backend Python" en TechSolutions GYE ha sido aceptada', false),
-    (4, 'applicant', 'Nuevo postulante', 'Bryan Galarza se postuló a "Practicante Desarrollo Frontend"', false),
-    (4, 'matching', 'Afinidad alta detectada', 'Bryan Galarza tiene un 92% de afinidad con "Practicante Desarrollo Frontend"', true);
+    (4, 'applicant', 'Nuevo postulante', 'Carlos Mendoza se postuló a "Practicante Desarrollo Frontend"', false),
+    (4, 'matching', 'Afinidad alta detectada', 'Carlos Mendoza tiene un 92% de afinidad con "Practicante Desarrollo Frontend"', true);
