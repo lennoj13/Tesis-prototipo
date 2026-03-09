@@ -164,12 +164,11 @@ export default function LoginPage() {
           {/* Tip de prueba */}
           <div className="mt-6 py-3.5 px-4 bg-info-light rounded-lg border border-blue-500/15">
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Tip de prueba:</strong>
+              <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Credenciales de prueba:</strong> (contraseña: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">Test2026!</code>)
             </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Usa <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">admin@ug.edu.ec</code> para acceder como Admin</p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Usa <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">empresa@ug.edu.ec</code> para acceder como Empresa</p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Cualquier otro correo accede como Estudiante, cualquier contraseña de 8 caracteres para ingresar en cualquier rol
-            </p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Admin: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">admin@ug.edu.ec</code></p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Estudiante: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">carlos.mendoza@ug.edu.ec</code></p>
+            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">Empresa: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">rrhh@techsolutionsgye.com</code></p>
           </div>
         </div>
       </div>

@@ -2,18 +2,17 @@
 
 /**
  * AuthContext — React Context API para autenticación.
- * Demuestra: Context API, useReducer, JWT, protección por rol.
- * 
- * En producción conecta con la API Flask.
- * Por ahora simula el flujo para construir la UI.
+ * Conecta con la API Flask para login/registro real con JWT.
  */
 
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import authService from '../services/authService';
+import { ROLE_ROUTES } from '../utils/constants';
 
 // --- Estado inicial ---
 const initialState = {
-  user: null,       // { id, nombre, email, rol }
+  user: null,       // { user_id, username, name, lastname, email, role, role_id, profile_id }
   token: null,      // JWT string
   isLoading: true,  // Cargando sesión del localStorage
   error: null,
@@ -66,71 +65,74 @@ export function AuthProvider({ children }) {
 
   // Cargar sesión desde localStorage al montar
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('matchpp_token');
-      const user = localStorage.getItem('matchpp_user');
-      if (token && user) {
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: { token, user: JSON.parse(user) },
-        });
-      } else {
+    const loadSession = async () => {
+      try {
+        const token = localStorage.getItem('matchpp_token');
+        const user = localStorage.getItem('matchpp_user');
+        if (token && user) {
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: { token, user: JSON.parse(user) },
+          });
+        } else {
+          dispatch({ type: 'LOADED' });
+        }
+      } catch {
         dispatch({ type: 'LOADED' });
       }
-    } catch {
-      dispatch({ type: 'LOADED' });
-    }
+    };
+    loadSession();
   }, []);
 
-  // Login — en producción llama a POST /api/auth/login
+  // Login — llama a POST /security/login en Flask
   const login = useCallback(async (email, password) => {
     dispatch({ type: 'LOADING' });
     try {
-      // TODO: Conectar con API Flask cuando el backend esté listo
-      // const response = await api.post('/auth/login', { email, password });
-      // const { user, token } = response.data;
+      const response = await authService.login(email, password);
+      
+      if (response.result && response.data) {
+        const { token, user_info } = response.data;
+        
+        // Mapear datos del backend al formato del frontend
+        const user = {
+          id: user_info.user_id,
+          user_id: user_info.user_id,
+          username: user_info.username,
+          nombre: user_info.name,
+          name: user_info.name,
+          lastname: user_info.lastname,
+          email: user_info.email,
+          rol: ROLE_ROUTES[user_info.role] ? getRolLabel(user_info.role) : 'estudiante',
+          role: user_info.role,
+          role_id: user_info.role_id,
+          profile_id: user_info.profile_id,
+        };
 
-      // --- Simulación temporal para construir la UI ---
-      await new Promise((r) => setTimeout(r, 800));
+        localStorage.setItem('matchpp_token', token);
+        localStorage.setItem('matchpp_user', JSON.stringify(user));
 
-      // Simular usuarios de prueba por email
-      let rol = 'estudiante';
-      if (email.includes('empresa')) rol = 'empresa';
-      if (email.includes('admin')) rol = 'admin';
+        dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
-      const user = {
-        id: 1,
-        nombre: email.split('@')[0],
-        email,
-        rol,
-      };
-      const token = 'simulated-jwt-token';
-      // --- Fin simulación ---
-
-      localStorage.setItem('matchpp_token', token);
-      localStorage.setItem('matchpp_user', JSON.stringify(user));
-
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
-
-      // Redirigir según rol
-      const dashboardRoutes = {
-        estudiante: '/dashboard/estudiante',
-        empresa: '/dashboard/empresa',
-        admin: '/dashboard/admin',
-      };
-      router.push(dashboardRoutes[rol] || '/dashboard/estudiante');
+        // Redirigir según rol
+        const route = ROLE_ROUTES[user_info.role] || '/dashboard/estudiante';
+        router.push(route);
+      } else {
+        dispatch({
+          type: 'LOGIN_ERROR',
+          payload: response.message || 'Credenciales incorrectas',
+        });
+      }
     } catch (err) {
       dispatch({
         type: 'LOGIN_ERROR',
-        payload: err.response?.data?.message || 'Error al iniciar sesión',
+        payload: err.response?.data?.message || 'Error al conectar con el servidor',
       });
     }
   }, [router]);
 
   // Logout
   const logout = useCallback(() => {
-    localStorage.removeItem('matchpp_token');
-    localStorage.removeItem('matchpp_user');
+    authService.logout();
     dispatch({ type: 'LOGOUT' });
     router.push('/login');
   }, [router]);
@@ -155,8 +157,19 @@ export function AuthProvider({ children }) {
 }
 
 /**
+ * Mapeo de rol backend a label frontend
+ */
+function getRolLabel(role) {
+  const labels = {
+    student: 'estudiante',
+    company: 'empresa',
+    admin: 'admin',
+  };
+  return labels[role] || 'estudiante';
+}
+
+/**
  * Hook personalizado para acceder al contexto de autenticación.
- * Demuestra: Custom Hook de React.
  */
 export function useAuth() {
   const context = useContext(AuthContext);

@@ -1,0 +1,8 @@
+14:55:02 - ERR - ExecuteNonQuery - (InsufficientPrivilege('permiso denegado a la tabla tb_message\n'),)
+14:57:42 - ERR - send_message - (TypeError("'int' object is not subscriptable"),)
+17:03:10 - ERR - create_resource - (TypeError("'int' object is not subscriptable"),)
+22:38:15 - ERR - post - (AttributeError("type object 'JWTComponent' has no attribute 'decode_token'"),)
+22:50:09 - ERR - post - (KeyError('user_id'),)
+23:06:36 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)
+23:11:35 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)
+23:12:17 - ERR - create_post - (TypeError("'int' object is not subscriptable"),)

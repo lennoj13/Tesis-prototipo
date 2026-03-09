@@ -1,0 +1,6 @@
+15:48:08 - ERR - getRecords - (OperationalError('could not translate host name "db.ikvcqliynfkdjncnquje.supabase.co" to address: Name or service not known\n'),)
+15:48:08 - ERR - Login - (UnboundLocalError("cannot access local variable 'cursor' where it is not associated with a value"),)
+15:49:49 - ERR - getRecords - (OperationalError('could not translate host name "db.ikvcqliynfkdjncnquje.supabase.co" to address: Name or service not known\n'),)
+15:50:30 - ERR - getRecords - (OperationalError('could not translate host name "db.ikvcqliynfkdjncnquje.supabase.co" to address: Name or service not known\n'),)
+15:52:18 - ERR - getRecords - (OperationalError('connection to server at "aws-0-us-east-1.pooler.supabase.com" (44.216.29.125), port 6543 failed: FATAL:  Tenant or user not found\nconnection to server at "aws-0-us-east-1.pooler.supabase.com" (44.216.29.125), port 6543 failed: FATAL:  Tenant or user not found\n'),)
+16:16:22 - ERR - getRecords - (OperationalError('connection to server at "aws-0-us-east-1.pooler.supabase.com" (44.208.221.186), port 6543 failed: FATAL:  Tenant or user not found\nconnection to server at "aws-0-us-east-1.pooler.supabase.com" (44.208.221.186), port 6543 failed: FATAL:  Tenant or user not found\n'),)

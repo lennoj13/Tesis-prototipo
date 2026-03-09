@@ -5,16 +5,43 @@
  * Demuestra: Nested Layouts, composición, estado compartido entre componentes.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardLayout({ children }) {
-  const { isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login');
+      } else if (user) {
+        // Protección de rutas por rol
+        const currentRole = user.rol; // 'admin', 'empresa', 'estudiante'
+        const roleRouteMap = {
+          admin: '/dashboard/admin',
+          empresa: '/dashboard/empresa',
+          estudiante: '/dashboard/estudiante'
+        };
+        
+        if (pathname.startsWith('/dashboard/admin') && currentRole !== 'admin') {
+          router.push(roleRouteMap[currentRole] || '/login');
+        } else if (pathname.startsWith('/dashboard/empresa') && currentRole !== 'empresa') {
+          router.push(roleRouteMap[currentRole] || '/login');
+        } else if (pathname.startsWith('/dashboard/estudiante') && currentRole !== 'estudiante') {
+          router.push(roleRouteMap[currentRole] || '/login');
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, user, pathname, router]);
+
+  if (isLoading || (!isAuthenticated && !isLoading)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-slate-500 text-[0.9375rem]">
         <div className="w-9 h-9 border-3 border-slate-200 border-t-primary-600 rounded-full animate-spin-slow" />
