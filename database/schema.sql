@@ -7,6 +7,9 @@
 -- Para Supabase: ya fue aplicado como migración.
 -- ============================================
 
+-- Asegurar encoding UTF-8 para tildes y ñ
+SET client_encoding TO 'UTF8';
+
 -- 1. ROLES
 CREATE TABLE IF NOT EXISTS public.roles (
     role_id SERIAL PRIMARY KEY,

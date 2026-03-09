@@ -9,7 +9,8 @@ from ..Services.notification_service import (
     NotificationService, NotificationReadService, 
     NotificationReadAllService, NotificationDeleteService
 )
-from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService
+from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService, AdminDeleteUserService, AdminUserDetailService
+from ..Services.matching_service import MatchingCandidatesService
 
 def load_routes(api):
     # === Autenticación ===
@@ -46,3 +47,8 @@ def load_routes(api):
     api.add_resource(AdminStatsService, '/admin/stats')
     api.add_resource(AdminCompanyService, '/admin/companies')
     api.add_resource(AdminCompanyStatusService, '/admin/companies/<int:company_id>/status')
+    api.add_resource(AdminDeleteUserService, '/admin/users/<int:user_id>')
+    api.add_resource(AdminUserDetailService, '/admin/users/<int:user_id>/detail')
+
+    # === Matching ===
+    api.add_resource(MatchingCandidatesService, '/matching/candidates')

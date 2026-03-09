@@ -41,6 +41,8 @@ export default function RegisterPage() {
       newErrors.email = 'El correo es obligatorio';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Ingresa un correo válido';
+    } else if (formData.role === 'student' && !formData.email.toLowerCase().endsWith('@ug.edu.ec')) {
+      newErrors.email = 'Los estudiantes deben usar un correo institucional (@ug.edu.ec)';
     }
     if (!formData.login.trim()) newErrors.login = 'El nombre de usuario es obligatorio';
     if (!formData.password) {
@@ -193,17 +195,22 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Input
-              label="Correo electrónico"
-              name="email"
-              type="email"
-              placeholder="tucorreo@ug.edu.ec"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              icon={<FiMail />}
-              required
-            />
+            <div>
+              <Input
+                label="Correo electrónico"
+                name="email"
+                type="email"
+                placeholder={formData.role === 'student' ? 'tucorreo@ug.edu.ec' : 'correo@empresa.com'}
+                value={formData.email}
+                onChange={handleChange}
+                error={errors.email}
+                icon={<FiMail />}
+                required
+              />
+              {formData.role === 'student' && (
+                <p className="text-xs text-slate-400 mt-1 ml-1">Solo se permiten correos institucionales (@ug.edu.ec)</p>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Input

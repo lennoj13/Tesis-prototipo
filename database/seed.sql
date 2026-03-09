@@ -3,6 +3,9 @@
 -- Ejecutar después de schema.sql
 -- ============================================
 
+-- Asegurar encoding UTF-8 para tildes y ñ
+SET client_encoding TO 'UTF8';
+
 -- ROLES
 INSERT INTO public.roles (name) VALUES 
     ('student'),
