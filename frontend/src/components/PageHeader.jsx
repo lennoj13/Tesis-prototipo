@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * PageHeader — Encabezado de página reutilizable.

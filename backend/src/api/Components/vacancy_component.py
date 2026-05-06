@@ -5,36 +5,37 @@ from datetime import datetime
 
 class VacancyComponent:
     @staticmethod
-    def create_vacancy(company_id, title, area, description, requirements,
-                       modality, location, slots=1, expires_at=None, skills=None):
+    def create_vacancy(institucion_id, titulo, area, descripcion, requisitos,
+                       modalidad, ubicacion, cupos=1, fecha_expiracion=None, skills=None,
+                       total_horas=None, horas_diarias=None, horario=None, supervisor_id=None):
         try:
             result = False
             data = None
             message = None
 
-            if expires_at and isinstance(expires_at, str):
+            if fecha_expiracion and isinstance(fecha_expiracion, str):
                 try:
-                    expires_at = datetime.strptime(expires_at, '%Y-%m-%d')
+                    fecha_expiracion = datetime.strptime(fecha_expiracion, '%Y-%m-%d')
                 except ValueError:
-                    expires_at = None
+                    fecha_expiracion = None
 
             sql = '''
-            INSERT INTO public.vacancies 
-                (company_id, title, area, description, requirements, 
-                 modality, location, slots, expires_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING vacancy_id;
+            INSERT INTO public.vacantes 
+                (institucion_id, titulo, area, descripcion, requisitos, 
+                 modalidad, ubicacion, total_horas, horas_diarias, horario, cupos, fecha_expiracion, supervisor_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING vacante_id;
             '''
-            params = (company_id, title, area, description, requirements,
-                      modality, location, slots, expires_at)
+            params = (institucion_id, titulo, area, descripcion, requisitos,
+                      modalidad, ubicacion, total_horas, horas_diarias, horario, cupos, fecha_expiracion, supervisor_id)
 
             db_result = DataBaseHandle.ExecuteNonQuery(sql, params)
             if db_result['result']:
-                vacancy_id = db_result['data']
+                vacante_id = db_result['data']
                 if skills:
-                    VacancyComponent._add_vacancy_skills(vacancy_id, skills)
+                    VacancyComponent._add_vacancy_skills(vacante_id, skills)
                 result = True
-                data = vacancy_id
+                data = vacante_id
                 message = "Vacante creada exitosamente"
             else:
                 message = db_result.get('message', "Error al crear la vacante")
@@ -46,17 +47,17 @@ class VacancyComponent:
             return internal_response(result, data, message)
 
     @staticmethod
-    def _add_vacancy_skills(vacancy_id, skills):
+    def _add_vacancy_skills(vacante_id, skills):
         try:
             for skill_data in skills:
-                skill_id = skill_data.get('skill_id')
-                required_level = skill_data.get('required_level', 1)
-                is_optional = skill_data.get('is_optional', False)
+                habilidad_id = skill_data.get('skill_id') or skill_data.get('habilidad_id')
+                nivel_requerido = skill_data.get('required_level') or skill_data.get('nivel_requerido', 1)
+                es_opcional = skill_data.get('is_optional') or skill_data.get('es_opcional', False)
                 sql = '''
-                INSERT INTO public.vacancy_skills (vacancy_id, skill_id, required_level, is_optional)
+                INSERT INTO public.habilidades_vacante (vacante_id, habilidad_id, nivel_requerido, es_opcional)
                 VALUES (%s, %s, %s, %s)
                 '''
-                DataBaseHandle.ExecuteNonQuery(sql, (vacancy_id, skill_id, required_level, is_optional))
+                DataBaseHandle.ExecuteNonQuery(sql, (vacante_id, habilidad_id, nivel_requerido, es_opcional))
         except Exception as err:
             HandleLogs.write_log("Error al agregar habilidades: " + str(err))
 
@@ -68,18 +69,19 @@ class VacancyComponent:
             message = None
 
             sql = '''
-                SELECT v.vacancy_id, v.title, v.area, v.description, v.requirements,
-                    v.modality, v.location, v.slots, v.is_active,
-                    cp.company_name, cp.contact_email, cp.industry,
-                    u.name || ' ' || u.lastname as contact_person,
-                    TO_CHAR(v.created_at, 'YYYY-MM-DD') as created_at,
-                    TO_CHAR(v.expires_at, 'YYYY-MM-DD') as expires_at,
-                    (SELECT COUNT(*) FROM public.applications a WHERE a.vacancy_id = v.vacancy_id) as applications_count
-                FROM public.vacancies v
-                JOIN public.company_profiles cp ON v.company_id = cp.company_id
-                JOIN public.users u ON cp.user_id = u.user_id
-                WHERE v.is_active = true
-                ORDER BY v.created_at DESC;
+                SELECT v.vacante_id, v.titulo, v.area, v.descripcion, v.requisitos,
+                    v.modalidad, v.ubicacion, v.total_horas, v.horas_diarias, v.horario,
+                    v.cupos, v.activo, v.supervisor_id,
+                    i.nombre as nombre_empresa, i.correo_contacto, i.industria,
+                    u.nombre || ' ' || u.apellido as persona_contacto,
+                    TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
+                    TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
+                    (SELECT COUNT(*) FROM public.postulaciones p WHERE p.vacante_id = v.vacante_id) as total_postulaciones
+                FROM public.vacantes v
+                JOIN public.instituciones i ON v.institucion_id = i.institucion_id
+                JOIN public.usuarios u ON i.usuario_id = u.usuario_id
+                WHERE v.activo = true
+                ORDER BY v.creado_en DESC;
             '''
             db_result = DataBaseHandle.getRecords(sql, 0)
 
@@ -96,23 +98,24 @@ class VacancyComponent:
             return internal_response(result, data, message)
 
     @staticmethod
-    def get_vacancies_by_company(company_id):
+    def get_vacancies_by_company(institucion_id):
         try:
             result = False
             data = None
             message = None
 
             sql = '''
-                SELECT v.vacancy_id, v.title, v.area, v.description, v.requirements,
-                       v.modality, v.location, v.slots, v.is_active,
-                       TO_CHAR(v.created_at, 'YYYY-MM-DD') as created_at,
-                       TO_CHAR(v.expires_at, 'YYYY-MM-DD') as expires_at,
-                       (SELECT COUNT(*) FROM public.applications a WHERE a.vacancy_id = v.vacancy_id) as applications_count
-                FROM public.vacancies v
-                WHERE v.company_id = %s
-                ORDER BY v.created_at DESC;
+                SELECT v.vacante_id, v.titulo, v.area, v.descripcion, v.requisitos,
+                       v.modalidad, v.ubicacion, v.total_horas, v.horas_diarias, v.horario,
+                       v.cupos, v.activo, v.supervisor_id,
+                       TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
+                       TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
+                       (SELECT COUNT(*) FROM public.postulaciones p WHERE p.vacante_id = v.vacante_id) as total_postulaciones
+                FROM public.vacantes v
+                WHERE v.institucion_id = %s
+                ORDER BY v.creado_en DESC;
             '''
-            db_result = DataBaseHandle.getRecords(sql, 0, (company_id,))
+            db_result = DataBaseHandle.getRecords(sql, 0, (institucion_id,))
 
             if db_result['result']:
                 result = True
@@ -127,36 +130,38 @@ class VacancyComponent:
             return internal_response(result, data, message)
 
     @staticmethod
-    def get_vacancy_details(vacancy_id):
+    def get_vacancy_details(vacante_id):
         try:
             result = False
             data = None
             message = None
 
             sql = '''
-                SELECT v.vacancy_id, v.title, v.area, v.description, v.requirements,
-                       v.modality, v.location, v.slots, v.is_active,
-                       cp.company_name, cp.industry, cp.contact_email, cp.location as company_location,
-                       u.name || ' ' || u.lastname as contact_person,
-                       TO_CHAR(v.created_at, 'YYYY-MM-DD') as created_at,
-                       TO_CHAR(v.expires_at, 'YYYY-MM-DD') as expires_at
-                FROM public.vacancies v
-                JOIN public.company_profiles cp ON v.company_id = cp.company_id
-                JOIN public.users u ON cp.user_id = u.user_id
-                WHERE v.vacancy_id = %s
+                SELECT v.vacante_id, v.titulo, v.area, v.descripcion, v.requisitos,
+                       v.modalidad, v.ubicacion, v.total_horas, v.horas_diarias, v.horario,
+                       v.cupos, v.activo, v.supervisor_id, sup.nombre as supervisor_nombre,
+                       i.nombre as nombre_empresa, i.industria, i.correo_contacto, 
+                       i.direccion as ubicacion_empresa, i.ruc,
+                       u.nombre || ' ' || u.apellido as persona_contacto,
+                       TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
+                       TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion
+                FROM public.vacantes v
+                JOIN public.instituciones i ON v.institucion_id = i.institucion_id
+                JOIN public.usuarios u ON i.usuario_id = u.usuario_id
+                LEFT JOIN public.supervisores sup ON v.supervisor_id = sup.supervisor_id
+                WHERE v.vacante_id = %s
             '''
-            db_result = DataBaseHandle.getRecords(sql, 1, (vacancy_id,))
+            db_result = DataBaseHandle.getRecords(sql, 1, (vacante_id,))
 
             if db_result['result'] and db_result['data']:
-                # Obtener skills de la vacante
                 sql_skills = '''
-                    SELECT s.skill_id, s.name as skill_name, s.category,
-                           vs.required_level, vs.is_optional
-                    FROM public.vacancy_skills vs
-                    JOIN public.skills s ON vs.skill_id = s.skill_id
-                    WHERE vs.vacancy_id = %s
+                    SELECT h.habilidad_id, h.nombre as habilidad_nombre, h.categoria,
+                           hv.nivel_requerido, hv.es_opcional
+                    FROM public.habilidades_vacante hv
+                    JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                    WHERE hv.vacante_id = %s
                 '''
-                skills_result = DataBaseHandle.getRecords(sql_skills, 0, (vacancy_id,))
+                skills_result = DataBaseHandle.getRecords(sql_skills, 0, (vacante_id,))
                 db_result['data']['skills'] = skills_result['data'] if skills_result['result'] else []
                 
                 result = True
@@ -173,7 +178,7 @@ class VacancyComponent:
     @staticmethod
     def get_catalog_options():
         try:
-            sql_skills = "SELECT skill_id as id, name, category FROM public.skills ORDER BY name;"
+            sql_skills = "SELECT habilidad_id as id, nombre, categoria FROM public.habilidades ORDER BY nombre;"
             skills = DataBaseHandle.getRecords(sql_skills, 0)
             
             data = {
@@ -181,6 +186,11 @@ class VacancyComponent:
                     {'id': 1, 'name': 'Presencial'},
                     {'id': 2, 'name': 'Remoto'},
                     {'id': 3, 'name': 'Híbrido'}
+                ],
+                'total_hours_options': [
+                    {'value': 96, 'label': '96 horas'},
+                    {'value': 144, 'label': '144 horas'},
+                    {'value': 240, 'label': '240 horas'}
                 ],
                 'skills': skills['data'] if skills['result'] else []
             }
@@ -190,20 +200,31 @@ class VacancyComponent:
             return internal_response(False, None, str(err))
     
     @staticmethod
-    def update_vacancy(vacancy_id, p_data):
+    def update_vacancy(vacante_id, p_data):
         try:
             sql = """
-                UPDATE public.vacancies 
-                SET title = %s, area = %s, description = %s, requirements = %s,
-                    modality = %s, location = %s, slots = %s, 
-                    is_active = %s, expires_at = %s, updated_at = NOW()
-                WHERE vacancy_id = %s
+                UPDATE public.vacantes 
+                SET titulo = %s, area = %s, descripcion = %s, requisitos = %s,
+                    modalidad = %s, ubicacion = %s, total_horas = %s, horas_diarias = %s,
+                    horario = %s, cupos = %s, activo = %s, fecha_expiracion = %s, 
+                    supervisor_id = %s, actualizado_en = NOW()
+                WHERE vacante_id = %s
             """
             DataBaseHandle.ExecuteNonQuery(sql, (
-                p_data.get('title'), p_data.get('area'), p_data.get('description'),
-                p_data.get('requirements'), p_data.get('modality'), p_data.get('location'),
-                p_data.get('slots', 1), p_data.get('is_active', True),
-                p_data.get('expires_at'), vacancy_id
+                p_data.get('titulo') or p_data.get('title'),
+                p_data.get('area'),
+                p_data.get('descripcion') or p_data.get('description'),
+                p_data.get('requisitos') or p_data.get('requirements'),
+                p_data.get('modalidad') or p_data.get('modality'),
+                p_data.get('ubicacion') or p_data.get('location'),
+                p_data.get('total_horas') or p_data.get('total_hours'),
+                p_data.get('horas_diarias') or p_data.get('daily_hours'),
+                p_data.get('horario') or p_data.get('schedule'),
+                p_data.get('cupos', 1) if 'cupos' in p_data else p_data.get('slots', 1),
+                p_data.get('activo', True) if 'activo' in p_data else p_data.get('is_active', True),
+                p_data.get('fecha_expiracion') or p_data.get('expires_at'),
+                p_data.get('supervisor_id'),
+                vacante_id
             ))
             return internal_response(True, None, "Vacante actualizada")
         except Exception as err:
@@ -211,10 +232,10 @@ class VacancyComponent:
             return internal_response(False, None, str(err))
 
     @staticmethod
-    def delete_vacancy(vacancy_id):
+    def delete_vacancy(vacante_id):
         try:
-            sql = "DELETE FROM public.vacancies WHERE vacancy_id = %s"
-            DataBaseHandle.ExecuteNonQuery(sql, (vacancy_id,))
+            sql = "DELETE FROM public.vacantes WHERE vacante_id = %s"
+            DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
             return internal_response(True, None, "Vacante eliminada")
         except Exception as err:
             HandleLogs.write_error(err)

@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   MatchPP — Design System
+   Colores: Azul institucional + Blanco
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Primary — Azul institucional */
+    --color-primary-50: #e8f0fe;
+    --color-primary-100: #c5dafc;
+    --color-primary-200: #9ec1fa;
+    --color-primary-300: #74a8f7;
+    --color-primary-400: #5293f5;
+    --color-primary-500: #2f7df2;
+    --color-primary-600: #1a65d6;
+    --color-primary-700: #124db5;
+    --color-primary-800: #0d3a8f;
+    --color-primary-900: #082768;
+
+    /* Semánticos */
+    --color-success: #22c55e;
+    --color-success-light: #dcfce7;
+    --color-warning: #f59e0b;
+    --color-warning-light: #fef3c7;
+    --color-danger: #ef4444;
+    --color-danger-light: #fee2e2;
+    --color-info: #3b82f6;
+    --color-info-light: #dbeafe;
+
+    /* Font family */
+    --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+
+    /* Layout variables */
+    --sidebar-width: 260px;
+    --navbar-height: 64px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  a {
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    color: var(--color-primary-700);
+  }
+
+  img {
+    max-width: 100%;
+    display: block;
+  }
+}
+
+/* --- Scrollbar personalizada --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-slate-100, #f1f5f9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate-300, #cbd5e1);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-400, #94a3b8);
+}
+
+/* --- Keyframes --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- Hamburger Icon Transition --- */
+.hamburger-icon {
+  position: absolute;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.icon-visible {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.1s;
+}
+
+.icon-hidden {
+  opacity: 0;
+  transform: scale(0.5);
+  transition-delay: 0s;
+}
+
+/* --- Login branding panel decorative pseudo-elements --- */
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -30%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+}
+
+/* --- Input error warning icon --- */
+.input-error-msg::before {
+  content: '⚠';
+  font-size: 0.75rem;
+}

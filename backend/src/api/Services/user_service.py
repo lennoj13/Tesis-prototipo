@@ -38,14 +38,14 @@ class CurrentUserService(Resource):
                     user_data = result_user['data']
                     response_data = {
                         'user_info': {
-                            'user_id': user_data.get('user_id'),
+                            'user_id': user_data.get('usuario_id'),
                             'username': user_data.get('login'),
-                            'name': user_data.get('name'),
-                            'lastname': user_data.get('lastname'),
-                            'email': user_data.get('email'),
-                            'role': user_data.get('role_name'),
-                            'role_id': user_data.get('role_id'),
-                            'profile_id': user_data.get('profile_id')
+                            'name': user_data.get('nombre'),
+                            'lastname': user_data.get('apellido'),
+                            'email': user_data.get('correo'),
+                            'role': user_data.get('rol_nombre'),
+                            'role_id': user_data.get('rol_id'),
+                            'profile_id': user_data.get('perfil_id')
                         }
                     }
                     return response_success(response_data)

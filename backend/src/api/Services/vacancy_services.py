@@ -16,30 +16,34 @@ class VacancyService(Resource):
             if not auth['result']:
                 return response_error(auth['message'])
 
-            if auth['data']['role'] != 'company':
+            if auth['data']['role'] not in ('company', 'empresa'):
                 return response_error("Solo las empresas pueden crear vacantes")
 
             user_id = auth['data']['user_id']
-            sql_company = "SELECT company_id FROM public.company_profiles WHERE user_id = %s"
-            db_result = DataBaseHandle.getRecords(sql_company, 1, (user_id,))
+            sql_inst = "SELECT institucion_id FROM public.instituciones WHERE usuario_id = %s"
+            db_result = DataBaseHandle.getRecords(sql_inst, 1, (user_id,))
 
             if not db_result['result'] or not db_result['data']:
                 return response_error("Perfil de empresa no encontrado")
 
-            company_id = db_result['data']['company_id']
+            institucion_id = db_result['data']['institucion_id']
             rq_json = request.get_json()
 
             result = VacancyComponent.create_vacancy(
-                company_id=company_id,
-                title=rq_json['title'],
+                institucion_id=institucion_id,
+                titulo=rq_json.get('titulo') or rq_json.get('title', ''),
                 area=rq_json.get('area', ''),
-                description=rq_json.get('description', ''),
-                requirements=rq_json.get('requirements', ''),
-                modality=rq_json.get('modality', 'Presencial'),
-                location=rq_json.get('location', ''),
-                slots=rq_json.get('slots', 1),
-                expires_at=rq_json.get('expires_at'),
-                skills=rq_json.get('skills')
+                descripcion=rq_json.get('descripcion') or rq_json.get('description', ''),
+                requisitos=rq_json.get('requisitos') or rq_json.get('requirements', ''),
+                modalidad=rq_json.get('modalidad') or rq_json.get('modality', 'Presencial'),
+                ubicacion=rq_json.get('ubicacion') or rq_json.get('location', ''),
+                cupos=rq_json.get('cupos') or rq_json.get('slots', 1),
+                fecha_expiracion=rq_json.get('fecha_expiracion') or rq_json.get('expires_at'),
+                skills=rq_json.get('skills'),
+                total_horas=rq_json.get('total_horas') or rq_json.get('total_hours'),
+                horas_diarias=rq_json.get('horas_diarias') or rq_json.get('daily_hours'),
+                horario=rq_json.get('horario') or rq_json.get('schedule'),
+                supervisor_id=rq_json.get('supervisor_id')
             )
 
             if result['result']:
@@ -54,13 +58,13 @@ class VacancyService(Resource):
     def get():
         """Obtener vacantes: todas, por empresa, o por ID"""
         try:
-            vacancy_id = request.args.get('vacancy_id')
-            company_id = request.args.get('company_id')
+            vacancy_id = request.args.get('vacancy_id') or request.args.get('vacante_id')
+            institution_id = request.args.get('company_id') or request.args.get('institution_id') or request.args.get('institucion_id')
 
             if vacancy_id:
                 result = VacancyComponent.get_vacancy_details(int(vacancy_id))
-            elif company_id:
-                result = VacancyComponent.get_vacancies_by_company(int(company_id))
+            elif institution_id:
+                result = VacancyComponent.get_vacancies_by_company(int(institution_id))
             else:
                 result = VacancyComponent.get_all_vacancies()
 

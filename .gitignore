@@ -32,5 +32,8 @@ build/
 # Migrations
 migrations/versions/*.pyc
 
+# Backend logs
+backend/src/utils/general/LOGS/
+
 # NLP models cache
 nlp_engine/models_cache/

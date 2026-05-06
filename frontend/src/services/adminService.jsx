@@ -45,6 +45,12 @@ const adminService = {
     const response = await api.delete(`/admin/users/${userId}`);
     return response.data;
   },
+
+  /** Actualizar información de un usuario */
+  updateUser: async (userId, userData) => {
+    const response = await api.put(`/admin/users/${userId}`, userData);
+    return response.data;
+  },
 };
 
 export default adminService;

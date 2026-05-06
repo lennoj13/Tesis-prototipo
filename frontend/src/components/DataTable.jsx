@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * DataTable — Tabla de datos reutilizable con búsqueda y paginación.

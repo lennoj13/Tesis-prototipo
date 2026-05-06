@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * Botón reutilizable de MatchPP.

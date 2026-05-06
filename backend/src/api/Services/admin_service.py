@@ -15,7 +15,7 @@ class AdminStatsService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') != 'admin':
+            if auth['data'].get('role') not in ('admin', 'gestor'):
                 return response_error("Acceso denegado: se requiere rol admin")
 
             result = AdminComponent.get_stats()
@@ -36,7 +36,7 @@ class AdminUserDetailService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') != 'admin':
+            if auth['data'].get('role') not in ('admin', 'gestor'):
                 return response_error("Acceso denegado: se requiere rol admin")
 
             result = AdminComponent.get_user_detail(user_id)
@@ -75,13 +75,14 @@ class AdminCompanyStatusService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') != 'admin':
+            if auth['data'].get('role') not in ('admin',):
                 return response_error("Acceso denegado")
 
             rq_json = request.get_json()
-            new_status = rq_json.get('status')
-            if new_status not in ['pending', 'approved', 'rejected']:
-                return response_error("Estado no válido")
+            new_status = rq_json.get('status') or rq_json.get('estado')
+            valid = ['pendiente', 'aprobado', 'rechazado']
+            if new_status not in valid:
+                return response_error(f"Estado no válido. Use: {', '.join(valid)}")
 
             result = AdminComponent.update_company_status(company_id, new_status)
             if result['result']:
@@ -101,7 +102,7 @@ class AdminDeleteUserService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') != 'admin':
+            if auth['data'].get('role') not in ('admin',):
                 return response_error("Acceso denegado: se requiere rol admin")
 
             admin_user_id = auth['data'].get('user_id')
@@ -113,3 +114,32 @@ class AdminDeleteUserService(Resource):
         except Exception as err:
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))
+
+    @staticmethod
+    def put(user_id):
+        """Editar (actualizar) cualquier usuario o empresa por un admin/gestor"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado: se requiere rol admin o gestor")
+
+            from ...api.Components.profile_component import ProfileComponent
+            target = ProfileComponent.get_profile(user_id)
+            if not target['result']:
+                return response_error("Usuario no encontrado")
+
+            role = target['data']['rol_nombre'].lower()
+            rq_json = request.get_json()
+            
+            result = ProfileComponent.update_profile(user_id, role, rq_json)
+            if result['result']:
+                return response_success(None)
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+

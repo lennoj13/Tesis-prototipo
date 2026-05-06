@@ -1,13 +1,11 @@
-'use client';
 
 /**
- * Sidebar — Menú lateral que cambia según el rol del usuario.
- * Demuestra: Renderizado condicional, useAuth, usePathname, props.
+ * Sidebar -- Menu lateral que cambia segun el rol del usuario.
  */
 
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAuth } from 'context/AuthContext';
 import {
   FiHome,
   FiFileText,
@@ -19,6 +17,7 @@ import {
   FiSend,
   FiTarget,
   FiLogOut,
+  FiCheckSquare,
 } from 'react-icons/fi';
 
 const menuConfig = {
@@ -37,11 +36,20 @@ const menuConfig = {
     { label: 'Mis Vacantes', href: '/dashboard/empresa/vacantes', icon: FiBriefcase },
     { label: 'Nueva Vacante', href: '/dashboard/empresa/vacantes/nueva', icon: FiPlusCircle },
   ],
+  gestor: [
+    { section: 'PRINCIPAL' },
+    { label: 'Dashboard', href: '/dashboard/gestor', icon: FiHome },
+    { section: 'GESTION PPP' },
+    { label: 'Postulaciones Pendientes', href: '/dashboard/gestor/postulaciones', icon: FiCheckSquare },
+    { label: 'Historial de Postulaciones', href: '/dashboard/gestor/historial', icon: FiFileText },
+    { label: 'Empresas', href: '/dashboard/gestor/empresas', icon: FiBriefcase },
+    { label: 'Consulta Estudiante', href: '/dashboard/gestor/estudiantes', icon: FiUsers },
+  ],
   admin: [
     { section: 'GENERAL' },
     { label: 'Dashboard', href: '/dashboard/admin', icon: FiHome },
     { label: 'Reportes', href: '/dashboard/admin/reportes', icon: FiBarChart2 },
-    { section: 'GESTIÓN' },
+    { section: 'GESTION' },
     { label: 'Usuarios', href: '/dashboard/admin/usuarios', icon: FiUsers },
     { label: 'Empresas', href: '/dashboard/admin/empresas', icon: FiBriefcase },
     { label: 'Vacantes', href: '/dashboard/admin/vacantes', icon: FiInbox },
@@ -50,7 +58,8 @@ const menuConfig = {
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   const items = menuConfig[user?.rol] || menuConfig.estudiante;
 
@@ -81,8 +90,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
             return (
               <li key={item.href}>
-                <Link
-                  href={item.href}
+                <Link to={item.href}
                   onClick={onClose}
                   className={`flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-[0.9375rem] font-medium no-underline transition-all duration-150 relative
                     ${isActive
@@ -102,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }) {
         </ul>
       </nav>
 
-      {/* Footer — mini perfil + logout */}
+      {/* Footer -- mini perfil + logout */}
       <div className="p-3 border-t border-slate-200">
         <div className="flex items-center gap-3 px-3 py-2.5 mb-1.5">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white font-bold text-sm flex items-center justify-center flex-shrink-0">
@@ -118,7 +126,7 @@ export default function Sidebar({ isOpen, onClose }) {
           className="flex items-center gap-2.5 w-full py-2 px-3 border-none bg-transparent text-sm text-slate-500 rounded-lg cursor-pointer transition-colors hover:bg-danger-light hover:text-danger font-medium"
         >
           <FiLogOut size={16} />
-          <span>Cerrar Sesión</span>
+          <span>Cerrar Sesion</span>
         </button>
       </div>
     </aside>

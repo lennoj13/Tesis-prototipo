@@ -6,7 +6,7 @@ from ...utils.database.connection_db import DataBaseHandle
 class SkillListService(Resource):
     def get(self):
         try:
-            sql = "SELECT skill_id, name, category FROM public.skills ORDER BY name ASC"
+            sql = "SELECT habilidad_id, nombre, categoria FROM public.habilidades ORDER BY nombre ASC"
             result = DataBaseHandle.getRecords(sql, 0)
             return response_success(result['data'])
         except Exception as e:

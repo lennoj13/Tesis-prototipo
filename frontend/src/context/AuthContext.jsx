@@ -1,20 +1,19 @@
-'use client';
 
 /**
- * AuthContext — React Context API para autenticación.
+ * AuthContext -- React Context API para autenticacion.
  * Conecta con la API Flask para login/registro real con JWT.
  */
 
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
-import { ROLE_ROUTES } from '../utils/constants';
+import { ROLE_ROUTES, ROLE_LABELS } from '../utils/constants';
 
 // --- Estado inicial ---
 const initialState = {
-  user: null,       // { user_id, username, name, lastname, email, role, role_id, profile_id }
+  user: null,       // { user_id, username, nombre, name, lastname, email, rol, role, role_id, profile_id }
   token: null,      // JWT string
-  isLoading: true,  // Cargando sesión del localStorage
+  isLoading: true,  // Cargando sesion del localStorage
   error: null,
 };
 
@@ -61,9 +60,9 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const router = useRouter();
+  const navigate = useNavigate();
 
-  // Cargar sesión desde localStorage al montar
+  // Cargar sesion desde localStorage al montar
   useEffect(() => {
     const loadSession = async () => {
       try {
@@ -84,7 +83,7 @@ export function AuthProvider({ children }) {
     loadSession();
   }, []);
 
-  // Login — llama a POST /security/login en Flask
+  // Login -- llama a POST /security/login en Flask
   const login = useCallback(async (email, password) => {
     dispatch({ type: 'LOADING' });
     try {
@@ -93,17 +92,21 @@ export function AuthProvider({ children }) {
       if (response.result && response.data) {
         const { token, user_info } = response.data;
         
+        // Normalizar el rol: el backend ahora devuelve roles en espanol
+        const backendRole = user_info.role; // 'estudiante', 'empresa', 'gestor', 'admin'
+        
         // Mapear datos del backend al formato del frontend
         const user = {
           id: user_info.user_id,
           user_id: user_info.user_id,
+          cedula: user_info.cedula,
           username: user_info.username,
           nombre: user_info.name,
           name: user_info.name,
           lastname: user_info.lastname,
           email: user_info.email,
-          rol: ROLE_ROUTES[user_info.role] ? getRolLabel(user_info.role) : 'estudiante',
-          role: user_info.role,
+          rol: backendRole,
+          role: backendRole,
           role_id: user_info.role_id,
           profile_id: user_info.profile_id,
         };
@@ -113,9 +116,9 @@ export function AuthProvider({ children }) {
 
         dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
-        // Redirigir según rol
-        const route = ROLE_ROUTES[user_info.role] || '/dashboard/estudiante';
-        router.push(route);
+        // Redirigir segun rol
+        const route = ROLE_ROUTES[backendRole] || '/dashboard/estudiante';
+        navigate(route);
       } else {
         dispatch({
           type: 'LOGIN_ERROR',
@@ -128,14 +131,14 @@ export function AuthProvider({ children }) {
         payload: err.response?.data?.message || 'Error al conectar con el servidor',
       });
     }
-  }, [router]);
+  }, [navigate]);
 
   // Logout
   const logout = useCallback(() => {
     authService.logout();
     dispatch({ type: 'LOGOUT' });
-    router.push('/login');
-  }, [router]);
+    navigate('/login');
+  }, [navigate]);
 
   // Limpiar error
   const clearError = useCallback(() => {
@@ -157,19 +160,7 @@ export function AuthProvider({ children }) {
 }
 
 /**
- * Mapeo de rol backend a label frontend
- */
-function getRolLabel(role) {
-  const labels = {
-    student: 'estudiante',
-    company: 'empresa',
-    admin: 'admin',
-  };
-  return labels[role] || 'estudiante';
-}
-
-/**
- * Hook personalizado para acceder al contexto de autenticación.
+ * Hook personalizado para acceder al contexto de autenticacion.
  */
 export function useAuth() {
   const context = useContext(AuthContext);

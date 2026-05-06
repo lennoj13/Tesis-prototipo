@@ -1,16 +1,29 @@
--- ============================================
 -- LIMPIAR TODA LA BASE DE DATOS
--- Ejecutar ANTES de seed.sql
--- ============================================
+-- Ejecutar ANTES de schema.sql
 
--- Borrar datos en orden (respetando foreign keys)
-TRUNCATE public.notifications RESTART IDENTITY CASCADE;
-TRUNCATE public.applications RESTART IDENTITY CASCADE;
-TRUNCATE public.vacancy_skills RESTART IDENTITY CASCADE;
-TRUNCATE public.vacancies RESTART IDENTITY CASCADE;
-TRUNCATE public.student_skills RESTART IDENTITY CASCADE;
-TRUNCATE public.company_profiles RESTART IDENTITY CASCADE;
-TRUNCATE public.student_profiles RESTART IDENTITY CASCADE;
-TRUNCATE public.users RESTART IDENTITY CASCADE;
-TRUNCATE public.skills RESTART IDENTITY CASCADE;
-TRUNCATE public.roles RESTART IDENTITY CASCADE;
+DROP TABLE IF EXISTS public.notificaciones CASCADE;
+DROP TABLE IF EXISTS public.postulaciones CASCADE;
+DROP TABLE IF EXISTS public.habilidades_vacante CASCADE;
+DROP TABLE IF EXISTS public.vacantes CASCADE;
+DROP TABLE IF EXISTS public.habilidades_estudiante CASCADE;
+DROP TABLE IF EXISTS public.habilidades CASCADE;
+DROP TABLE IF EXISTS public.supervisores CASCADE;
+DROP TABLE IF EXISTS public.instituciones CASCADE;
+DROP TABLE IF EXISTS public.perfiles_estudiante CASCADE;
+DROP TABLE IF EXISTS public.carreras CASCADE;
+DROP TABLE IF EXISTS public.facultades CASCADE;
+DROP TABLE IF EXISTS public.usuarios CASCADE;
+DROP TABLE IF EXISTS public.roles CASCADE;
+
+-- Tablas antiguas
+DROP TABLE IF EXISTS public.notifications CASCADE;
+DROP TABLE IF EXISTS public.applications CASCADE;
+DROP TABLE IF EXISTS public.vacancy_skills CASCADE;
+DROP TABLE IF EXISTS public.vacancies CASCADE;
+DROP TABLE IF EXISTS public.student_skills CASCADE;
+DROP TABLE IF EXISTS public.skills CASCADE;
+DROP TABLE IF EXISTS public.supervisors CASCADE;
+DROP TABLE IF EXISTS public.institutions CASCADE;
+DROP TABLE IF EXISTS public.student_profiles CASCADE;
+DROP TABLE IF EXISTS public.company_profiles CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;

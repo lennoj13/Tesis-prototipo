@@ -11,13 +11,13 @@ class UserComponent:
             message = None
 
             sql = """
-                SELECT u.user_id, u.login, u.name, u.lastname, u.email, u.phone, 
-                       r.name as role_name, u.is_active,
-                       TO_CHAR(u.created_at, 'YYYY-MM-DD') as created_at
-                FROM public.users u
-                JOIN public.roles r ON u.role_id = r.role_id
-                WHERE u.is_active = true
-                ORDER BY u.created_at DESC
+                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, u.correo, u.telefono, 
+                       r.nombre as rol_nombre, u.activo,
+                       TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en
+                FROM public.usuarios u
+                JOIN public.roles r ON u.rol_id = r.rol_id
+                WHERE u.activo = true
+                ORDER BY u.creado_en DESC
             """
 
             result_user = DataBaseHandle.getRecords(sql, 0)
@@ -40,19 +40,19 @@ class UserComponent:
             message = None
 
             sql = """
-                SELECT u.user_id, u.login, u.name, u.lastname, 
-                       u.email, u.phone, r.name as role_name, r.role_id,
+                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, 
+                       u.correo, u.telefono, r.nombre as rol_nombre, r.rol_id,
                        CASE 
-                           WHEN r.name = 'student' THEN sp.profile_id
-                           WHEN r.name = 'company' THEN cp.company_id
+                           WHEN r.nombre = 'estudiante' THEN pe.perfil_id
+                           WHEN r.nombre = 'empresa' THEN i.institucion_id
                            ELSE NULL 
-                       END as profile_id
-                FROM public.users u
-                JOIN public.roles r ON u.role_id = r.role_id
-                LEFT JOIN public.student_profiles sp ON u.user_id = sp.user_id AND r.name = 'student'
-                LEFT JOIN public.company_profiles cp ON u.user_id = cp.user_id AND r.name = 'company'
-                WHERE u.user_id = %s 
-                  AND u.is_active = true
+                       END as perfil_id
+                FROM public.usuarios u
+                JOIN public.roles r ON u.rol_id = r.rol_id
+                LEFT JOIN public.perfiles_estudiante pe ON u.usuario_id = pe.usuario_id AND r.nombre = 'estudiante'
+                LEFT JOIN public.instituciones i ON u.usuario_id = i.usuario_id AND r.nombre = 'empresa'
+                WHERE u.usuario_id = %s 
+                  AND u.activo = true
             """
 
             record = (user_id,)

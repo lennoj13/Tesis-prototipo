@@ -5,57 +5,62 @@ import bcrypt
 
 class RegisterComponent:
     @staticmethod
-    def register_user(login, password, name, lastname, email, phone, role_name):
+    def register_user(login, password, name, lastname, email, phone, role_name, cedula=None):
         try:
             result = False
             data = None
             message = None
 
-            # Verificar que el email no exista
-            sql_check = "SELECT user_id FROM public.users WHERE email = %s OR login = %s"
+            sql_check = "SELECT usuario_id FROM public.usuarios WHERE correo = %s OR login = %s"
             check = DataBaseHandle.getRecords(sql_check, 1, (email, login))
             if check['result'] and check['data']:
                 message = "El email o usuario ya está registrado"
                 return internal_response(result, data, message)
 
-            # Obtener role_id
-            sql_role = "SELECT role_id FROM public.roles WHERE name = %s"
+            if cedula:
+                sql_cedula = "SELECT usuario_id FROM public.usuarios WHERE cedula = %s"
+                check_ced = DataBaseHandle.getRecords(sql_cedula, 1, (cedula,))
+                if check_ced['result'] and check_ced['data']:
+                    message = "La cédula ya está registrada"
+                    return internal_response(result, data, message)
+
+            sql_role = "SELECT rol_id FROM public.roles WHERE nombre = %s"
             role_result = DataBaseHandle.getRecords(sql_role, 1, (role_name,))
             if not role_result['result'] or not role_result['data']:
                 message = "Rol no válido"
                 return internal_response(result, data, message)
 
-            role_id = role_result['data']['role_id']
-
-            # Hash de la contraseña
+            role_id = role_result['data']['rol_id']
             hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-            # Insertar usuario
             sql_user = """
-                INSERT INTO public.users (login, password, name, lastname, email, phone, role_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING user_id
+                INSERT INTO public.usuarios (cedula, login, contrasena, nombre, apellido, correo, telefono, rol_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING usuario_id
             """
             user_result = DataBaseHandle.ExecuteNonQuery(sql_user, (
-                login, hashed.decode('utf-8'), name, lastname, email, phone, role_id
+                cedula, login, hashed.decode('utf-8'), name, lastname, email, phone, role_id
             ))
 
             if user_result['result']:
                 user_id = user_result['data']
 
-                # Crear perfil según el rol
-                if role_name == 'student':
+                if role_name == 'estudiante':
+                    sql_carrera = "SELECT carrera_id FROM public.carreras WHERE codigo = 'SW' LIMIT 1"
+                    carrera_result = DataBaseHandle.getRecords(sql_carrera, 1)
+                    carrera_id = carrera_result['data']['carrera_id'] if carrera_result['result'] and carrera_result['data'] else None
+
                     sql_profile = """
-                        INSERT INTO public.student_profiles (user_id, university)
-                        VALUES (%s, 'Universidad de Guayaquil')
-                        RETURNING profile_id
+                        INSERT INTO public.perfiles_estudiante (usuario_id, carrera_id, universidad)
+                        VALUES (%s, %s, 'Universidad de Guayaquil')
+                        RETURNING perfil_id
                     """
-                    DataBaseHandle.ExecuteNonQuery(sql_profile, (user_id,))
-                elif role_name == 'company':
+                    DataBaseHandle.ExecuteNonQuery(sql_profile, (user_id, carrera_id))
+                elif role_name == 'empresa':
                     sql_profile = """
-                        INSERT INTO public.company_profiles (user_id, company_name, contact_email)
-                        VALUES (%s, %s, %s)
-                        RETURNING company_id
+                        INSERT INTO public.instituciones (usuario_id, nombre, correo_contacto, estado)
+                        VALUES (%s, %s, %s, 'pendiente')
+                        RETURNING institucion_id
                     """
                     DataBaseHandle.ExecuteNonQuery(sql_profile, (user_id, name, email))
 

@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * ConfirmDialog — Diálogo de confirmación para acciones destructivas.

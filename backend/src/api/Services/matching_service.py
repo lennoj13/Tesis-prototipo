@@ -16,14 +16,14 @@ class MatchingCandidatesService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
 
-            if auth['data'].get('role') != 'company':
+            if auth['data'].get('role') not in ('company', 'empresa'):
                 return response_error("Acceso denegado: se requiere rol empresa")
 
-            company_id = request.args.get('company_id')
-            if not company_id:
-                return response_error("company_id es requerido")
+            institution_id = request.args.get('company_id') or request.args.get('institution_id') or request.args.get('institucion_id')
+            if not institution_id:
+                return response_error("institucion_id es requerido")
 
-            result = MatchingComponent.get_candidates_for_company(int(company_id))
+            result = MatchingComponent.get_candidates_for_company(int(institution_id))
             if result['result']:
                 return response_success(result['data'])
             return response_error(result['message'])

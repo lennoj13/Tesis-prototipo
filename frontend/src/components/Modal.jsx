@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * Modal — Componente modal reutilizable con overlay.

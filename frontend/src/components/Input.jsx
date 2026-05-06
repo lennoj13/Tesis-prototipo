@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * Input reutilizable de MatchPP.

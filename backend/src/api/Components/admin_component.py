@@ -7,14 +7,13 @@ class AdminComponent:
     def get_user_detail(user_id):
         """Obtener detalle completo de un usuario para el admin."""
         try:
-            # Datos base del usuario
             sql_user = """
-                SELECT u.user_id, u.login, u.name, u.lastname, u.email, u.phone,
-                       r.name as role, u.is_active,
-                       TO_CHAR(u.created_at, 'YYYY-MM-DD') as created_at
-                FROM public.users u
-                JOIN public.roles r ON u.role_id = r.role_id
-                WHERE u.user_id = %s
+                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, u.correo, u.telefono,
+                       r.nombre as rol, u.activo,
+                       TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en
+                FROM public.usuarios u
+                JOIN public.roles r ON u.rol_id = r.rol_id
+                WHERE u.usuario_id = %s
             """
             user_result = DataBaseHandle.getRecords(sql_user, 1, (user_id,))
             if not user_result['result'] or not user_result['data']:
@@ -22,56 +21,69 @@ class AdminComponent:
 
             user_data = dict(user_result['data'])
 
-            # Si es estudiante, traer perfil estudiantil + habilidades
-            if user_data['role'] == 'student':
+            if user_data['rol'] == 'estudiante':
                 sql_profile = """
-                    SELECT sp.profile_id, sp.career, sp.semester, sp.university,
-                           sp.experience_summary, sp.interests, sp.curriculum_url
-                    FROM public.student_profiles sp
-                    WHERE sp.user_id = %s
+                    SELECT pe.perfil_id, pe.carrera_id, c.nombre as carrera,
+                           f.nombre as facultad, pe.semestre, pe.universidad,
+                           pe.resumen_experiencia, pe.intereses, pe.curriculum_url
+                    FROM public.perfiles_estudiante pe
+                    LEFT JOIN public.carreras c ON pe.carrera_id = c.carrera_id
+                    LEFT JOIN public.facultades f ON c.facultad_id = f.facultad_id
+                    WHERE pe.usuario_id = %s
                 """
                 profile_result = DataBaseHandle.getRecords(sql_profile, 1, (user_id,))
                 if profile_result['result'] and profile_result['data']:
-                    user_data['student_profile'] = dict(profile_result['data'])
+                    user_data['perfil_estudiante'] = dict(profile_result['data'])
 
-                    # Habilidades del estudiante
                     sql_skills = """
-                        SELECT s.name, ss.level
-                        FROM public.student_skills ss
-                        JOIN public.skills s ON ss.skill_id = s.skill_id
-                        WHERE ss.student_id = %s
-                        ORDER BY ss.level DESC
+                        SELECT h.nombre, he.nivel
+                        FROM public.habilidades_estudiante he
+                        JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
+                        WHERE he.estudiante_id = %s
+                        ORDER BY he.nivel DESC
                     """
-                    skills_result = DataBaseHandle.getRecords(sql_skills, 0, (profile_result['data']['profile_id'],))
+                    skills_result = DataBaseHandle.getRecords(sql_skills, 0, (profile_result['data']['perfil_id'],))
                     if skills_result['result'] and skills_result['data']:
-                        user_data['skills'] = [dict(s) for s in skills_result['data']]
+                        user_data['habilidades'] = [dict(s) for s in skills_result['data']]
                     else:
-                        user_data['skills'] = []
+                        user_data['habilidades'] = []
 
-                    # Conteo de postulaciones
                     sql_apps = """
                         SELECT 
                             COUNT(*) as total,
-                            COUNT(*) FILTER (WHERE status = 'pending') as pending,
-                            COUNT(*) FILTER (WHERE status = 'approved') as approved,
-                            COUNT(*) FILTER (WHERE status = 'rejected') as rejected
-                        FROM public.applications WHERE student_id = %s
+                            COUNT(*) FILTER (WHERE estado = 'pendiente') as pendientes,
+                            COUNT(*) FILTER (WHERE estado = 'aceptada_empresa') as aceptadas_empresa,
+                            COUNT(*) FILTER (WHERE estado = 'aprobada') as aprobadas,
+                            COUNT(*) FILTER (WHERE estado = 'rechazada') as rechazadas
+                        FROM public.postulaciones WHERE estudiante_id = %s
                     """
-                    apps_result = DataBaseHandle.getRecords(sql_apps, 1, (profile_result['data']['profile_id'],))
+                    apps_result = DataBaseHandle.getRecords(sql_apps, 1, (profile_result['data']['perfil_id'],))
                     if apps_result['result'] and apps_result['data']:
-                        user_data['applications'] = dict(apps_result['data'])
+                        user_data['postulaciones'] = dict(apps_result['data'])
 
-            # Si es empresa, traer perfil de empresa
-            elif user_data['role'] == 'company':
+            elif user_data['rol'] == 'empresa':
                 sql_company = """
-                    SELECT cp.company_id, cp.company_name, cp.ruc, cp.industry, 
-                           cp.description, cp.website, cp.location, cp.contact_email, cp.status
-                    FROM public.company_profiles cp
-                    WHERE cp.user_id = %s
+                    SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria, 
+                           i.descripcion, i.sitio_web, i.direccion, i.ciudad,
+                           i.correo_contacto, i.telefono as telefono_empresa, i.estado
+                    FROM public.instituciones i
+                    WHERE i.usuario_id = %s
                 """
                 company_result = DataBaseHandle.getRecords(sql_company, 1, (user_id,))
                 if company_result['result'] and company_result['data']:
-                    user_data['company_profile'] = dict(company_result['data'])
+                    user_data['perfil_empresa'] = dict(company_result['data'])
+                    
+                    sql_sups = """
+                        SELECT supervisor_id, nombre, numero_identificacion, correo, departamento, cargo, telefono, activo
+                        FROM public.supervisores
+                        WHERE institucion_id = %s AND activo = true
+                        ORDER BY nombre
+                    """
+                    sups_result = DataBaseHandle.getRecords(sql_sups, 0, (company_result['data']['institucion_id'],))
+                    if sups_result['result'] and sups_result['data']:
+                        user_data['supervisores'] = [dict(s) for s in sups_result['data']]
+                    else:
+                        user_data['supervisores'] = []
 
             return internal_response(True, user_data, "Detalle de usuario obtenido")
         except Exception as err:
@@ -82,13 +94,15 @@ class AdminComponent:
     def get_stats():
         try:
             queries = {
-                'total_students': "SELECT COUNT(*) as count FROM public.users u JOIN public.roles r ON u.role_id = r.role_id WHERE r.name = 'student' AND u.is_active = true",
-                'total_companies': "SELECT COUNT(*) as count FROM public.users u JOIN public.roles r ON u.role_id = r.role_id WHERE r.name = 'company' AND u.is_active = true",
-                'total_vacancies': "SELECT COUNT(*) as count FROM public.vacancies WHERE is_active = true",
-                'total_applications': "SELECT COUNT(*) as count FROM public.applications",
-                'pending_applications': "SELECT COUNT(*) as count FROM public.applications WHERE status = 'pending'",
-                'approved_applications': "SELECT COUNT(*) as count FROM public.applications WHERE status = 'approved'",
-                'pending_companies': "SELECT COUNT(*) as count FROM public.company_profiles WHERE status = 'pending'",
+                'total_estudiantes': "SELECT COUNT(*) as count FROM public.usuarios u JOIN public.roles r ON u.rol_id = r.rol_id WHERE r.nombre = 'estudiante' AND u.activo = true",
+                'total_empresas': "SELECT COUNT(*) as count FROM public.usuarios u JOIN public.roles r ON u.rol_id = r.rol_id WHERE r.nombre = 'empresa' AND u.activo = true",
+                'total_vacantes': "SELECT COUNT(*) as count FROM public.vacantes WHERE activo = true",
+                'total_postulaciones': "SELECT COUNT(*) as count FROM public.postulaciones",
+                'postulaciones_pendientes': "SELECT COUNT(*) as count FROM public.postulaciones WHERE estado = 'pendiente'",
+                'postulaciones_aceptadas': "SELECT COUNT(*) as count FROM public.postulaciones WHERE estado = 'aceptada_empresa'",
+                'postulaciones_aprobadas': "SELECT COUNT(*) as count FROM public.postulaciones WHERE estado = 'aprobada'",
+                'postulaciones_rechazadas': "SELECT COUNT(*) as count FROM public.postulaciones WHERE estado = 'rechazada'",
+                'empresas_pendientes': "SELECT COUNT(*) as count FROM public.instituciones WHERE estado = 'pendiente'",
             }
             
             stats = {}
@@ -105,14 +119,15 @@ class AdminComponent:
     def get_all_companies():
         try:
             sql = """
-                SELECT cp.company_id, cp.company_name, cp.ruc, cp.industry, 
-                       cp.location, cp.contact_email, cp.status,
-                       u.name || ' ' || u.lastname as contact_person,
-                       TO_CHAR(u.created_at, 'YYYY-MM-DD') as created_at,
-                       (SELECT COUNT(*) FROM public.vacancies v WHERE v.company_id = cp.company_id AND v.is_active = true) as active_vacancies
-                FROM public.company_profiles cp
-                JOIN public.users u ON cp.user_id = u.user_id
-                ORDER BY u.created_at DESC
+                SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria, 
+                       i.direccion, i.ciudad, i.correo_contacto, i.estado,
+                       u.nombre || ' ' || u.apellido as persona_contacto,
+                       TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en,
+                       (SELECT COUNT(*) FROM public.vacantes v WHERE v.institucion_id = i.institucion_id AND v.activo = true) as vacantes_activas,
+                       (SELECT COUNT(*) FROM public.supervisores sv WHERE sv.institucion_id = i.institucion_id AND sv.activo = true) as total_supervisores
+                FROM public.instituciones i
+                JOIN public.usuarios u ON i.usuario_id = u.usuario_id
+                ORDER BY u.creado_en DESC
             """
             result = DataBaseHandle.getRecords(sql, 0)
             if result['result']:
@@ -123,10 +138,10 @@ class AdminComponent:
             return internal_response(False, [], str(err))
 
     @staticmethod
-    def update_company_status(company_id, new_status):
+    def update_company_status(institucion_id, nuevo_estado):
         try:
-            sql = "UPDATE public.company_profiles SET status = %s WHERE company_id = %s"
-            DataBaseHandle.ExecuteNonQuery(sql, (new_status, company_id))
+            sql = "UPDATE public.instituciones SET estado = %s, actualizado_en = NOW() WHERE institucion_id = %s"
+            DataBaseHandle.ExecuteNonQuery(sql, (nuevo_estado, institucion_id))
             return internal_response(True, None, "Estado actualizado")
         except Exception as err:
             HandleLogs.write_error(err)
@@ -136,20 +151,17 @@ class AdminComponent:
     def delete_user(user_id, admin_user_id):
         """Desactivar (soft delete) un usuario por su ID."""
         try:
-            # No permitir que el admin se elimine a sí mismo
             if str(user_id) == str(admin_user_id):
                 return internal_response(False, None, "No puedes eliminar tu propia cuenta")
 
-            # Verificar que el usuario existe y está activo
-            sql_check = "SELECT user_id, is_active FROM public.users WHERE user_id = %s"
+            sql_check = "SELECT usuario_id, activo FROM public.usuarios WHERE usuario_id = %s"
             check = DataBaseHandle.getRecords(sql_check, 1, (user_id,))
             if not check['result'] or not check['data']:
                 return internal_response(False, None, "Usuario no encontrado")
-            if not check['data']['is_active']:
+            if not check['data']['activo']:
                 return internal_response(False, None, "El usuario ya está desactivado")
 
-            # Soft delete: desactivar usuario
-            sql = "UPDATE public.users SET is_active = false WHERE user_id = %s"
+            sql = "UPDATE public.usuarios SET activo = false, actualizado_en = NOW() WHERE usuario_id = %s"
             result = DataBaseHandle.ExecuteNonQuery(sql, (user_id,))
 
             if result['result']:

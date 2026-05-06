@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * Logo reutilizable de MatchPP.

@@ -4,11 +4,7 @@ from ..Services.user_service import UserService, CurrentUserService
 from ..Services.vacancy_services import VacancyService, VacancyCatalogService, VacancyDetailService
 from ..Services.profile_service import ProfileService, PublicProfileService
 from ..Services.skills_service import SkillListService
-from ..Services.application_service import ApplicationService, ApplicationStatusService
-from ..Services.notification_service import (
-    NotificationService, NotificationReadService, 
-    NotificationReadAllService, NotificationDeleteService
-)
+from ..Services.application_service import ApplicationService, ApplicationStatusService, ApplicationSolicitudService
 from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService, AdminDeleteUserService, AdminUserDetailService
 from ..Services.matching_service import MatchingCandidatesService
 
@@ -33,12 +29,7 @@ def load_routes(api):
     # === Postulaciones ===
     api.add_resource(ApplicationService, '/applications')
     api.add_resource(ApplicationStatusService, '/applications/<int:application_id>')
-
-    # === Notificaciones ===
-    api.add_resource(NotificationService, '/notifications')
-    api.add_resource(NotificationReadService, '/notifications/<int:notification_id>/read')
-    api.add_resource(NotificationReadAllService, '/notifications/read-all')
-    api.add_resource(NotificationDeleteService, '/notifications/<int:notification_id>')
+    api.add_resource(ApplicationSolicitudService, '/applications/<int:application_id>/solicitud')
 
     # === Habilidades ===
     api.add_resource(SkillListService, '/skills')

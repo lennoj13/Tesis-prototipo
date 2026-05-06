@@ -1,22 +1,19 @@
-'use client';
 
 /**
- * Navbar — Barra de navegación superior.
- * Demuestra: Componente React reutilizable, useAuth hook, props callback.
+ * Navbar -- Barra de navegacion superior.
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from 'context/AuthContext';
 import Logo from './Logo';
-import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSearch, FiSettings } from 'react-icons/fi';
-import NotificationDropdown from './NotificationDropdown';
+import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSettings } from 'react-icons/fi';
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // Cerrar menú al hacer clic fuera
+  // Cerrar menu al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -30,23 +27,25 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const rolLabels = {
     estudiante: 'Estudiante',
     empresa: 'Empresa',
+    gestor: 'Gestor PPP',
     admin: 'Administrador',
   };
 
   const profileRoutes = {
     estudiante: '/dashboard/estudiante/perfil',
     empresa: '/dashboard/empresa',
+    gestor: '/dashboard/gestor',
     admin: '/dashboard/admin',
   };
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-50 shadow-sm">
       <div className="flex items-center gap-2">
-        {/* Botón hamburguesa — transición suave a flecha ← */}
+        {/* Boton hamburguesa */}
         <button
           className="hidden md:hidden max-md:flex items-center justify-center relative w-10 h-10 border-none bg-transparent text-slate-600 rounded-lg cursor-pointer transition-all duration-150 hover:bg-slate-100 hover:text-slate-800"
           onClick={onToggleSidebar}
-          aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-label={sidebarOpen ? 'Cerrar menu' : 'Abrir menu'}
         >
           <FiMenu size={22} className={`hamburger-icon ${!sidebarOpen ? 'icon-visible' : 'icon-hidden'}`} />
           <FiArrowLeft size={22} className={`hamburger-icon ${sidebarOpen ? 'icon-visible' : 'icon-hidden'}`} />
@@ -54,23 +53,8 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
         <Logo size="sm" />
       </div>
 
-      {/* Barra de búsqueda central */}
-      <div className="hidden md:flex flex-1 max-w-md mx-8">
-        <div className="relative w-full">
-          <FiSearch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar vacantes, estudiantes..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
-          />
-        </div>
-      </div>
-
       <div className="flex items-center gap-2">
-        {/* Notificaciones Reales */}
-        <NotificationDropdown />
-
-        {/* Menú de usuario */}
+        {/* Menu de usuario */}
         <div className="relative" ref={menuRef}>
           <button
             className="flex items-center gap-2.5 py-1.5 px-2.5 border-none bg-transparent rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
@@ -111,7 +95,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
                 onClick={() => setMenuOpen(false)}
               >
                 <FiSettings size={16} />
-                <span>Configuración</span>
+                <span>Configuracion</span>
               </button>
               <div className="h-px bg-slate-200 mx-2 my-1" />
               <button
@@ -119,7 +103,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
                 onClick={logout}
               >
                 <FiLogOut size={16} />
-                <span>Cerrar Sesión</span>
+                <span>Cerrar Sesion</span>
               </button>
             </div>
           )}
