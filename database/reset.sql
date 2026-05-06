@@ -1,7 +1,6 @@
 -- LIMPIAR TODA LA BASE DE DATOS
 -- Ejecutar ANTES de schema.sql
 
-DROP TABLE IF EXISTS public.notificaciones CASCADE;
 DROP TABLE IF EXISTS public.postulaciones CASCADE;
 DROP TABLE IF EXISTS public.habilidades_vacante CASCADE;
 DROP TABLE IF EXISTS public.vacantes CASCADE;

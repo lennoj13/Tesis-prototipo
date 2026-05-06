@@ -111,9 +111,3 @@ INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_
     (1, 2, 'aceptada_empresa', 85.0),
     (3, 3, 'pendiente', 88.3);
 
--- NOTIFICACIONES
-INSERT INTO public.notificaciones (usuario_id, tipo, titulo, mensaje, leida, referencia_id, referencia_tipo) VALUES 
-    (2, 'vacante', 'Nueva vacante compatible', 'Practicante Desarrollo Frontend en TechSolutions GYE tiene 92% de afinidad con tu perfil', false, 1, 'vacante'),
-    (2, 'postulacion', 'Postulacion aceptada por empresa', 'Tu postulacion a Practicante Backend Python en TechSolutions GYE ha sido aceptada por la empresa', false, 2, 'postulacion'),
-    (5, 'postulante', 'Nuevo postulante', 'Bryan Guillermo Galarza Indacochea se postulo a Practicante Desarrollo Frontend', false, 1, 'postulacion'),
-    (5, 'afinidad', 'Afinidad alta detectada', 'Bryan Guillermo Galarza Indacochea tiene un 92% de afinidad con Practicante Desarrollo Frontend', true, 1, 'vacante');

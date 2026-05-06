@@ -162,19 +162,6 @@ CREATE TABLE public.postulaciones (
     UNIQUE(estudiante_id, vacante_id)
 );
 
--- 13. NOTIFICACIONES
-CREATE TABLE public.notificaciones (
-    notificacion_id SERIAL PRIMARY KEY,
-    usuario_id INTEGER NOT NULL REFERENCES public.usuarios(usuario_id) ON DELETE CASCADE,
-    tipo VARCHAR(30) NOT NULL,
-    titulo VARCHAR(200) NOT NULL,
-    mensaje TEXT,
-    leida BOOLEAN DEFAULT false,
-    referencia_id INTEGER,
-    referencia_tipo VARCHAR(30),
-    creado_en TIMESTAMP DEFAULT NOW()
-);
-
 -- INDICES
 CREATE INDEX idx_usuarios_rol ON public.usuarios(rol_id);
 CREATE INDEX idx_usuarios_correo ON public.usuarios(correo);
@@ -189,5 +176,3 @@ CREATE INDEX idx_vacantes_activo ON public.vacantes(activo);
 CREATE INDEX idx_postulaciones_estudiante ON public.postulaciones(estudiante_id);
 CREATE INDEX idx_postulaciones_vacante ON public.postulaciones(vacante_id);
 CREATE INDEX idx_postulaciones_estado ON public.postulaciones(estado);
-CREATE INDEX idx_notificaciones_usuario ON public.notificaciones(usuario_id);
-CREATE INDEX idx_notificaciones_leida ON public.notificaciones(leida);
