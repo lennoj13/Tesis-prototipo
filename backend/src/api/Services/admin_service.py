@@ -143,3 +143,23 @@ class AdminDeleteUserService(Resource):
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))
 
+class AdminReportsService(Resource):
+    @staticmethod
+    def get():
+        """Obtener datos reales para los gráficos de reportes"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado: se requiere rol admin o gestor")
+
+            result = AdminComponent.get_report_data()
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))

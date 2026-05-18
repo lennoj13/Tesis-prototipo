@@ -1,8 +1,8 @@
 
 /**
- * Admin Reportes — Dashboard con estadísticas reales.
+ * Admin Reportes — Dashboard con estadísticas reales de la BD.
  * Módulo 5: Reportes y Analítica
- * Nota: Los gráficos de recharts usan datos estáticos por ahora (se conectarán cuando haya suficiente data acumulada)
+ * Todos los datos provienen del endpoint /admin/reports (datos reales de PostgreSQL)
  */
 
 import { useState, useEffect } from 'react';
@@ -11,69 +11,67 @@ import PageHeader from 'components/PageHeader';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
-  LineChart, Line,
-  AreaChart, Area,
 } from 'recharts';
-import { FiTrendingUp, FiUsers, FiTarget, FiAward } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiTarget, FiAward, FiLoader, FiInbox } from 'react-icons/fi';
 
-// Datos para gráficos (se poblarán con datos reales cuando haya historial)
-const matchingsPorMes = [
-  { mes: 'Sep', matchings: 18 },
-  { mes: 'Oct', matchings: 32 },
-  { mes: 'Nov', matchings: 28 },
-  { mes: 'Dic', matchings: 45 },
-  { mes: 'Ene', matchings: 52 },
-  { mes: 'Feb', matchings: 61 },
-];
+const COLORS = ['#2f7df2', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#6366f1', '#f97316'];
+const ESTADO_COLORS = {
+  'Pendiente': '#f59e0b',
+  'Aceptada Empresa': '#3b82f6',
+  'Aprobada': '#22c55e',
+  'Rechazada': '#ef4444',
+};
 
-const distribucionArea = [
-  { name: 'Tecnología', value: 35 },
-  { name: 'Finanzas', value: 15 },
-  { name: 'Marketing', value: 12 },
-  { name: 'RRHH', value: 10 },
-  { name: 'Data Science', value: 18 },
-  { name: 'Otros', value: 10 },
-];
-
-const tasaColocacion = [
-  { mes: 'Sep', tasa: 42 },
-  { mes: 'Oct', tasa: 55 },
-  { mes: 'Nov', tasa: 48 },
-  { mes: 'Dic', tasa: 62 },
-  { mes: 'Ene', tasa: 68 },
-  { mes: 'Feb', tasa: 74 },
-];
-
-const topEmpresas = [
-  { nombre: 'TechSolutions GYE', practicantes: 12 },
-  { nombre: 'CloudNet EC', practicantes: 9 },
-  { nombre: 'DataMind EC', practicantes: 7 },
-  { nombre: 'InnovaGroup', practicantes: 6 },
-  { nombre: 'BioHealth EC', practicantes: 5 },
-];
-
-const COLORS = ['#2f7df2', '#1a65d6', '#5293f5', '#74a8f7', '#9ec1fa', '#c5dafc'];
+function EmptyChart({ message }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-[260px] text-slate-400">
+      <FiInbox size={32} className="mb-2 opacity-50" />
+      <p className="text-sm m-0">{message}</p>
+    </div>
+  );
+}
 
 export default function AdminReportes() {
   const [stats, setStats] = useState(null);
+  const [reports, setReports] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await adminService.getStats();
-        if (res.result && res.data) setStats(res.data);
+        const [statsRes, reportsRes] = await Promise.all([
+          adminService.getStats(),
+          adminService.getReports(),
+        ]);
+        if (statsRes.result && statsRes.data) setStats(statsRes.data);
+        if (reportsRes.result && reportsRes.data) setReports(reportsRes.data);
       } catch (err) { console.error(err); }
+      finally { setLoading(false); }
     }
     load();
   }, []);
 
   const s = stats || {};
   const kpiCards = [
-    { label: 'Total usuarios', value: (s.total_students || 0) + (s.total_companies || 0), icon: FiUsers, color: 'bg-primary-50 text-primary-600' },
-    { label: 'Vacantes activas', value: s.total_vacancies || 0, icon: FiTarget, color: 'bg-success-light text-green-600' },
-    { label: 'Postulaciones', value: s.total_applications || 0, icon: FiTrendingUp, color: 'bg-info-light text-blue-600' },
-    { label: 'Empresas', value: s.total_companies || 0, icon: FiAward, color: 'bg-warning-light text-amber-600' },
+    { label: 'Estudiantes', value: s.total_estudiantes || 0, icon: FiUsers, color: 'bg-blue-50 text-blue-600' },
+    { label: 'Vacantes activas', value: s.total_vacantes || 0, icon: FiTarget, color: 'bg-green-50 text-green-600' },
+    { label: 'Postulaciones', value: s.total_postulaciones || 0, icon: FiTrendingUp, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Empresas', value: s.total_empresas || 0, icon: FiAward, color: 'bg-amber-50 text-amber-600' },
   ];
+
+  const postulacionesEstado = reports?.postulaciones_por_estado || [];
+  const vacantesPorArea = reports?.vacantes_por_area || [];
+  const habilidadesDemandadas = reports?.habilidades_demandadas || [];
+  const topEmpresas = reports?.top_empresas || [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-400 gap-2">
+        <FiLoader className="animate-spin" size={20} />
+        <span>Cargando reportes...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -100,66 +98,106 @@ export default function AdminReportes() {
         })}
       </div>
 
-      {/* Charts grid */}
+      {/* Charts grid — datos reales de PostgreSQL */}
       <div className="grid grid-cols-2 gap-6 mb-6 max-md:grid-cols-1">
+        {/* Postulaciones por Estado */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Matchings por Mes</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={matchingsPorMes}>
-              <defs>
-                <linearGradient id="colorMatchings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2f7df2" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#2f7df2" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
-              <Area type="monotone" dataKey="matchings" stroke="#2f7df2" strokeWidth={2.5} fill="url(#colorMatchings)" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Postulaciones por Estado</h3>
+          {postulacionesEstado.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={postulacionesEstado}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={3}
+                  dataKey="valor"
+                  nameKey="nombre"
+                >
+                  {postulacionesEstado.map((entry, i) => (
+                    <Cell key={`cell-${i}`} fill={ESTADO_COLORS[entry.nombre] || COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value, name) => [value, name]}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChart message="Sin postulaciones registradas" />
+          )}
         </div>
 
+        {/* Vacantes por Área */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Distribución por Área</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie data={distribucionArea} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value">
-                {distribucionArea.map((_, i) => (
-                  <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Vacantes por Área</h3>
+          {vacantesPorArea.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={vacantesPorArea}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={3}
+                  dataKey="valor"
+                  nameKey="nombre"
+                >
+                  {vacantesPorArea.map((_, i) => (
+                    <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value, name) => [value, name]}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChart message="Sin vacantes activas" />
+          )}
         </div>
 
+        {/* Habilidades más Demandadas */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Tasa de Colocación (%)</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={tasaColocacion}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 100]} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
-              <Line type="monotone" dataKey="tasa" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 5, fill: '#22c55e' }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Habilidades más Demandadas</h3>
+          {habilidadesDemandadas.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={habilidadesDemandadas} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis type="number" tick={{ fontSize: 12, fill: '#94a3b8' }} allowDecimals={false} />
+                <YAxis dataKey="nombre" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={90} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
+                <Bar dataKey="valor" fill="#2f7df2" radius={[0, 6, 6, 0]} barSize={22} name="Vacantes" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChart message="Sin habilidades registradas en vacantes" />
+          )}
         </div>
 
+        {/* Top Empresas por Postulaciones */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Top Empresas por Practicantes</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={topEmpresas} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis type="number" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-              <YAxis dataKey="nombre" type="category" tick={{ fontSize: 12, fill: '#64748b' }} width={100} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} />
-              <Bar dataKey="practicantes" fill="#2f7df2" radius={[0, 6, 6, 0]} barSize={24} />
-            </BarChart>
-          </ResponsiveContainer>
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Empresas con más Postulaciones</h3>
+          {topEmpresas.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={topEmpresas} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis type="number" tick={{ fontSize: 12, fill: '#94a3b8' }} allowDecimals={false} />
+                <YAxis dataKey="nombre" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={120} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
+                <Bar dataKey="postulaciones" fill="#22c55e" radius={[0, 6, 6, 0]} barSize={22} name="Postulaciones" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChart message="Sin postulaciones a empresas" />
+          )}
         </div>
       </div>
     </div>

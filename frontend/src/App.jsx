@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from 'context/AuthContext';
 
 import LoginPage from 'pages/login/page';
-import RegisterPage from 'pages/register/page';
+
 import DashboardLayout from 'pages/dashboard/layout';
 
 import AdminDashboard from 'pages/dashboard/admin/page';
@@ -34,7 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+
           
           <Route path="/dashboard" element={<DashboardLayout />}>
             {/* Admin Routes */}

@@ -16,7 +16,6 @@ import {
   FiInbox,
   FiSend,
   FiTarget,
-  FiLogOut,
   FiCheckSquare,
 } from 'react-icons/fi';
 
@@ -57,7 +56,7 @@ const menuConfig = {
 };
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -109,26 +108,6 @@ export default function Sidebar({ isOpen, onClose }) {
           })}
         </ul>
       </nav>
-
-      {/* Footer -- mini perfil + logout */}
-      <div className="p-3 border-t border-slate-200">
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-1.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white font-bold text-sm flex items-center justify-center flex-shrink-0">
-            {user?.nombre?.charAt(0).toUpperCase() || 'U'}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-semibold text-slate-800 truncate">{user?.nombre || 'Usuario'}</span>
-            <span className="text-xs text-slate-500 truncate">{user?.email || ''}</span>
-          </div>
-        </div>
-        <button
-          onClick={logout}
-          className="flex items-center gap-2.5 w-full py-2 px-3 border-none bg-transparent text-sm text-slate-500 rounded-lg cursor-pointer transition-colors hover:bg-danger-light hover:text-danger font-medium"
-        >
-          <FiLogOut size={16} />
-          <span>Cerrar Sesion</span>
-        </button>
-      </div>
     </aside>
   );
 }

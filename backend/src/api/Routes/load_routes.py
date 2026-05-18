@@ -1,17 +1,17 @@
 from ..Services.login_service import LoginService
-from ..Services.register_service import RegisterService
+
 from ..Services.user_service import UserService, CurrentUserService
 from ..Services.vacancy_services import VacancyService, VacancyCatalogService, VacancyDetailService
 from ..Services.profile_service import ProfileService, PublicProfileService
 from ..Services.skills_service import SkillListService
 from ..Services.application_service import ApplicationService, ApplicationStatusService, ApplicationSolicitudService
-from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService, AdminDeleteUserService, AdminUserDetailService
+from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService, AdminDeleteUserService, AdminUserDetailService, AdminReportsService
 from ..Services.matching_service import MatchingCandidatesService
 
 def load_routes(api):
     # === Autenticación ===
     api.add_resource(LoginService, '/security/login')
-    api.add_resource(RegisterService, '/security/register')
+
     api.add_resource(CurrentUserService, '/security/current-user')
 
     # === Usuarios ===
@@ -43,3 +43,6 @@ def load_routes(api):
 
     # === Matching ===
     api.add_resource(MatchingCandidatesService, '/matching/candidates')
+
+    # === Reportes ===
+    api.add_resource(AdminReportsService, '/admin/reports')

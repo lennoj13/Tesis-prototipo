@@ -51,6 +51,12 @@ const adminService = {
     const response = await api.put(`/admin/users/${userId}`, userData);
     return response.data;
   },
+
+  /** Obtener datos reales para los gráficos de reportes */
+  getReports: async () => {
+    const response = await api.get('/admin/reports');
+    return response.data;
+  },
 };
 
 export default adminService;

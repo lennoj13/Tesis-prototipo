@@ -17,13 +17,7 @@ const authService = {
     return response.data;
   },
 
-  /**
-   * Registro de nuevo usuario
-   */
-  register: async (userData) => {
-    const response = await api.post('/security/register', userData);
-    return response.data;
-  },
+
 
   /**
    * Obtener datos del usuario autenticado

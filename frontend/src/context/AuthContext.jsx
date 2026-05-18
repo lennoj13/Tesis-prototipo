@@ -1,7 +1,7 @@
 
 /**
  * AuthContext -- React Context API para autenticacion.
- * Conecta con la API Flask para login/registro real con JWT.
+ * Conecta con la API Flask para login real con JWT.
  */
 
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';

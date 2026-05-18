@@ -170,3 +170,70 @@ class AdminComponent:
         except Exception as err:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))
+
+    @staticmethod
+    def get_report_data():
+        """Obtener datos reales para los gráficos de reportes."""
+        try:
+            report = {}
+
+            # 1. Postulaciones por estado
+            sql_estados = """
+                SELECT 
+                    CASE estado
+                        WHEN 'pendiente' THEN 'Pendiente'
+                        WHEN 'aceptada_empresa' THEN 'Aceptada Empresa'
+                        WHEN 'aprobada' THEN 'Aprobada'
+                        WHEN 'rechazada' THEN 'Rechazada'
+                        ELSE estado
+                    END as nombre,
+                    COUNT(*) as valor
+                FROM public.postulaciones
+                GROUP BY estado
+                ORDER BY valor DESC
+            """
+            r1 = DataBaseHandle.getRecords(sql_estados, 0)
+            report['postulaciones_por_estado'] = [dict(r) for r in r1['data']] if r1['result'] and r1['data'] else []
+
+            # 2. Vacantes por área
+            sql_areas = """
+                SELECT COALESCE(area, 'Sin area') as nombre, COUNT(*) as valor
+                FROM public.vacantes
+                WHERE activo = true
+                GROUP BY area
+                ORDER BY valor DESC
+            """
+            r2 = DataBaseHandle.getRecords(sql_areas, 0)
+            report['vacantes_por_area'] = [dict(r) for r in r2['data']] if r2['result'] and r2['data'] else []
+
+            # 3. Habilidades más demandadas en vacantes activas
+            sql_skills = """
+                SELECT h.nombre as nombre, COUNT(*) as valor
+                FROM public.habilidades_vacante hv
+                JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                JOIN public.vacantes v ON hv.vacante_id = v.vacante_id AND v.activo = true
+                GROUP BY h.nombre
+                ORDER BY valor DESC
+                LIMIT 10
+            """
+            r3 = DataBaseHandle.getRecords(sql_skills, 0)
+            report['habilidades_demandadas'] = [dict(r) for r in r3['data']] if r3['result'] and r3['data'] else []
+
+            # 4. Top empresas por postulaciones recibidas
+            sql_empresas = """
+                SELECT i.nombre as nombre, COUNT(p.postulacion_id) as postulaciones
+                FROM public.instituciones i
+                JOIN public.vacantes v ON i.institucion_id = v.institucion_id
+                LEFT JOIN public.postulaciones p ON v.vacante_id = p.vacante_id
+                WHERE i.estado = 'aprobado'
+                GROUP BY i.nombre
+                ORDER BY postulaciones DESC
+                LIMIT 5
+            """
+            r4 = DataBaseHandle.getRecords(sql_empresas, 0)
+            report['top_empresas'] = [dict(r) for r in r4['data']] if r4['result'] and r4['data'] else []
+
+            return internal_response(True, report, "Datos de reportes obtenidos")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))

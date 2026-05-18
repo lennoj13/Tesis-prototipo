@@ -42,7 +42,7 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
       </div>
       {showText && (
         <span className={`${s.font} font-bold text-slate-800`}>
-          Match<span className="text-primary-600">PP</span>
+          SistemaRecomendación<span className="text-primary-600">PP</span>
         </span>
       )}
     </div>
