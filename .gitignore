@@ -12,9 +12,8 @@ env/
 .env.production
 .flaskenv
 
-# Next.js
-.next/
-out/
+# React Build
+frontend/build/
 
 # IDE
 .vscode/
