@@ -31,6 +31,7 @@ export default function NuevaVacante() {
   const [form, setForm] = useState({
     title: '', description: '', requirements: '',
     area: '', modality: 'Presencial', location: 'Guayaquil',
+    total_hours: '', daily_hours: '', schedule: '',
     slots: 1, expires_at: '', supervisor_id: ''
   });
   const [errors, setErrors] = useState({});
@@ -77,6 +78,9 @@ export default function NuevaVacante() {
         area: form.area,
         modality: form.modality,
         location: form.location,
+        total_hours: form.total_hours ? parseInt(form.total_hours, 10) : null,
+        daily_hours: form.daily_hours ? parseInt(form.daily_hours, 10) : null,
+        schedule: form.schedule || null,
         slots: parseInt(form.slots) || 1,
         expires_at: form.expires_at,
         supervisor_id: parseInt(form.supervisor_id),
@@ -176,6 +180,21 @@ export default function NuevaVacante() {
               <label className="text-sm font-semibold text-slate-700">Fecha límite <span className="text-danger">*</span></label>
               <input name="expires_at" type="date" value={form.expires_at} onChange={handleChange} className={`${fieldBase} ${errors.expires_at ? fieldErr : fieldOk}`} />
               {errors.expires_at && <p className="text-[0.8125rem] text-danger">{errors.expires_at}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Total de horas</label>
+              <input name="total_hours" type="number" value={form.total_hours} onChange={handleChange} min="1" placeholder="240" className={`${fieldBase} ${fieldOk}`} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Horas al día</label>
+              <input name="daily_hours" type="number" value={form.daily_hours} onChange={handleChange} min="1" placeholder="6" className={`${fieldBase} ${fieldOk}`} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Horario</label>
+              <input name="schedule" value={form.schedule} onChange={handleChange} placeholder="Lunes a Viernes" className={`${fieldBase} ${fieldOk}`} />
             </div>
           </div>
 

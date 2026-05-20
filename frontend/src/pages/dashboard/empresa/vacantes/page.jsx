@@ -36,6 +36,9 @@ function normalizeVacancy(row) {
     requirements: row.requirements ?? row.requisitos,
     modality: row.modality ?? row.modalidad,
     location: row.location ?? row.ubicacion,
+    total_hours: row.total_hours ?? row.total_horas,
+    daily_hours: row.daily_hours ?? row.horas_diarias,
+    schedule: row.schedule ?? row.horario,
     slots: row.slots ?? row.cupos,
     applications_count: row.applications_count ?? row.total_postulaciones,
     is_active: row.is_active ?? row.activo,
@@ -95,6 +98,9 @@ export default function EmpresaVacantes() {
       area: row.area || '',
       modality: row.modality || 'Presencial',
       location: row.location || '',
+      total_hours: row.total_hours ?? '',
+      daily_hours: row.daily_hours ?? '',
+      schedule: row.schedule || '',
       slots: row.slots || 1,
       expires_at: row.expires_at ? row.expires_at.split('T')[0] : '',
       supervisor_id: row.supervisor_id ?? '',
@@ -125,6 +131,9 @@ export default function EmpresaVacantes() {
   async function handleEditSave() {
     if (!validateEdit()) return;
     setEditSaving(true);
+    const totalHours = editForm.total_hours ? parseInt(editForm.total_hours, 10) : null;
+    const dailyHours = editForm.daily_hours ? parseInt(editForm.daily_hours, 10) : null;
+    const schedule = editForm.schedule || null;
     try {
       const res = await vacancyService.update(editModal.vacancy_id, {
         title: editForm.title,
@@ -133,6 +142,9 @@ export default function EmpresaVacantes() {
         area: editForm.area,
         modality: editForm.modality,
         location: editForm.location,
+        total_hours: totalHours,
+        daily_hours: dailyHours,
+        schedule,
         slots: parseInt(editForm.slots) || 1,
         expires_at: editForm.expires_at || null,
         supervisor_id: editForm.supervisor_id ? parseInt(editForm.supervisor_id) : null,
@@ -143,7 +155,15 @@ export default function EmpresaVacantes() {
         // Actualizar en lista local
         setVacantes(prev => prev.map(v =>
           v.vacancy_id === editModal.vacancy_id
-            ? { ...v, ...editForm, slots: parseInt(editForm.slots) || 1, supervisor_id: editForm.supervisor_id ? parseInt(editForm.supervisor_id) : null }
+            ? {
+              ...v,
+              ...editForm,
+              total_hours: totalHours,
+              daily_hours: dailyHours,
+              schedule,
+              slots: parseInt(editForm.slots) || 1,
+              supervisor_id: editForm.supervisor_id ? parseInt(editForm.supervisor_id) : null,
+            }
             : v
         ));
         setEditModal(null);
@@ -264,6 +284,9 @@ export default function EmpresaVacantes() {
               <div><p className="text-xs text-slate-500 mb-1">Área</p><p className="text-sm font-semibold text-slate-800">{viewModal.area}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Modalidad</p><p className="text-sm font-semibold text-slate-800">{viewModal.modality || 'Presencial'}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Ubicación</p><p className="text-sm font-semibold text-slate-800">{viewModal.location || '-'}</p></div>
+              <div><p className="text-xs text-slate-500 mb-1">Horas totales</p><p className="text-sm font-semibold text-slate-800">{viewModal.total_hours || '-'}</p></div>
+              <div><p className="text-xs text-slate-500 mb-1">Horas al día</p><p className="text-sm font-semibold text-slate-800">{viewModal.daily_hours || '-'}</p></div>
+              <div><p className="text-xs text-slate-500 mb-1">Horario</p><p className="text-sm font-semibold text-slate-800">{viewModal.schedule || '-'}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Plazas</p><p className="text-sm font-semibold text-primary-600">{viewModal.slots || 1}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Postulantes</p><p className="text-sm font-semibold text-primary-600">{viewModal.applications_count || 0}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Estado</p><StatusBadge status={viewModal.is_active ? 'abierta' : 'cerrada'} /></div>
@@ -360,6 +383,21 @@ export default function EmpresaVacantes() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-slate-700">Fecha límite</label>
                 <input name="expires_at" type="date" value={editForm.expires_at} onChange={handleEditChange} className={`${fieldBase} ${fieldOk}`} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Total de horas</label>
+                <input name="total_hours" type="number" value={editForm.total_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Horas al día</label>
+                <input name="daily_hours" type="number" value={editForm.daily_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Horario</label>
+                <input name="schedule" value={editForm.schedule} onChange={handleEditChange} placeholder="Ej: Lunes a Viernes" className={`${fieldBase} ${fieldOk}`} />
               </div>
             </div>
 

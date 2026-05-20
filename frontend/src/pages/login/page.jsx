@@ -1,7 +1,7 @@
 
 /**
  * Pagina de Login.
- * El SIUG usa numero de cedula para autenticacion.
+ * El sistema usa numero de cedula para autenticacion.
  * Modulo 1 de la tesis: Gestion de Usuarios
  */
 
@@ -55,11 +55,10 @@ export default function LoginPage() {
         <div className="relative max-w-[480px] z-10">
           <Logo size="lg" />
           <h1 className="text-[2rem] font-bold leading-tight mt-8 mb-4">
-            Conectamos talento universitario con oportunidades reales
+            Conecta tus habilidades tecnicas con practicas preprofesionales alineadas a tu perfil.
           </h1>
           <p className="text-[1.0625rem] text-primary-200 leading-relaxed mb-10">
-            Plataforma de matching bidireccional para practicas preprofesionales
-            basada en inteligencia artificial y similitud semantica.
+            Sistema de recomendacion basado en tecnicas NLP y modelos de similitud semantica.
           </p>
           <div className="flex flex-col gap-6">
             <div className="flex gap-3.5 items-start">
@@ -72,15 +71,15 @@ export default function LoginPage() {
             <div className="flex gap-3.5 items-start">
               <span className="text-2xl flex-shrink-0 mt-0.5"><FiRefreshCw size={20} /></span>
               <div>
-                <strong className="block text-[0.9375rem] mb-1">Bidireccional</strong>
-                <p className="text-sm text-primary-200 leading-snug m-0">Tanto estudiantes como empresas ven su nivel de compatibilidad</p>
+                <strong className="block text-[0.9375rem] mb-1">Recomendaciones personalizadas</strong>
+                <p className="text-sm text-primary-200 leading-snug m-0">Recibe vacantes priorizadas segun tu perfil, habilidades y experiencia</p>
               </div>
             </div>
             <div className="flex gap-3.5 items-start">
               <span className="text-2xl flex-shrink-0 mt-0.5"><FiZap size={20} /></span>
               <div>
-                <strong className="block text-[0.9375rem] mb-1">Compatible con SIUG</strong>
-                <p className="text-sm text-primary-200 leading-snug m-0">Genera paquetes de datos listos para ser consumidos por el sistema universitario</p>
+                <strong className="block text-[0.9375rem] mb-1">Enfocado en estudiantes</strong>
+                <p className="text-sm text-primary-200 leading-snug m-0">Apoya la busqueda y postulacion a practicas preprofesionales</p>
               </div>
             </div>
           </div>
@@ -154,16 +153,16 @@ export default function LoginPage() {
           {/* Tip de prueba */}
           <div className="mt-6 py-3.5 px-4 bg-info-light rounded-lg border border-blue-500/15">
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Credenciales de prueba:</strong> (password: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">Test2026!</code>)
+              <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Credenciales de prueba:</strong> (password: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">Prueba123.</code>)
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed mt-1">
-              <span className="font-medium">Estudiante:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0955236773</code> (Bryan Galarza)
+              <span className="font-medium">Estudiante:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0955236773</code>
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Empresa:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0990123456</code> (TechSolutions)
+              <span className="font-medium">Empresa:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0990123456</code>
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Gestor PPP:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000002</code> (Cesar Mero)
+              <span className="font-medium">Gestor PPP:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000002</code>
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
               <span className="font-medium">Admin:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000001</code>

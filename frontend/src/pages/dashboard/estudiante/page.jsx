@@ -24,6 +24,15 @@ function getAffinityColor(val) {
   return { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', ring: 'ring-slate-400' };
 }
 
+function getWelcomeName(user, fallback) {
+  const nameRaw = (user?.nombre || user?.name || '').trim();
+  const firstName = nameRaw ? nameRaw.split(/\s+/)[0] : '';
+  const lastNameRaw = (user?.apellido || '').trim();
+  const secondLastName = lastNameRaw ? lastNameRaw.split(/\s+/).slice(-1)[0] : '';
+  const displayName = `${firstName} ${secondLastName}`.trim();
+  return displayName || fallback;
+}
+
 export default function EstudianteDashboard() {
   const { user } = useAuth();
   const [vacantes, setVacantes] = useState([]);
@@ -99,7 +108,7 @@ export default function EstudianteDashboard() {
     <div className="animate-fade-in">
       <header className="mb-8">
         <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1">
-          Bienvenido, {user?.nombre || user?.name || 'Estudiante'}
+          Bienvenido, {getWelcomeName(user, 'Estudiante')}
         </h1>
         <p className="text-base text-slate-500">
           Explora vacantes de prácticas preprofesionales y postúlate
@@ -136,6 +145,9 @@ export default function EstudianteDashboard() {
             const affinity = getAffinity(v.vacante_id);
             const afColor = getAffinityColor(affinity);
             const applied = hasApplied(v.vacante_id);
+            const totalHoras = v.total_horas ?? v.total_hours;
+            const horasDiarias = v.horas_diarias ?? v.daily_hours;
+            const horario = v.horario ?? v.schedule;
 
             return (
               <div
@@ -182,6 +194,21 @@ export default function EstudianteDashboard() {
                       <FiUsers size={11} />{v.cupos} {v.cupos === 1 ? 'cupo' : 'cupos'}
                     </span>
                   )}
+                  {horasDiarias && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
+                      <FiClock size={11} />{horasDiarias} h/dia
+                    </span>
+                  )}
+                  {totalHoras && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
+                      <FiFileText size={11} />{totalHoras} h totales
+                    </span>
+                  )}
+                  {horario && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
+                      <FiCalendar size={11} />{horario}
+                    </span>
+                  )}
                   {v.fecha_expiracion && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
                       <FiCalendar size={11} />Hasta {new Date(v.fecha_expiracion).toLocaleDateString('es-EC')}
@@ -220,6 +247,9 @@ export default function EstudianteDashboard() {
         {selectedVacancy && (() => {
           const aff = getAffinity(selectedVacancy.vacante_id);
           const afColor = getAffinityColor(aff);
+          const totalHoras = selectedVacancy.total_horas ?? selectedVacancy.total_hours;
+          const horasDiarias = selectedVacancy.horas_diarias ?? selectedVacancy.daily_hours;
+          const horario = selectedVacancy.horario ?? selectedVacancy.schedule;
           return (
             <div className="flex flex-col gap-5">
               {/* Header */}
@@ -271,6 +301,33 @@ export default function EstudianteDashboard() {
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Vigencia</p>
                       <p className="text-sm font-medium text-slate-800 m-0">{new Date(selectedVacancy.fecha_expiracion).toLocaleDateString('es-EC')}</p>
+                    </div>
+                  </div>
+                )}
+                {totalHoras && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
+                    <FiFileText size={14} className="text-slate-400" />
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horas totales</p>
+                      <p className="text-sm font-medium text-slate-800 m-0">{totalHoras} horas</p>
+                    </div>
+                  </div>
+                )}
+                {horasDiarias && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
+                    <FiClock size={14} className="text-slate-400" />
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horas al dia</p>
+                      <p className="text-sm font-medium text-slate-800 m-0">{horasDiarias} horas</p>
+                    </div>
+                  </div>
+                )}
+                {horario && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
+                    <FiCalendar size={14} className="text-slate-400" />
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horario</p>
+                      <p className="text-sm font-medium text-slate-800 m-0">{horario}</p>
                     </div>
                   </div>
                 )}

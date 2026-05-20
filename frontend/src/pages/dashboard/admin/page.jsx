@@ -9,6 +9,15 @@ import { useAuth } from 'context/AuthContext';
 import adminService from 'services/adminService';
 import { FiUser, FiBriefcase, FiFileText, FiTarget, FiClock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
+function getWelcomeName(user, fallback) {
+  const nameRaw = (user?.nombre || user?.name || '').trim();
+  const firstName = nameRaw ? nameRaw.split(/\s+/)[0] : '';
+  const lastNameRaw = (user?.apellido || '').trim();
+  const secondLastName = lastNameRaw ? lastNameRaw.split(/\s+/).slice(-1)[0] : '';
+  const displayName = `${firstName} ${secondLastName}`.trim();
+  return displayName || fallback;
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
@@ -48,7 +57,7 @@ export default function AdminDashboard() {
       <header className="mb-8">
         <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1">Panel de Administración</h1>
         <p className="text-base text-slate-500">
-          Bienvenido, {user?.nombre || user?.name || 'Admin'}. Vista general de la plataforma — Universidad de Guayaquil.
+          Bienvenido, {getWelcomeName(user, 'Admin')}. Vista general de la plataforma — Universidad de Guayaquil.
         </p>
       </header>
 

@@ -4,6 +4,15 @@ import PageHeader from 'components/PageHeader';
 import { FiBriefcase, FiCheckSquare, FiTrendingUp } from 'react-icons/fi';
 import adminService from 'services/adminService';
 
+function getWelcomeName(user, fallback) {
+  const nameRaw = (user?.nombre || user?.name || '').trim();
+  const firstName = nameRaw ? nameRaw.split(/\s+/)[0] : '';
+  const lastNameRaw = (user?.apellido || '').trim();
+  const secondLastName = lastNameRaw ? lastNameRaw.split(/\s+/).slice(-1)[0] : '';
+  const displayName = `${firstName} ${secondLastName}`.trim();
+  return displayName || fallback;
+}
+
 export default function GestorDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
@@ -36,7 +45,7 @@ export default function GestorDashboard() {
   return (
     <div>
       <PageHeader
-        title={`Bienvenido, ${user?.nombre || 'Gestor'}`}
+        title={`Bienvenido, ${getWelcomeName(user, 'Gestor')}`}
         subtitle="Panel de gestion de practicas preprofesionales"
       />
 

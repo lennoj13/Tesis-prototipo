@@ -310,9 +310,9 @@ export default function EstudiantePerfil() {
           <textarea
             rows={4}
             value={form.experience_summary}
-            disabled
-            placeholder="Experiencia sincronizada con el sistema..."
-            className={`${fieldBase} resize-y min-h-[100px] bg-slate-50 text-slate-500`}
+            onChange={(e) => setForm((prev) => ({ ...prev, experience_summary: e.target.value }))}
+            placeholder="Describe brevemente tu experiencia previa"
+            className={`${fieldBase} resize-y min-h-[100px]`}
           />
         </section>
       </div>
