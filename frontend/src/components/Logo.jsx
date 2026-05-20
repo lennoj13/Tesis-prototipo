@@ -1,6 +1,6 @@
 
 /**
- * Logo reutilizable de MatchPP.
+ * Logo reutilizable de MatchPP / SistemaRecomendaciónPP.
  * Demuestra: componente React reutilizable con props.
  */
 
@@ -10,8 +10,9 @@ const sizes = {
   lg: { icon: 48, font: 'text-3xl' },
 };
 
-export default function Logo({ size = 'md', showText = true, className = '' }) {
+export default function Logo({ size = 'md', showText = true, className = '', variant = 'light' }) {
   const s = sizes[size];
+  const isLight = variant === 'light';
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
@@ -23,7 +24,7 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
           width={s.icon}
           height={s.icon}
         >
-          <rect width="40" height="40" rx="10" fill="var(--color-primary-600)" />
+          <rect width="40" height="40" rx="10" fill={isLight ? 'rgba(255,255,255,0.15)' : 'var(--color-primary-600)'} />
           <path
             d="M12 20L18 14L24 20M18 14V28"
             stroke="white"
@@ -33,7 +34,7 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
           />
           <path
             d="M28 20L22 26L16 20M22 26V12"
-            stroke="var(--color-primary-200)"
+            stroke={isLight ? 'rgba(255,255,255,0.6)' : 'var(--color-primary-200)'}
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -41,8 +42,8 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
         </svg>
       </div>
       {showText && (
-        <span className={`${s.font} font-bold text-slate-800`}>
-          SistemaRecomendación<span className="text-primary-600">PP</span>
+        <span className={`${s.font} font-bold ${isLight ? 'text-white' : 'text-slate-800'}`}>
+          SistemaRecomendación<span className={isLight ? 'text-white/70' : 'text-primary-600'}>PP</span>
         </span>
       )}
     </div>

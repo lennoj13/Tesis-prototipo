@@ -47,7 +47,7 @@ export default function DashboardLayout() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-slate-500 text-[0.9375rem]">
         <div className="w-9 h-9 border-3 border-slate-200 border-t-primary-600 rounded-full animate-spin-slow" />
-        <p>Cargando MatchPP...</p>
+        <p>Cargando Sistema PPP...</p>
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function DashboardLayout() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <main className="mt-16 ml-[260px] p-8 min-h-[calc(100vh-64px)] animate-fade-in max-md:ml-0 max-md:p-4">
+      <main className="mt-16 ml-[260px] p-8 min-h-[calc(100vh-64px)] animate-fade-in max-md:ml-0 max-md:p-4" style={{ background: 'var(--color-page-bg)' }}>
         <Outlet />
       </main>
     </div>

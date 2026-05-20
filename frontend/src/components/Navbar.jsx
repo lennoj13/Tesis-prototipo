@@ -1,9 +1,10 @@
 
 /**
- * Navbar -- Barra de navegacion superior.
+ * Navbar -- Barra de navegacion superior institucional.
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from 'context/AuthContext';
 import Logo from './Logo';
 import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSettings } from 'react-icons/fi';
@@ -39,38 +40,43 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-50 shadow-sm">
-      <div className="flex items-center gap-2">
+    <nav
+      className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-5 z-50 shadow-sm"
+      style={{ background: 'var(--color-header-bg)' }}
+    >
+      <div className="flex items-center gap-3">
         {/* Boton hamburguesa */}
         <button
-          className="hidden md:hidden max-md:flex items-center justify-center relative w-10 h-10 border-none bg-transparent text-slate-600 rounded-lg cursor-pointer transition-all duration-150 hover:bg-slate-100 hover:text-slate-800"
+          className="hidden md:hidden max-md:flex items-center justify-center relative w-10 h-10 border-none bg-transparent text-white/80 rounded-lg cursor-pointer transition-all duration-150 hover:bg-white/10 hover:text-white"
           onClick={onToggleSidebar}
           aria-label={sidebarOpen ? 'Cerrar menu' : 'Abrir menu'}
         >
           <FiMenu size={22} className={`hamburger-icon ${!sidebarOpen ? 'icon-visible' : 'icon-hidden'}`} />
           <FiArrowLeft size={22} className={`hamburger-icon ${sidebarOpen ? 'icon-visible' : 'icon-hidden'}`} />
         </button>
-        <Logo size="sm" />
+        <Logo size="sm" variant="light" />
       </div>
 
       <div className="flex items-center gap-2">
         {/* Menu de usuario */}
         <div className="relative" ref={menuRef}>
           <button
-            className="flex items-center gap-2.5 py-1.5 px-2.5 border-none bg-transparent rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
+            className="flex items-center gap-2.5 py-1.5 px-2.5 border-none bg-transparent rounded-lg cursor-pointer transition-colors duration-150 hover:bg-white/10"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-expanded={menuOpen}
           >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white font-bold text-sm flex items-center justify-center">
+            <div
+              className="w-9 h-9 rounded-full text-white font-bold text-sm flex items-center justify-center border-2 border-white/30 bg-white/20 backdrop-blur-sm"
+            >
               {user?.nombre?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex flex-col items-start leading-tight max-md:hidden">
-              <span className="text-sm font-semibold text-slate-800">{user?.nombre || 'Usuario'}</span>
-              <span className="text-xs text-slate-500">{rolLabels[user?.rol] || 'Sin rol'}</span>
+              <span className="text-sm font-semibold text-white">{user?.nombre || 'Usuario'}</span>
+              <span className="text-xs text-white/60">{rolLabels[user?.rol] || 'Sin rol'}</span>
             </div>
             <FiChevronDown
               size={16}
-              className={`text-slate-400 transition-transform duration-150 max-md:hidden ${menuOpen ? 'rotate-180' : ''}`}
+              className={`text-white/50 transition-transform duration-150 max-md:hidden ${menuOpen ? 'rotate-180' : ''}`}
             />
           </button>
 
@@ -82,14 +88,14 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
                 <p className="text-xs text-slate-500 mt-0.5">{user?.email || ''}</p>
               </div>
               <div className="h-px bg-slate-200 mx-2 my-1" />
-              <a
-                href={profileRoutes[user?.rol] || '/dashboard/estudiante/perfil'}
+              <Link
+                to={profileRoutes[user?.rol] || '/dashboard/estudiante/perfil'}
                 className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100 no-underline"
                 onClick={() => setMenuOpen(false)}
               >
                 <FiUser size={16} />
                 <span>Mi Perfil</span>
-              </a>
+              </Link>
               <button
                 className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
                 onClick={() => setMenuOpen(false)}

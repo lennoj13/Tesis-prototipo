@@ -18,6 +18,11 @@ module.exports = {
           800: 'var(--color-primary-800)',
           900: 'var(--color-primary-900)',
         },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          light: 'var(--color-accent-light)',
+          dark: 'var(--color-accent-dark)',
+        },
         success: {
           DEFAULT: 'var(--color-success)',
           light: 'var(--color-success-light)',
@@ -43,4 +48,3 @@ module.exports = {
   },
   plugins: [],
 }
-

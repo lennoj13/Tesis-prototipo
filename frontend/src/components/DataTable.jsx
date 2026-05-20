@@ -43,7 +43,7 @@ export default function DataTable({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
       {/* Search bar */}
       {searchKeys?.length > 0 && (
         <div className="px-5 pt-4 pb-3">
@@ -64,17 +64,17 @@ export default function DataTable({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
+            <tr className="bg-[#3c8dbc] text-white">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="text-left py-3 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap"
+                  className="text-left py-3 px-5 text-[0.8125rem] font-semibold text-white/95 uppercase tracking-wider whitespace-nowrap"
                 >
                   {col.label}
                 </th>
               ))}
               {actions && (
-                <th className="text-right py-3 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-right py-3 px-5 text-[0.8125rem] font-semibold text-white/95 uppercase tracking-wider">
                   Acciones
                 </th>
               )}
@@ -94,7 +94,7 @@ export default function DataTable({
               paged.map((row, i) => (
                 <tr
                   key={row.id || i}
-                  className="border-b border-slate-100 transition-colors hover:bg-slate-50/70 last:border-b-0"
+                  className="border-b border-slate-200 transition-colors hover:bg-slate-100 even:bg-slate-50 last:border-b-0"
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="py-3.5 px-5 text-slate-700 whitespace-nowrap">
