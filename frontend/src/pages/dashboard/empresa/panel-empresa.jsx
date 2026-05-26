@@ -11,13 +11,17 @@ import profileService from 'services/profileService';
 import matchingService from 'services/matchingService';
 import applicationService from 'services/applicationService';
 import Modal from 'components/Modal';
+import Card from 'components/Card';
+import StatCard from 'components/StatCard';
+import InfoField from 'components/InfoField';
 import StatusBadge from 'components/StatusBadge';
+import EmptyState from 'components/EmptyState';
+import Button from 'components/Button';
 import {
   FiFileText, FiUsers, FiTarget, FiPlusCircle,
-  FiBookOpen, FiAward, FiMail, FiCheckCircle, FiLoader, FiChevronRight, FiCheck, FiX,
+  FiBookOpen, FiAward, FiMail, FiCheckCircle, FiLoader, FiCheck, FiX,
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-import Button from 'components/Button';
 
 function getAffinityColor(val) {
   if (val >= 80) return { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' };
@@ -148,33 +152,9 @@ export default function EmpresaDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
-        <div className="flex items-center gap-3.5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex items-center justify-center w-11 h-11 rounded-lg bg-blue-50 text-blue-600 flex-shrink-0">
-            <FiFileText size={22} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900 leading-none m-0">{loading ? '...' : stats.vacantes}</p>
-            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Vacantes publicadas</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3.5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex items-center justify-center w-11 h-11 rounded-lg bg-green-50 text-green-600 flex-shrink-0">
-            <FiUsers size={22} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900 leading-none m-0">{loading ? '...' : stats.postulantes}</p>
-            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Total postulantes</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3.5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex items-center justify-center w-11 h-11 rounded-lg bg-purple-50 text-purple-600 flex-shrink-0">
-            <FiTarget size={22} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900 leading-none m-0">{loading ? '...' : stats.candidatos}</p>
-            <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">Postulantes evaluados</p>
-          </div>
-        </div>
+        <StatCard label="Vacantes publicadas" value={stats.vacantes} icon={FiFileText} color="blue" loading={loading} />
+        <StatCard label="Total postulantes" value={stats.postulantes} icon={FiUsers} color="green" loading={loading} />
+        <StatCard label="Postulantes evaluados" value={stats.candidatos} icon={FiTarget} color="purple" loading={loading} />
       </div>
 
       {/* Matching Feed — Bidireccional convertido a Solo Postulantes por privacidad */}
@@ -182,14 +162,17 @@ export default function EmpresaDashboard() {
       <p className="text-sm text-slate-500 mb-4">Estudiantes que han aplicado a tus vacantes y su porcentaje de afinidad</p>
 
       {matchingLoading ? (
-        <div className="p-12 bg-white border border-slate-200 rounded-xl text-center text-slate-400 flex items-center justify-center gap-2">
-          <FiLoader className="animate-spin" size={18} />
-          Cargando postulaciones...
-        </div>
+        <Card>
+          <div className="p-7 text-center text-slate-400 flex items-center justify-center gap-2">
+            <FiLoader className="animate-spin" size={18} />
+            Cargando postulaciones...
+          </div>
+        </Card>
       ) : matchingData.length === 0 ? (
-        <div className="p-12 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center text-slate-500">
-          <p className="mb-1">Aún no hay postulaciones para tus vacantes</p>
-        </div>
+        <EmptyState
+          variant="dashed"
+          message="Aún no hay postulaciones para tus vacantes"
+        />
       ) : (
         <div className="flex flex-col gap-6">
           {matchingData.map((vacancy) => {
@@ -197,9 +180,9 @@ export default function EmpresaDashboard() {
             if (appliedCandidates.length === 0) return null;
 
             return (
-            <div key={vacancy.vacancy_id} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <Card key={vacancy.vacancy_id} padding="none">
               {/* Vacancy header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
                     <FiFileText size={18} />
@@ -274,7 +257,7 @@ export default function EmpresaDashboard() {
                   })}
                 </div>
               )}
-            </div>
+            </Card>
             );
           })}
         </div>
@@ -317,30 +300,20 @@ export default function EmpresaDashboard() {
               </div>
 
               {/* Vacancy reference */}
-              <div className="flex items-center gap-2 p-3 bg-primary-50 border border-primary-200 rounded-xl">
-                <FiFileText className="text-primary-600 flex-shrink-0" size={16} />
-                <div>
-                  <p className="text-[10px] text-primary-500 uppercase font-semibold m-0">Afinidad con tu vacante</p>
-                  <p className="text-sm font-medium text-primary-800 m-0">{selectedStudent.vacancy_title}</p>
+              <Card variant="accent" padding="sm">
+                <div className="flex items-center gap-2">
+                  <FiFileText className="text-primary-600 flex-shrink-0" size={16} />
+                  <div>
+                    <p className="text-[10px] text-primary-500 uppercase font-semibold m-0">Afinidad con tu vacante</p>
+                    <p className="text-sm font-medium text-primary-800 m-0">{selectedStudent.vacancy_title}</p>
+                  </div>
                 </div>
-              </div>
+              </Card>
 
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-xl">
-                  <FiMail className="text-slate-400 flex-shrink-0" size={15} />
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Correo electrónico</p>
-                    <p className="text-sm text-slate-800 m-0">{selectedStudent.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-xl">
-                  <FiBookOpen className="text-slate-400 flex-shrink-0" size={15} />
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Semestre</p>
-                    <p className="text-sm text-slate-800 m-0">{semLabel || 'No especificado'}</p>
-                  </div>
-                </div>
+                <InfoField icon={FiMail} label="Correo electrónico" value={selectedStudent.email} />
+                <InfoField icon={FiBookOpen} label="Semestre" value={semLabel || 'No especificado'} />
               </div>
 
               {/* Experience */}
@@ -422,38 +395,40 @@ export default function EmpresaDashboard() {
 
               {/* Application status */}
               {selectedStudent.already_applied && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
-                  <FiCheckCircle className="text-green-600" size={16} />
-                  <div className="flex-1">
-                    <p className="text-sm text-green-800 m-0">
-                      Este estudiante ya se postuló — Estado: <strong>{statusLabels[modalStatus] || modalStatus || 'Postulado'}</strong>
-                    </p>
-                  </div>
-                  {canAct && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        icon={<FiCheck />}
-                        loading={isAccepting}
-                        disabled={isBusy}
-                        onClick={() => handleDecision(selectedStudent.application_id, 'aceptada_empresa', selectedStudent.vacancy_id)}
-                      >
-                        Aceptar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        icon={<FiX />}
-                        loading={isRejecting}
-                        disabled={isBusy}
-                        onClick={() => handleDecision(selectedStudent.application_id, 'rechazada', selectedStudent.vacancy_id)}
-                      >
-                        Rechazar
-                      </Button>
+                <Card variant="flat" padding="sm" className="!bg-green-50 !border-green-200">
+                  <div className="flex items-center gap-3">
+                    <FiCheckCircle className="text-green-600 flex-shrink-0" size={16} />
+                    <div className="flex-1">
+                      <p className="text-sm text-green-800 m-0">
+                        Este estudiante ya se postuló — Estado: <strong>{statusLabels[modalStatus] || modalStatus || 'Postulado'}</strong>
+                      </p>
                     </div>
-                  )}
-                </div>
+                    {canAct && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          icon={<FiCheck />}
+                          loading={isAccepting}
+                          disabled={isBusy}
+                          onClick={() => handleDecision(selectedStudent.application_id, 'aceptada_empresa', selectedStudent.vacancy_id)}
+                        >
+                          Aceptar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          icon={<FiX />}
+                          loading={isRejecting}
+                          disabled={isBusy}
+                          onClick={() => handleDecision(selectedStudent.application_id, 'rechazada', selectedStudent.vacancy_id)}
+                        >
+                          Rechazar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Card>
               )}
             </div>
           );

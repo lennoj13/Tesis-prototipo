@@ -1,13 +1,9 @@
-
-/**
- * Admin Reportes — Dashboard con estadísticas reales de la BD.
- * Módulo 5: Reportes y Analítica
- * Todos los datos provienen del endpoint /admin/reports (datos reales de PostgreSQL)
- */
-
 import { useState, useEffect } from 'react';
 import adminService from 'services/adminService';
 import PageHeader from 'components/PageHeader';
+import StatCard from 'components/StatCard';
+import Card from 'components/Card';
+import EmptyState from 'components/EmptyState';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -21,15 +17,6 @@ const ESTADO_COLORS = {
   'Aprobada': '#22c55e',
   'Rechazada': '#ef4444',
 };
-
-function EmptyChart({ message }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-[260px] text-slate-400">
-      <FiInbox size={32} className="mb-2 opacity-50" />
-      <p className="text-sm m-0">{message}</p>
-    </div>
-  );
-}
 
 export default function AdminReportes() {
   const [stats, setStats] = useState(null);
@@ -53,10 +40,10 @@ export default function AdminReportes() {
 
   const s = stats || {};
   const kpiCards = [
-    { label: 'Estudiantes', value: s.total_estudiantes || 0, icon: FiUsers, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Vacantes activas', value: s.total_vacantes || 0, icon: FiTarget, color: 'bg-green-50 text-green-600' },
-    { label: 'Postulaciones', value: s.total_postulaciones || 0, icon: FiTrendingUp, color: 'bg-purple-50 text-purple-600' },
-    { label: 'Empresas', value: s.total_empresas || 0, icon: FiAward, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Estudiantes', value: s.total_estudiantes || 0, icon: FiUsers, color: 'blue' },
+    { label: 'Vacantes activas', value: s.total_vacantes || 0, icon: FiTarget, color: 'green' },
+    { label: 'Postulaciones', value: s.total_postulaciones || 0, icon: FiTrendingUp, color: 'purple' },
+    { label: 'Empresas', value: s.total_empresas || 0, icon: FiAward, color: 'amber' },
   ];
 
   const postulacionesEstado = reports?.postulaciones_por_estado || [];
@@ -82,27 +69,21 @@ export default function AdminReportes() {
 
       {/* KPI Cards — datos reales */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
-        {kpiCards.map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <div key={kpi.label} className="flex items-center gap-3.5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-              <div className={`flex items-center justify-center w-11 h-11 rounded-lg flex-shrink-0 ${kpi.color}`}>
-                <Icon size={22} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 leading-none m-0">{kpi.value}</p>
-                <p className="text-[0.8125rem] text-slate-500 mt-0.5 m-0">{kpi.label}</p>
-              </div>
-            </div>
-          );
-        })}
+        {kpiCards.map((kpi) => (
+          <StatCard
+            key={kpi.label}
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            color={kpi.color}
+          />
+        ))}
       </div>
 
       {/* Charts grid — datos reales de PostgreSQL */}
       <div className="grid grid-cols-2 gap-6 mb-6 max-md:grid-cols-1">
         {/* Postulaciones por Estado */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Postulaciones por Estado</h3>
+        <Card title="Postulaciones por Estado">
           {postulacionesEstado.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -128,13 +109,12 @@ export default function AdminReportes() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Sin postulaciones registradas" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin postulaciones registradas" />
           )}
-        </div>
+        </Card>
 
         {/* Vacantes por Área */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Vacantes por Área</h3>
+        <Card title="Vacantes por Área">
           {vacantesPorArea.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -160,13 +140,12 @@ export default function AdminReportes() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Sin vacantes activas" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin vacantes activas" />
           )}
-        </div>
+        </Card>
 
         {/* Habilidades más Demandadas */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Habilidades más Demandadas</h3>
+        <Card title="Habilidades más Demandadas">
           {habilidadesDemandadas.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={habilidadesDemandadas} layout="vertical">
@@ -178,13 +157,12 @@ export default function AdminReportes() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Sin habilidades registradas en vacantes" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin habilidades registradas en vacantes" />
           )}
-        </div>
+        </Card>
 
         {/* Top Empresas por Postulaciones */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">Empresas con más Postulaciones</h3>
+        <Card title="Empresas con más Postulaciones">
           {topEmpresas.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={topEmpresas} layout="vertical">
@@ -196,9 +174,9 @@ export default function AdminReportes() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Sin postulaciones a empresas" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin postulaciones a empresas" />
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

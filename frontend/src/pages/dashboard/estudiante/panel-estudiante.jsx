@@ -10,7 +10,11 @@ import vacancyService from 'services/vacancyService';
 import applicationService from 'services/applicationService';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
-import { FiFileText, FiSend, FiTarget, FiMapPin, FiClock, FiUsers, FiCheckCircle, FiCalendar, FiBriefcase } from 'react-icons/fi';
+import Card from 'components/Card';
+import InfoField from 'components/InfoField';
+import Toast from 'components/Toast';
+import EmptyState from 'components/EmptyState';
+import { FiFileText, FiSend, FiTarget, FiMapPin, FiClock, FiUsers, FiCheckCircle, FiCalendar, FiBriefcase, FiLoader } from 'react-icons/fi';
 
 // Función para generar un % de afinidad simulado (basado en vacancy_id para consistencia)
 function getAffinity(vacancyId) {
@@ -96,14 +100,6 @@ export default function EstudianteDashboard() {
     }
   }
 
-  // Auto-hide toast
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
   return (
     <div className="animate-fade-in">
       <header className="mb-8">
@@ -115,30 +111,25 @@ export default function EstudianteDashboard() {
         </p>
       </header>
 
-
-
       {/* Toast */}
       {toast && (
-        <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 animate-fade-in ${
-          toast.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>
-          {toast.type === 'success' && <FiCheckCircle size={16} />}
-          {toast.message}
-        </div>
+        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
 
       {/* Vacantes */}
       <h2 className="text-lg font-bold text-slate-800 mb-4">Vacantes Disponibles</h2>
       {loading ? (
-        <div className="p-12 bg-white border border-slate-200 rounded-xl text-center text-slate-400">
-          <p>Cargando vacantes...</p>
-        </div>
+        <Card>
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+            <FiLoader className="animate-spin" size={24} />
+            Cargando vacantes...
+          </div>
+        </Card>
       ) : vacantes.length === 0 ? (
-        <div className="p-12 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center text-slate-500">
-          <p>No hay vacantes disponibles en este momento</p>
-        </div>
+        <EmptyState
+          variant="dashed"
+          message="No hay vacantes disponibles en este momento"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {vacantes.map((v) => {
@@ -150,10 +141,11 @@ export default function EstudianteDashboard() {
             const horario = v.horario ?? v.schedule;
 
             return (
-              <div
+              <Card
                 key={v.vacante_id}
                 onClick={() => setSelectedVacancy(v)}
-                className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer group relative"
+                hover
+                className="relative"
               >
                 {/* Affinity badge */}
                 <div className={`absolute top-4 right-4 flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold ${afColor.bg} ${afColor.text} ${afColor.border} border`}>
@@ -185,7 +177,7 @@ export default function EstudianteDashboard() {
                     </span>
                   )}
                   {v.ubicacion && (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
+                     <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
                       <FiMapPin size={11} />{v.ubicacion}
                     </span>
                   )}
@@ -215,7 +207,7 @@ export default function EstudianteDashboard() {
                     </span>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -269,67 +261,25 @@ export default function EstudianteDashboard() {
               {/* Info pills */}
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {selectedVacancy.modalidad && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiClock size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Modalidad</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{selectedVacancy.modalidad}</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiClock} label="Modalidad" value={selectedVacancy.modalidad} />
                 )}
                 {selectedVacancy.ubicacion && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiMapPin size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Ubicación</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{selectedVacancy.ubicacion}</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiMapPin} label="Ubicación" value={selectedVacancy.ubicacion} />
                 )}
                 {selectedVacancy.cupos && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiUsers size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Cupos</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{selectedVacancy.cupos} disponibles</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiUsers} label="Cupos" value={`${selectedVacancy.cupos} disponibles`} />
                 )}
                 {selectedVacancy.fecha_expiracion && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiCalendar size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Vigencia</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{new Date(selectedVacancy.fecha_expiracion).toLocaleDateString('es-EC')}</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiCalendar} label="Vigencia" value={new Date(selectedVacancy.fecha_expiracion).toLocaleDateString('es-EC')} />
                 )}
                 {totalHoras && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiFileText size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horas totales</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{totalHoras} horas</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiFileText} label="Horas totales" value={`${totalHoras} horas`} />
                 )}
                 {horasDiarias && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiClock size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horas al dia</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{horasDiarias} horas</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiClock} label="Horas al dia" value={`${horasDiarias} horas`} />
                 )}
                 {horario && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-                    <FiCalendar size={14} className="text-slate-400" />
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Horario</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{horario}</p>
-                    </div>
-                  </div>
+                  <InfoField icon={FiCalendar} label="Horario" value={horario} />
                 )}
               </div>
 
@@ -361,11 +311,11 @@ export default function EstudianteDashboard() {
 
               {/* Already applied notice */}
               {hasApplied(selectedVacancy.vacante_id) && (
-                <div className="p-4 bg-primary-50 border border-primary-200 rounded-xl">
+                <Card variant="accent" padding="sm">
                   <p className="text-sm font-medium text-primary-800 m-0 flex items-center gap-2">
                     <FiCheckCircle size={16} /> Ya te postulaste a esta vacante. Revisa el estado en "Mis Postulaciones".
                   </p>
-                </div>
+                </Card>
               )}
             </div>
           );

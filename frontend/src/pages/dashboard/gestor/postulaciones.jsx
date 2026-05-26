@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import PageHeader from 'components/PageHeader';
 import StatusBadge from 'components/StatusBadge';
 import Button from 'components/Button';
+import Card from 'components/Card';
+import EmptyState from 'components/EmptyState';
 import SolicitudDetalleModal from 'components/SolicitudDetalleModal';
 import applicationService from 'services/applicationService';
 import profileService from 'services/profileService';
-import { FiEye } from 'react-icons/fi';
+import { FiEye, FiLoader } from 'react-icons/fi';
 
 export default function GestorPostulaciones() {
   const [applications, setApplications] = useState([]);
@@ -110,24 +112,28 @@ export default function GestorPostulaciones() {
   const pendingApps = applications.filter(a => a.estado === 'aceptada_empresa');
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Postulaciones Pendientes"
         subtitle={loading ? 'Cargando postulaciones...' : `${pendingApps.length} solicitudes pendientes de aprobación`}
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
+        <Card>
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+            <FiLoader className="animate-spin" size={24} />
+            Cargando postulaciones...
+          </div>
+        </Card>
       ) : pendingApps.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
-          <p className="text-lg">No hay postulaciones pendientes de aprobación</p>
-        </div>
+        <EmptyState
+          variant="dashed"
+          message="No hay postulaciones pendientes de aprobación"
+        />
       ) : (
         <div className="grid gap-4">
           {pendingApps.map((app) => (
-            <div key={app.postulacion_id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+            <Card key={app.postulacion_id} padding="md" hover>
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-semibold text-slate-800 mb-1">
@@ -160,7 +166,7 @@ export default function GestorPostulaciones() {
                   </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

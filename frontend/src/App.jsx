@@ -6,22 +6,22 @@ import LoginPage from 'pages/login';
 
 import DashboardLayout from 'pages/dashboard/layout';
 
-import AdminDashboard from 'pages/dashboard/admin/panel';
+import AdminDashboard from 'pages/dashboard/admin/panel-admin';
 import EmpresasAdmin from 'pages/dashboard/admin/empresas';
 import UsuariosAdmin from 'pages/dashboard/admin/usuarios';
 import VacantesAdmin from 'pages/dashboard/admin/vacantes';
 import ReportesAdmin from 'pages/dashboard/admin/reportes';
 
-import EmpresaDashboard from 'pages/dashboard/empresa/panel';
+import EmpresaDashboard from 'pages/dashboard/empresa/panel-empresa';
 import VacantesEmpresa from 'pages/dashboard/empresa/vacantes';
 import NuevaVacante from 'pages/dashboard/empresa/nueva-vacante';
 import PostulantesEmpresa from 'pages/dashboard/empresa/postulantes';
 
-import EstudianteDashboard from 'pages/dashboard/estudiante/panel';
+import EstudianteDashboard from 'pages/dashboard/estudiante/panel-estudiante';
 import PerfilEstudiante from 'pages/dashboard/estudiante/perfil';
 import PostulacionesEstudiante from 'pages/dashboard/estudiante/postulaciones';
 
-import GestorDashboard from 'pages/dashboard/gestor/panel';
+import GestorDashboard from 'pages/dashboard/gestor/panel-gestor';
 import GestorPostulaciones from 'pages/dashboard/gestor/postulaciones';
 import GestorHistorial from 'pages/dashboard/gestor/historial';
 import GestorEmpresas from 'pages/dashboard/gestor/empresas';
