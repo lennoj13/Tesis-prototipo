@@ -2,30 +2,30 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from 'context/AuthContext';
 
-import LoginPage from 'pages/login/page';
+import LoginPage from 'pages/login';
 
 import DashboardLayout from 'pages/dashboard/layout';
 
-import AdminDashboard from 'pages/dashboard/admin/page';
-import EmpresasAdmin from 'pages/dashboard/admin/empresas/page';
-import UsuariosAdmin from 'pages/dashboard/admin/usuarios/page';
-import VacantesAdmin from 'pages/dashboard/admin/vacantes/page';
-import ReportesAdmin from 'pages/dashboard/admin/reportes/page';
+import AdminDashboard from 'pages/dashboard/admin/panel';
+import EmpresasAdmin from 'pages/dashboard/admin/empresas';
+import UsuariosAdmin from 'pages/dashboard/admin/usuarios';
+import VacantesAdmin from 'pages/dashboard/admin/vacantes';
+import ReportesAdmin from 'pages/dashboard/admin/reportes';
 
-import EmpresaDashboard from 'pages/dashboard/empresa/page';
-import VacantesEmpresa from 'pages/dashboard/empresa/vacantes/page';
-import NuevaVacante from 'pages/dashboard/empresa/vacantes/nueva/page';
-import PostulantesEmpresa from 'pages/dashboard/empresa/postulantes/page';
+import EmpresaDashboard from 'pages/dashboard/empresa/panel';
+import VacantesEmpresa from 'pages/dashboard/empresa/vacantes';
+import NuevaVacante from 'pages/dashboard/empresa/nueva-vacante';
+import PostulantesEmpresa from 'pages/dashboard/empresa/postulantes';
 
-import EstudianteDashboard from 'pages/dashboard/estudiante/page';
-import PerfilEstudiante from 'pages/dashboard/estudiante/perfil/page';
-import PostulacionesEstudiante from 'pages/dashboard/estudiante/postulaciones/page';
+import EstudianteDashboard from 'pages/dashboard/estudiante/panel';
+import PerfilEstudiante from 'pages/dashboard/estudiante/perfil';
+import PostulacionesEstudiante from 'pages/dashboard/estudiante/postulaciones';
 
-import GestorDashboard from 'pages/dashboard/gestor/page';
-import GestorPostulaciones from 'pages/dashboard/gestor/postulaciones/page';
-import GestorHistorial from 'pages/dashboard/gestor/historial/page';
-import GestorEmpresas from 'pages/dashboard/gestor/empresas/page';
-import GestorEstudiantes from 'pages/dashboard/gestor/estudiantes/page';
+import GestorDashboard from 'pages/dashboard/gestor/panel';
+import GestorPostulaciones from 'pages/dashboard/gestor/postulaciones';
+import GestorHistorial from 'pages/dashboard/gestor/historial';
+import GestorEmpresas from 'pages/dashboard/gestor/empresas';
+import GestorEstudiantes from 'pages/dashboard/gestor/estudiantes';
 
 function App() {
   return (
