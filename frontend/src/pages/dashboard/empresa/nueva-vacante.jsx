@@ -98,7 +98,7 @@ export default function NuevaVacante() {
     }
   }
 
-  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-lg outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-100`;
+  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-md outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-[var(--color-header-bg)]`;
   const fieldErr = `border-danger focus:ring-danger-light`;
   const fieldOk = `border-slate-300`;
 
@@ -115,14 +115,15 @@ export default function NuevaVacante() {
       />
 
       {error && (
-        <div className="flex items-center gap-2.5 py-3 px-4 bg-danger-light text-danger rounded-lg text-sm font-medium mb-4 border border-red-500/20 max-w-3xl">
+        <div className="flex items-center gap-2.5 py-3 px-4 bg-danger-light text-danger rounded-md text-sm font-medium mb-4 border border-red-500/20 w-full mx-auto">
           <FiAlertTriangle size={18} />
           <p className="m-0">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 max-w-3xl">
-        <div className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="w-full mx-auto bg-white border border-slate-200 rounded-md overflow-hidden">
+        <div className="bg-[#3c8dbc] text-white text-xs font-bold uppercase tracking-wider px-4 py-2">Información de la Vacante</div>
+        <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-slate-700">Título del puesto <span className="text-danger">*</span></label>
             <input name="title" value={form.title} onChange={handleChange} placeholder="Ej: Practicante Desarrollo Frontend" className={`${fieldBase} ${errors.title ? fieldErr : fieldOk}`} />

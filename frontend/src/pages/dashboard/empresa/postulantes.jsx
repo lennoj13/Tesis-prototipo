@@ -144,14 +144,14 @@ export default function EmpresaPostulantes() {
             <div className="flex gap-2">
               <button
                 onClick={() => setActionModal({ appId: row.id, type: 'aceptada_empresa', name: row.candidato, vacancyTitle: row.vacante })}
-                className="flex items-center justify-center w-8 h-8 bg-success-50 text-success-600 rounded-lg transition-colors hover:bg-success-100"
+                className="flex items-center justify-center w-8 h-8 bg-success-50 text-success-600 rounded-md transition-colors hover:bg-success-100"
                 title="Aceptar"
               >
                 <FiCheck size={16} />
               </button>
               <button
                 onClick={() => setActionModal({ appId: row.id, type: 'rechazada', name: row.candidato, vacancyTitle: row.vacante })}
-                className="flex items-center justify-center w-8 h-8 bg-danger-50 text-danger-600 rounded-lg transition-colors hover:bg-danger-100"
+                className="flex items-center justify-center w-8 h-8 bg-danger-50 text-danger-600 rounded-md transition-colors hover:bg-danger-100"
                 title="Rechazar"
               >
                 <FiX size={16} />

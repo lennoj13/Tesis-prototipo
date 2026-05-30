@@ -95,23 +95,23 @@ export default function SolicitudDetalleModal({
             </div>
             <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <InfoField variant="card" label="Tipo Solicitud" value="PRACTICAS LABORALES" />
+                <InfoField variant="card" label="Tipo Solicitud" value="PRÁCTICAS LABORALES" />
                 <InfoField variant="card" label="Estudiante" value={estudiante.nombres} />
                 <InfoField variant="card" label="Email" value={estudiante.correo} />
-                <InfoField variant="card" label="Nombre Institucion Asignada" value={institucion.nombre} />
+                <InfoField variant="card" label="Nombre Institución Asignada" value={institucion.nombre} />
                 <InfoField variant="card" label="Fecha Fin" value="-" />
-                <InfoField variant="card" label="Tutor Academico" value="-" />
-                <InfoField variant="card" label="Telf Tutor Academico" value="-" />
+                <InfoField variant="card" label="Tutor Académico" value="-" />
+                <InfoField variant="card" label="Tel. Tutor Académico" value="-" />
                 <InfoField variant="card" label="Email Supervisor Institucional" value={supervisor.correo} />
                 <InfoField variant="card" label="Cargo Supervisor Institucional" value={supervisor.cargo} />
               </div>
               <div className="flex flex-col gap-3">
                 <InfoField variant="card" label="Solicitud" value={data.nro_solicitud || 'Por generar'} />
                 <InfoField variant="card" label="Carrera" value={estudiante.carrera} />
-                <InfoField variant="card" label="Ruc Institucion Asignada" value={institucion.ruc} />
+                <InfoField variant="card" label="RUC Institución Asignada" value={institucion.ruc} />
                 <InfoField variant="card" label="Fecha Inicio" value="-" />
-                <InfoField variant="card" label="Hora Asignadas" value={practica.horas_asignadas} />
-                <InfoField variant="card" label="Email Tutor Academico" value="-" />
+                <InfoField variant="card" label="Horas Asignadas" value={practica.horas_asignadas} />
+                <InfoField variant="card" label="Email Tutor Académico" value="-" />
                 {supervisors.length > 0 && onSupervisorChange ? (
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Supervisor Institucional</span>
@@ -140,16 +140,16 @@ export default function SolicitudDetalleModal({
             <Card className="lg:col-span-2">
               <h3 className="text-sm font-bold text-slate-700 mb-3">Detalle de la Vacante</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <InfoField label="Titulo" value={vacante.titulo} />
-                <InfoField label="Area" value={vacante.area} />
+                <InfoField label="Título" value={vacante.titulo} />
+                <InfoField label="Área" value={vacante.area} />
                 <InfoField label="Modalidad" value={vacante.modalidad} />
-                <InfoField label="Ubicacion" value={vacante.ubicacion} />
+                <InfoField label="Ubicación" value={vacante.ubicacion} />
                 <InfoField label="Cupos" value={vacante.cupos} />
               </div>
               {vacante.descripcion && (
                 <div className="mt-3">
-                  <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Descripcion</span>
-                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Descripción</span>
+                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3">
                     {vacante.descripcion}
                   </p>
                 </div>
@@ -157,7 +157,7 @@ export default function SolicitudDetalleModal({
               {vacante.requisitos && (
                 <div className="mt-3">
                   <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Requisitos</span>
-                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3">
                     {vacante.requisitos}
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export default function SolicitudDetalleModal({
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {habilidades.map((skill, i) => (
-                    <span key={`${skill.nombre}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full border border-primary-200">
+                    <span key={`${skill.nombre}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-md border border-primary-200">
                       {skill.nombre}
                       <span className="text-[10px] text-primary-600">Nv.{skill.nivel}</span>
                     </span>

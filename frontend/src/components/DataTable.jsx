@@ -43,7 +43,7 @@ export default function DataTable({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
       {/* Search bar */}
       {searchKeys?.length > 0 && (
         <div className="px-5 pt-4 pb-3">
@@ -54,7 +54,7 @@ export default function DataTable({
               value={search}
               onChange={handleSearch}
               placeholder="Buscar..."
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 outline-none transition-colors focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 placeholder:text-slate-400"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md bg-slate-50 outline-none transition-colors focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-[var(--color-header-bg)] placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function DataTable({
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={safeCurrentPage === 1}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 cursor-pointer transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center justify-center w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-600 cursor-pointer transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <FiChevronLeft size={16} />
             </button>
@@ -133,7 +133,7 @@ export default function DataTable({
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`flex items-center justify-center w-8 h-8 rounded-lg border text-sm font-medium cursor-pointer transition-colors
+                className={`flex items-center justify-center w-8 h-8 rounded-md border text-sm font-medium cursor-pointer transition-colors
                   ${page === safeCurrentPage
                     ? 'bg-primary-600 border-primary-600 text-white'
                     : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
@@ -145,7 +145,7 @@ export default function DataTable({
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={safeCurrentPage === totalPages}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 cursor-pointer transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center justify-center w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-600 cursor-pointer transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <FiChevronRight size={16} />
             </button>

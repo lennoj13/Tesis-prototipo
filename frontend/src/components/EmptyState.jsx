@@ -21,9 +21,9 @@ export default function EmptyState({
   };
 
   return (
-    <div className={`p-12 rounded-xl text-center ${variants[variant] || variants.default} ${className}`}>
+    <div className={`p-12 rounded-md text-center ${variants[variant] || variants.default} ${className}`}>
       <div className="flex flex-col items-center gap-3 text-slate-400">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-md bg-slate-100 flex items-center justify-center">
           <Icon size={28} className="text-slate-400" />
         </div>
         {title && (

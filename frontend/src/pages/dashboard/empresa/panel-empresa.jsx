@@ -184,7 +184,7 @@ export default function EmpresaDashboard() {
               {/* Vacancy header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
                     <FiFileText size={18} />
                   </div>
                   <div>
@@ -214,7 +214,7 @@ export default function EmpresaDashboard() {
                       <div
                         key={`${vacancy.vacancy_id}-${candidate.student_id}`}
                         onClick={() => setSelectedStudent({ ...candidate, vacancy_title: vacancy.title, vacancy_id: vacancy.vacancy_id })}
-                        className="flex flex-col gap-3 p-4 border border-slate-200 rounded-xl hover:border-primary-300 hover:shadow-md transition-all cursor-pointer group"
+                        className="flex flex-col gap-3 p-4 border border-slate-200 rounded-md hover:border-primary-300 transition-colors cursor-pointer group"
                       >
                         {/* Top row: avatar + name + affinity */}
                         <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export default function EmpresaDashboard() {
             <div className="flex flex-col gap-5">
               {/* Header */}
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white text-2xl font-bold flex items-center justify-center flex-shrink-0 shadow-lg">
+                <div className="w-16 h-16 rounded-full bg-[#3c8dbc] text-white text-2xl font-bold flex items-center justify-center flex-shrink-0 border border-[#2f6f92]">
                   {(selectedStudent.name || '?').charAt(0)}
                 </div>
                 <div className="flex-1">
@@ -293,7 +293,7 @@ export default function EmpresaDashboard() {
                   <p className="text-sm text-primary-600 font-medium m-0">{selectedStudent.career || 'Estudiante'}</p>
                   <p className="text-xs text-slate-500 m-0">{selectedStudent.university || 'Universidad de Guayaquil'} · {semLabel}</p>
                 </div>
-                <div className={`flex flex-col items-center px-5 py-3 rounded-xl ${afColor.bg} ${afColor.border} border shadow-sm`}>
+                <div className={`flex flex-col items-center px-5 py-3 rounded-md ${afColor.bg} ${afColor.border} border`}>
                   <span className={`text-3xl font-bold ${afColor.text}`}>{selectedStudent.affinity}%</span>
                   <span className="text-[10px] text-slate-500 font-medium">afinidad</span>
                 </div>
@@ -320,7 +320,7 @@ export default function EmpresaDashboard() {
               {selectedStudent.experience_summary && (
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formación</h4>
-                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-xl">{selectedStudent.experience_summary}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md">{selectedStudent.experience_summary}</p>
                 </div>
               )}
 
@@ -347,7 +347,7 @@ export default function EmpresaDashboard() {
                   {selectedStudent.matched_skills.map((skill, i) => {
                     const levelFull = Math.min(skill.student_level / (skill.required_level || 1), 1);
                     return (
-                      <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg">
+                      <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-md">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-slate-800">{skill.name}</span>
                           {skill.is_optional && <span className="text-[9px] text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded">Opcional</span>}
@@ -381,7 +381,7 @@ export default function EmpresaDashboard() {
                         <p className="text-[11px] font-semibold text-slate-500 uppercase mb-1.5">{category}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {skills.map((skill, i) => (
-                            <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs">
+                            <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs">
                               <span className="font-medium text-slate-700">{skill.name}</span>
                               <span className="text-[10px] text-slate-400">Nv.{skill.level}</span>
                             </span>

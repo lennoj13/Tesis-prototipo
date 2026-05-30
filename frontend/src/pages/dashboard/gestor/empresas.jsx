@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import PageHeader from 'components/PageHeader';
 import StatusBadge from 'components/StatusBadge';
+import Card from 'components/Card';
+import EmptyState from 'components/EmptyState';
 import adminService from 'services/adminService';
 
 export default function GestorEmpresas() {
@@ -32,17 +34,21 @@ export default function GestorEmpresas() {
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
+        <Card>
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+            Cargando empresas...
+          </div>
+        </Card>
       ) : companies.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
-          <p className="text-lg">No hay empresas registradas</p>
-        </div>
+        <EmptyState
+          variant="dashed"
+          message="No hay empresas registradas"
+        />
       ) : (
         <div className="grid gap-4 mt-6">
           {companies.map((company) => (
-            <div key={company.institucion_id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+            <Card key={company.institucion_id} padding="md" hover>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-base font-semibold text-slate-800 mb-1">{company.nombre_empresa}</h3>
@@ -55,7 +61,7 @@ export default function GestorEmpresas() {
                 </div>
                 <StatusBadge status={company.estado} />
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

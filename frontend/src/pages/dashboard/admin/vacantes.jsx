@@ -47,7 +47,7 @@ export default function AdminVacantes() {
       key: 'total_postulaciones',
       label: 'Postulantes',
       render: (val) => (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 text-primary-700 text-sm font-bold">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary-50 text-primary-700 text-sm font-bold">
           {val || 0}
         </span>
       ),
@@ -78,14 +78,14 @@ export default function AdminVacantes() {
           <>
             <button
               onClick={() => setViewModal(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
               title="Ver detalle"
             >
               <FiEye size={16} />
             </button>
             <button
               onClick={() => setDeleteConfirm(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-danger-light hover:text-danger"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-danger-light hover:text-danger"
               title="Eliminar"
             >
               <FiTrash2 size={16} />
@@ -101,7 +101,7 @@ export default function AdminVacantes() {
               <h3 className="text-xl font-bold text-slate-900 mb-1">{viewModal.titulo}</h3>
               <p className="text-sm text-slate-500">{viewModal.nombre_empresa}</p>
             </div>
-            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl max-md:grid-cols-2">
+            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-md max-md:grid-cols-2">
               <div><p className="text-xs text-slate-500 mb-1">Área</p><p className="text-sm font-semibold text-slate-800">{viewModal.area || '-'}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Modalidad</p><p className="text-sm font-semibold text-slate-800">{viewModal.modalidad || 'Presencial'}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Estado</p><StatusBadge status={viewModal.activo ? 'abierta' : 'cerrada'} /></div>
@@ -111,7 +111,7 @@ export default function AdminVacantes() {
             {viewModal.descripcion && (
               <div>
                 <p className="text-xs text-slate-500 mb-2">Descripción</p>
-                <p className="text-sm text-slate-700 leading-relaxed p-4 bg-slate-50 rounded-lg">{viewModal.descripcion}</p>
+                <p className="text-sm text-slate-700 leading-relaxed p-4 bg-slate-50 rounded-md">{viewModal.descripcion}</p>
               </div>
             )}
           </div>

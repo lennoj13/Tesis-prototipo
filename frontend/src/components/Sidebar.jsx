@@ -71,7 +71,7 @@ export default function Sidebar({ isOpen, onClose }) {
       `}
       style={{ background: 'var(--color-sidebar-bg)' }}
     >
-      <nav className="flex-1 p-3">
+      <nav className="flex-1 py-3">
         <ul className="list-none flex flex-col gap-0.5">
           {items.map((item, index) => {
             // Section label
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <li key={item.href}>
                 <Link to={item.href}
                   onClick={onClose}
-                  className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-[0.875rem] font-medium no-underline transition-all duration-150 relative"
+                  className="flex w-full items-center gap-3 py-2.5 px-3.5 rounded-none text-[0.875rem] font-medium no-underline transition-all duration-150 relative"
                   style={{
                     color: isActive ? 'var(--color-sidebar-text-active)' : 'var(--color-sidebar-text)',
                     background: isActive ? 'var(--color-sidebar-active)' : 'transparent',

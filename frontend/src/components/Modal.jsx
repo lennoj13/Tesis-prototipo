@@ -47,13 +47,13 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
       />
 
       {/* Content */}
-      <div className={`relative bg-white rounded-2xl shadow-xl w-full ${sizeClasses[size]} max-h-[85vh] flex flex-col animate-modal-in`}>
+      <div className={`relative bg-white rounded-md border border-slate-200 w-full ${sizeClasses[size]} max-h-[85vh] flex flex-col animate-modal-in`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer"
           >
             <FiX size={18} />
           </button>

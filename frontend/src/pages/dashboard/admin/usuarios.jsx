@@ -124,7 +124,7 @@ export default function AdminUsuarios() {
       label: 'Nombre',
       render: (val, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#3c8dbc] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 border border-[#2f6f92]">
             {(val || '?').charAt(0).toUpperCase()}
           </div>
           <div>
@@ -156,7 +156,7 @@ export default function AdminUsuarios() {
 
       {/* Toast notification */}
       {toast && (
-        <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 animate-fade-in ${
+        <div className={`mb-4 px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in ${
           toast.type === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
@@ -173,14 +173,14 @@ export default function AdminUsuarios() {
           <>
             <button
               onClick={() => handleViewDetail(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
               title="Ver perfil completo"
             >
               <FiEye size={16} />
             </button>
             <button
               onClick={() => handleEdit(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-amber-50 hover:text-amber-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-amber-50 hover:text-amber-600"
               title="Editar usuario"
             >
               <FiEdit2 size={16} />
@@ -188,7 +188,7 @@ export default function AdminUsuarios() {
             {row.rol_nombre !== 'admin' && (
               <button
                 onClick={() => setDeleteTarget(row)}
-                className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
+                className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
                 title="Eliminar usuario"
               >
                 <FiTrash2 size={16} />
@@ -204,7 +204,7 @@ export default function AdminUsuarios() {
           <div className="flex flex-col gap-5">
             {/* Header */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white text-2xl font-bold flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-[#3c8dbc] text-white text-2xl font-bold flex items-center justify-center flex-shrink-0 border border-[#2f6f92]">
                 {(viewModal.nombre || '?').charAt(0).toUpperCase()}
               </div>
               <div>
@@ -216,7 +216,7 @@ export default function AdminUsuarios() {
             </div>
 
             {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl">
+            <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-md">
               <div className="flex items-center gap-2">
                 <FiMail className="text-slate-400" size={14} />
                 <div>
@@ -256,7 +256,7 @@ export default function AdminUsuarios() {
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FiBookOpen size={14} /> Perfil Académico
                   </h4>
-                  <div className="grid grid-cols-2 gap-3 p-4 bg-blue-50/50 rounded-xl">
+                  <div className="grid grid-cols-2 gap-3 p-4 bg-blue-50/50 rounded-md">
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Carrera</p>
                       <p className="text-sm font-medium text-slate-800 m-0">{detailData.perfil_estudiante.carrera || 'No especificada'}</p>
@@ -294,7 +294,7 @@ export default function AdminUsuarios() {
                       {detailData.habilidades.map((skill, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full border border-primary-200"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-semibold rounded-md border border-primary-200"
                         >
                           {skill.nombre}
                           <span className="text-[10px] text-primary-400">Nv.{skill.nivel}</span>
@@ -311,19 +311,19 @@ export default function AdminUsuarios() {
                       <FiBriefcase size={14} /> Postulaciones
                     </h4>
                     <div className="grid grid-cols-4 gap-2">
-                      <div className="text-center p-3 bg-slate-50 rounded-xl">
+                      <div className="text-center p-3 bg-slate-50 rounded-md">
                         <p className="text-xl font-bold text-slate-800 m-0">{detailData.postulaciones.total}</p>
                         <p className="text-[10px] text-slate-500 m-0">Total</p>
                       </div>
-                      <div className="text-center p-3 bg-amber-50 rounded-xl">
+                      <div className="text-center p-3 bg-amber-50 rounded-md">
                         <p className="text-xl font-bold text-amber-600 m-0">{detailData.postulaciones.pendientes}</p>
                         <p className="text-[10px] text-slate-500 m-0">Pendientes</p>
                       </div>
-                      <div className="text-center p-3 bg-green-50 rounded-xl">
+                      <div className="text-center p-3 bg-green-50 rounded-md">
                         <p className="text-xl font-bold text-green-600 m-0">{detailData.postulaciones.aprobadas}</p>
                         <p className="text-[10px] text-slate-500 m-0">Aprobadas</p>
                       </div>
-                      <div className="text-center p-3 bg-red-50 rounded-xl">
+                      <div className="text-center p-3 bg-red-50 rounded-md">
                         <p className="text-xl font-bold text-red-600 m-0">{detailData.postulaciones.rechazadas}</p>
                         <p className="text-[10px] text-slate-500 m-0">Rechazadas</p>
                       </div>
@@ -339,7 +339,7 @@ export default function AdminUsuarios() {
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FiBriefcase size={14} /> Perfil de Empresa
                 </h4>
-                <div className="grid grid-cols-2 gap-3 p-4 bg-amber-50/50 rounded-xl">
+                <div className="grid grid-cols-2 gap-3 p-4 bg-amber-50/50 rounded-md">
                   <div>
                     <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Empresa</p>
                     <p className="text-sm font-medium text-slate-800 m-0">{detailData.perfil_empresa.nombre_empresa}</p>
@@ -393,8 +393,8 @@ export default function AdminUsuarios() {
             <Input label="Teléfono" type="tel" value={editForm.phone} onChange={(e) => setEditForm(p => ({...p, phone: e.target.value}))} />
             
             <div className="flex justify-end gap-3 mt-4">
-              <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg" onClick={() => setEditModal(null)}>Cancelar</button>
-              <button className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg flex items-center justify-center min-w-[100px]" onClick={saveEdit} disabled={actionLoading}>
+              <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md" onClick={() => setEditModal(null)}>Cancelar</button>
+              <button className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[100px]" onClick={saveEdit} disabled={actionLoading}>
                 {actionLoading ? <FiLoader className="animate-spin" /> : 'Guardar'}
               </button>
             </div>

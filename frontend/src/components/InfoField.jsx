@@ -18,15 +18,16 @@ export default function InfoField({
   };
 
   const bgClass = variants[variant] || variants.default;
+  const displayValue = value === '' || value === null || value === undefined ? '-' : value;
 
   return (
-    <div className={`flex items-center gap-2.5 p-3 ${bgClass} rounded-xl ${className}`}>
+    <div className={`flex items-center gap-2.5 p-3 ${bgClass} rounded-md ${className}`}>
       {Icon && (
         <Icon className="text-slate-400 flex-shrink-0" size={15} />
       )}
       <div className="min-w-0 flex-1">
         <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wide">{label}</p>
-        <p className="text-sm text-slate-800 m-0 truncate">{value || '-'}</p>
+        <p className="text-sm text-slate-800 m-0 truncate">{displayValue}</p>
       </div>
     </div>
   );

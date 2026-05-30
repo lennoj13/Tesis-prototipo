@@ -151,7 +151,11 @@ export default function EstudiantePerfil() {
     }
   };
 
-  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] border-slate-300 rounded-lg outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-100`;
+  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] border-slate-300 rounded-md outline-none transition-all placeholder:text-slate-400 focus:border-[var(--color-header-bg)] focus:ring-3 focus:ring-[var(--color-header-bg)]`;
+  const profileInputClass = 'focus:border-[var(--color-header-bg)] focus:ring-[var(--color-header-bg)]';
+  const sectionClass = 'bg-white border border-slate-200 rounded-md';
+  const sectionHeaderClass = 'bg-[#3c8dbc] text-white text-xs font-bold uppercase tracking-wider px-4 py-2';
+  const sectionBodyClass = 'p-5';
   const displaySkills = allSkills.length > 0 ? allSkills : [
     { name: 'JavaScript' }, { name: 'Python' }, { name: 'React' }, { name: 'Node.js' },
     { name: 'SQL' }, { name: 'Java' }, { name: 'TypeScript' }, { name: 'Git' },
@@ -164,28 +168,29 @@ export default function EstudiantePerfil() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader
-        title="Mi Perfil Académico"
-        subtitle="Completa tu perfil para mejorar la compatibilidad con las vacantes de prácticas"
-        action={
-          <Button
-            icon={guardado ? null : <FiSave />}
-            onClick={handleGuardar}
-            loading={guardando}
-            variant={guardado ? 'secondary' : 'primary'}
-          >
-            {guardado ? '✓ Guardado' : 'Guardar Perfil'}
-          </Button>
-        }
-      />
+      <div className="w-full">
+        <PageHeader
+          title="Mi Perfil Académico"
+          subtitle="Completa tu perfil para mejorar la compatibilidad con las vacantes de prácticas"
+          action={
+            <Button
+              icon={guardado ? null : <FiSave />}
+              onClick={handleGuardar}
+              loading={guardando}
+              variant={guardado ? 'secondary' : 'primary'}
+            >
+              {guardado ? '✓ Guardado' : 'Guardar Perfil'}
+            </Button>
+          }
+        />
 
-      <div className="max-w-3xl flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
         {/* Datos personales */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Datos Personales</h3>
-          <div className="flex flex-col gap-4">
+        <section className={sectionClass}>
+          <div className={sectionHeaderClass}>Datos Personales</div>
+          <div className={`${sectionBodyClass} flex flex-col gap-4`}>
             <div className="flex items-center gap-5 mb-2">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 text-white text-2xl font-bold flex items-center justify-center flex-shrink-0">
+              <div className="w-20 h-20 rounded-full bg-[#3c8dbc] text-white text-2xl font-bold flex items-center justify-center flex-shrink-0 border border-[#2f6f92]">
                 {(form.name || 'E').charAt(0).toUpperCase()}
               </div>
               <div>
@@ -194,47 +199,50 @@ export default function EstudiantePerfil() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-              <Input label="Nombre" value={form.name} disabled placeholder="Tu nombre" />
-              <Input label="Apellido" value={form.lastname} disabled placeholder="Tu apellido" />
+              <Input label="Nombre" value={form.name} disabled placeholder="Tu nombre" inputClassName={profileInputClass} />
+              <Input label="Apellido" value={form.lastname} disabled placeholder="Tu apellido" inputClassName={profileInputClass} />
             </div>
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-              <Input label="Correo institucional" type="email" value={form.email} disabled placeholder="usuario@ug.edu.ec" />
-              <Input label="Teléfono" type="tel" value={form.phone} disabled placeholder="0998094515" />
+              <Input label="Correo institucional" type="email" value={form.email} disabled placeholder="usuario@ug.edu.ec" inputClassName={profileInputClass} />
+              <Input label="Teléfono" type="tel" value={form.phone} disabled placeholder="0998094515" inputClassName={profileInputClass} />
             </div>
           </div>
         </section>
 
         {/* Formación académica */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Formación Académica</h3>
-          <p className="text-xs text-slate-500 mb-4">Universidad de Guayaquil — Facultad de Ciencias Matemáticas y Físicas</p>
-          <div className="flex flex-col gap-4">
+        <section className={sectionClass}>
+          <div className={sectionHeaderClass}>Formación Académica</div>
+          <div className={`${sectionBodyClass} flex flex-col gap-4`}>
+            <p className="text-xs text-slate-500">Universidad de Guayaquil — Facultad de Ciencias Matemáticas y Físicas</p>
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <Input 
                 label="Carrera" 
                 value={form.career} 
                 disabled 
                 placeholder="Ingeniería en Software" 
+                inputClassName={profileInputClass}
               />
               <Input 
                 label="Semestre actual" 
                 value={form.semester} 
                 disabled 
                 placeholder="7mo semestre" 
+                inputClassName={profileInputClass}
               />
             </div>
-            <Input label="Áreas de interés" value={form.interests} onChange={(e) => setForm(p => ({...p, interests: e.target.value}))} placeholder="Ej: Desarrollo Web, Ciencia de Datos, Redes" />
+            <Input label="Áreas de interés" value={form.interests} onChange={(e) => setForm(p => ({...p, interests: e.target.value}))} placeholder="Ej: Desarrollo Web, Ciencia de Datos, Redes" inputClassName={profileInputClass} />
           </div>
         </section>
 
         {/* Habilidades */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">Habilidades y Competencias</h3>
-          <p className="text-xs text-slate-500 mb-4">Selecciona las habilidades que coincidan con tu perfil.</p>
+        <section className={sectionClass}>
+          <div className={sectionHeaderClass}>Habilidades y Competencias</div>
+          <div className={`${sectionBodyClass} flex flex-col gap-4`}>
+            <p className="text-xs text-slate-500">Selecciona las habilidades que coincidan con tu perfil.</p>
           {habilidades.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4 p-3 bg-primary-50/50 rounded-lg">
+            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-md">
               {habilidades.map((hab) => (
-                <div key={hab.skill_id || hab.name} className="inline-flex items-center gap-2 px-2.5 py-1 bg-white border border-primary-200 text-xs rounded-lg">
+                <div key={hab.skill_id || hab.name} className="inline-flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 text-xs rounded-md">
                   <span className="font-semibold text-primary-700">{hab.name}</span>
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-slate-500">Nivel</span>
@@ -251,7 +259,7 @@ export default function EstudiantePerfil() {
                   </div>
                   <button
                     onClick={() => toggleHabilidad(hab)}
-                    className="flex items-center justify-center w-4 h-4 rounded-full bg-primary-200 text-primary-600 border-none cursor-pointer hover:bg-primary-300 transition-colors"
+                    className="flex items-center justify-center w-4 h-4 rounded-md bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer hover:bg-slate-300 transition-colors"
                     aria-label={`Quitar ${hab.name}`}
                   >
                     <FiX size={10} />
@@ -260,7 +268,7 @@ export default function EstudiantePerfil() {
               ))}
             </div>
           )}
-          <div className="flex flex-col gap-2 mb-4">
+          <div className="flex flex-col gap-2">
             <div className="flex items-end gap-2 max-sm:flex-col max-sm:items-stretch">
               <Input
                 label="Agregar habilidad manual"
@@ -268,6 +276,7 @@ export default function EstudiantePerfil() {
                 value={customSkill}
                 onChange={(e) => setCustomSkill(e.target.value)}
                 className="flex-1"
+                inputClassName={profileInputClass}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -292,30 +301,34 @@ export default function EstudiantePerfil() {
               <button
                 key={hab.skill_id || hab.name}
                 onClick={() => toggleHabilidad(hab)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full border cursor-pointer transition-all
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all
                   ${habilidades.some((h) => skillKey(h.name) === skillKey(hab.name))
                     ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600'
                   }`}
               >
                 {hab.name}
               </button>
             ))}
           </div>
+          </div>
         </section>
 
         {/* Experiencia */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Experiencia Previa</h3>
-          <textarea
-            rows={4}
-            value={form.experience_summary}
-            onChange={(e) => setForm((prev) => ({ ...prev, experience_summary: e.target.value }))}
-            placeholder="Describe brevemente tu experiencia previa"
-            className={`${fieldBase} resize-y min-h-[100px]`}
-          />
+        <section className={sectionClass}>
+          <div className={sectionHeaderClass}>Experiencia Previa</div>
+          <div className={sectionBodyClass}>
+            <textarea
+              rows={4}
+              value={form.experience_summary}
+              onChange={(e) => setForm((prev) => ({ ...prev, experience_summary: e.target.value }))}
+              placeholder="Describe brevemente tu experiencia previa"
+              className={`${fieldBase} resize-y min-h-[100px]`}
+            />
+          </div>
         </section>
       </div>
+    </div>
     </div>
   );
 }

@@ -216,7 +216,7 @@ export default function EmpresaVacantes() {
     { key: 'expires_at', label: 'Fecha límite', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
-  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-lg outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-100`;
+  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-md outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-[var(--color-header-bg)]`;
   const fieldErr = `border-danger focus:ring-danger-light`;
   const fieldOk = `border-slate-300`;
 
@@ -234,7 +234,7 @@ export default function EmpresaVacantes() {
 
       {/* Toast */}
       {toast && (
-        <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 animate-fade-in ${
+        <div className={`mb-4 px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in ${
           toast.type === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
@@ -252,21 +252,21 @@ export default function EmpresaVacantes() {
           <>
             <button
               onClick={() => setViewModal(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
               title="Ver detalle"
             >
               <FiEye size={16} />
             </button>
             <button
               onClick={() => openEdit(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-amber-50 hover:text-amber-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-amber-50 hover:text-amber-600"
               title="Editar vacante"
             >
               <FiEdit2 size={16} />
             </button>
             <button
               onClick={() => setDeleteConfirm(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
+              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
               title="Eliminar"
             >
               <FiTrash2 size={16} />
@@ -280,7 +280,7 @@ export default function EmpresaVacantes() {
         {viewModal && (
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold text-slate-900">{viewModal.title}</h3>
-            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl max-md:grid-cols-2">
+            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-md max-md:grid-cols-2">
               <div><p className="text-xs text-slate-500 mb-1">Área</p><p className="text-sm font-semibold text-slate-800">{viewModal.area}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Modalidad</p><p className="text-sm font-semibold text-slate-800">{viewModal.modality || 'Presencial'}</p></div>
               <div><p className="text-xs text-slate-500 mb-1">Ubicación</p><p className="text-sm font-semibold text-slate-800">{viewModal.location || '-'}</p></div>
@@ -401,7 +401,7 @@ export default function EmpresaVacantes() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-md">
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"

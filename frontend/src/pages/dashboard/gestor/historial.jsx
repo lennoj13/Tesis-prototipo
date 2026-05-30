@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import PageHeader from 'components/PageHeader';
 import StatusBadge from 'components/StatusBadge';
 import Button from 'components/Button';
+import Card from 'components/Card';
+import EmptyState from 'components/EmptyState';
 import SolicitudDetalleModal from 'components/SolicitudDetalleModal';
 import applicationService from 'services/applicationService';
 import { FiEye } from 'react-icons/fi';
@@ -74,32 +76,33 @@ export default function GestorHistorial() {
           { key: 'aprobada', label: 'Aprobadas' },
           { key: 'rechazada', label: 'Rechazadas' },
         ].map((item) => (
-          <button
+          <Button
             key={item.key}
             onClick={() => setFilter(item.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filter === item.key
-                ? 'bg-primary-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            size="sm"
+            variant={filter === item.key ? 'primary' : 'secondary'}
           >
             {item.label}
-          </button>
+          </Button>
         ))}
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
+        <Card>
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+            Cargando historial...
+          </div>
+        </Card>
       ) : filteredApps.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
-          <p className="text-lg">No hay postulaciones en el historial</p>
-        </div>
+        <EmptyState
+          variant="dashed"
+          message="No hay postulaciones en el historial"
+        />
       ) : (
         <div className="grid gap-4">
           {filteredApps.map((app) => (
-            <div key={app.postulacion_id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+            <Card key={app.postulacion_id} padding="md" hover>
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-semibold text-slate-800 mb-1">
@@ -132,7 +135,7 @@ export default function GestorHistorial() {
                   </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

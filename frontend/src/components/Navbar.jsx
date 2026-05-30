@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from 'context/AuthContext';
 import Logo from './Logo';
-import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiSettings } from 'react-icons/fi';
+import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft } from 'react-icons/fi';
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
@@ -32,12 +32,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
     admin: 'Administrador',
   };
 
-  const profileRoutes = {
-    estudiante: '/dashboard/estudiante/perfil',
-    empresa: '/dashboard/empresa',
-    gestor: '/dashboard/gestor',
-    admin: '/dashboard/admin',
-  };
+  const isStudent = user?.rol === 'estudiante';
 
   return (
     <nav
@@ -47,7 +42,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
       <div className="flex items-center gap-3">
         {/* Boton hamburguesa */}
         <button
-          className="hidden md:hidden max-md:flex items-center justify-center relative w-10 h-10 border-none bg-transparent text-white/80 rounded-lg cursor-pointer transition-all duration-150 hover:bg-white/10 hover:text-white"
+          className="hidden md:hidden max-md:flex items-center justify-center relative w-10 h-10 border-none bg-transparent text-white/80 rounded-md cursor-pointer transition-all duration-150 hover:bg-white/10 hover:text-white"
           onClick={onToggleSidebar}
           aria-label={sidebarOpen ? 'Cerrar menu' : 'Abrir menu'}
         >
@@ -61,7 +56,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
         {/* Menu de usuario */}
         <div className="relative" ref={menuRef}>
           <button
-            className="flex items-center gap-2.5 py-1.5 px-2.5 border-none bg-transparent rounded-lg cursor-pointer transition-colors duration-150 hover:bg-white/10"
+            className="flex items-center gap-2.5 py-1.5 px-2.5 border-none bg-transparent rounded-md cursor-pointer transition-colors duration-150 hover:bg-white/10"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-expanded={menuOpen}
           >
@@ -81,35 +76,32 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 animate-fade-in z-[200]">
+            <div className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] bg-white border border-slate-200 rounded-md p-1.5 animate-fade-in z-[200]">
               {/* Info del usuario */}
               <div className="px-3 py-2.5 mb-1">
                 <p className="text-sm font-semibold text-slate-800">{user?.nombre || 'Usuario'}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{user?.email || ''}</p>
               </div>
               <div className="h-px bg-slate-200 mx-2 my-1" />
-              <Link
-                to={profileRoutes[user?.rol] || '/dashboard/estudiante/perfil'}
-                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100 no-underline"
-                onClick={() => setMenuOpen(false)}
-              >
-                <FiUser size={16} />
-                <span>Mi Perfil</span>
-              </Link>
+              {isStudent && (
+                <>
+                  <Link
+                    to="/dashboard/estudiante/perfil"
+                    className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-md cursor-pointer transition-colors duration-150 hover:bg-slate-100 no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <FiUser size={16} />
+                    <span>Mi Perfil</span>
+                  </Link>
+                  <div className="h-px bg-slate-200 mx-2 my-1" />
+                </>
+              )}
               <button
-                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-slate-100"
-                onClick={() => setMenuOpen(false)}
-              >
-                <FiSettings size={16} />
-                <span>Configuracion</span>
-              </button>
-              <div className="h-px bg-slate-200 mx-2 my-1" />
-              <button
-                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-danger rounded-lg cursor-pointer transition-colors duration-150 hover:bg-danger-light"
+                className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-danger rounded-md cursor-pointer transition-colors duration-150 hover:bg-danger-light"
                 onClick={logout}
               >
                 <FiLogOut size={16} />
-                <span>Cerrar Sesion</span>
+                <span>Cerrar Sesión</span>
               </button>
             </div>
           )}

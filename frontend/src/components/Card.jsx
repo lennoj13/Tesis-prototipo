@@ -17,10 +17,10 @@ export default function Card({
   className = '',
 }) {
   const variants = {
-    default: 'bg-white border border-slate-200 shadow-sm',
+    default: 'bg-white border border-slate-200',
     flat: 'bg-white border border-slate-200',
     outlined: 'bg-transparent border-2 border-dashed border-slate-300',
-    elevated: 'bg-white border border-slate-200 shadow-md',
+    elevated: 'bg-white border border-slate-200',
     accent: 'bg-primary-50 border border-primary-200',
   };
 
@@ -32,10 +32,10 @@ export default function Card({
   };
 
   const classes = [
-    'rounded-xl transition-all duration-150',
+    'rounded-md transition-colors duration-150',
     variants[variant] || variants.default,
     paddings[padding] || paddings.md,
-    hover ? 'hover:shadow-md hover:border-primary-300 cursor-pointer' : '',
+    hover ? 'hover:border-primary-300 cursor-pointer' : '',
     onClick ? 'cursor-pointer' : '',
     className,
   ]
@@ -50,7 +50,7 @@ export default function Card({
         <div className={`flex items-center justify-between gap-3 ${children ? 'mb-4' : ''}`}>
           <div className="flex items-center gap-3 min-w-0">
             {Icon && (
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex-shrink-0">
+              <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary-50 text-primary-600 flex-shrink-0">
                 <Icon size={20} />
               </div>
             )}

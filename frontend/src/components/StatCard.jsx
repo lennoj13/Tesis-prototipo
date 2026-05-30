@@ -26,14 +26,14 @@ export default function StatCard({
   const palette = colorPresets[color] || colorPresets.blue;
 
   return (
-    <div className={`flex items-center gap-4 p-5 bg-white border border-slate-200 rounded-xl shadow-sm transition-shadow duration-150 hover:shadow-md ${className}`}>
+    <div className={`flex items-center gap-4 p-5 bg-white border border-slate-200 rounded-md transition-colors duration-150 ${className}`}>
       {Icon && (
         variant === 'gradient' ? (
-          <div className={`flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${palette.gradient}`}>
+          <div className={`flex items-center justify-center w-12 h-12 rounded-md bg-gradient-to-br ${palette.gradient}`}>
             <Icon size={22} className="text-white" />
           </div>
         ) : (
-          <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${palette.bg} ${palette.text} flex-shrink-0`}>
+          <div className={`flex items-center justify-center w-12 h-12 rounded-md ${palette.bg} ${palette.text} flex-shrink-0`}>
             <Icon size={22} />
           </div>
         )

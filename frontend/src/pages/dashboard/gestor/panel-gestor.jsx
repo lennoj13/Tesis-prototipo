@@ -52,7 +52,7 @@ export default function GestorDashboard() {
     <div className="animate-fade-in">
       <PageHeader
         title={`Bienvenido, ${getWelcomeName(user, 'Gestor')}`}
-        subtitle="Panel de gestion de practicas preprofesionales"
+        subtitle="Panel de gestión de prácticas preprofesionales"
       />
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mt-6">

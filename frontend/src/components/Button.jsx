@@ -6,21 +6,21 @@
 
 const variantClasses = {
   primary:
-    'bg-primary-600 text-white border-primary-600 hover:bg-primary-700 hover:border-primary-700 hover:shadow-md hover:-translate-y-px active:translate-y-0',
+    'bg-primary-600 text-white border-primary-600 hover:bg-primary-700 hover:border-primary-700',
   secondary:
     'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',
   outline:
     'bg-transparent text-primary-600 border-primary-300 hover:bg-primary-50 hover:border-primary-500',
   danger:
-    'bg-danger text-white border-danger hover:bg-red-600 hover:shadow-md',
+    'bg-danger text-white border-danger hover:bg-red-600',
   ghost:
     'bg-transparent text-slate-600 border-transparent hover:bg-slate-100 hover:text-slate-800',
 };
 
 const sizeClasses = {
   sm: 'px-3.5 py-1.5 text-[0.8125rem] rounded-md',
-  md: 'px-5 py-2.5 text-[0.9375rem] rounded-lg',
-  lg: 'px-7 py-3.5 text-[1.0625rem] rounded-xl',
+  md: 'px-5 py-2.5 text-[0.9375rem] rounded-md',
+  lg: 'px-7 py-3.5 text-[1.0625rem] rounded-md',
 };
 
 export default function Button({

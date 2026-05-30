@@ -7,7 +7,7 @@
 import { forwardRef } from 'react';
 
 const Input = forwardRef(function Input(
-  { label, error, icon, required, helperText, type = 'text', id, className = '', ...rest },
+  { label, error, icon, required, helperText, type = 'text', id, className = '', inputClassName = '', ...rest },
   ref
 ) {
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, '-')}`;
@@ -30,14 +30,15 @@ const Input = forwardRef(function Input(
           ref={ref}
           id={inputId}
           type={type}
-          className={`w-full py-2.5 px-3.5 font-sans text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-lg outline-none transition-all duration-150
+          className={`w-full py-2.5 px-3.5 font-sans text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-md outline-none transition-all duration-150
             ${icon ? 'pl-[42px]' : ''}
             ${error
               ? 'border-danger focus:ring-3 focus:ring-danger-light'
-              : 'border-slate-300 focus:border-primary-500 focus:ring-3 focus:ring-primary-100'
+              : 'border-slate-300 focus:border-primary-500 focus:ring-3 focus:ring-[var(--color-header-bg)]'
             }
             placeholder:text-slate-400
-            disabled:bg-slate-100 disabled:cursor-not-allowed`}
+            disabled:bg-slate-100 disabled:cursor-not-allowed
+            ${inputClassName}`}
           aria-invalid={!!error}
           aria-describedby={error ? `${inputId}-error` : undefined}
           {...rest}

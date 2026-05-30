@@ -95,7 +95,7 @@ export default function EstudiantePostulaciones() {
         actions={(row) => (
           <button
             onClick={() => setViewModal(row)}
-            className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
+            className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-600"
             title="Ver detalle"
           >
             <FiEye size={16} />
@@ -112,7 +112,7 @@ export default function EstudiantePostulaciones() {
                 <h3 className="text-xl font-bold text-slate-900 mb-1">{viewModal.vacante}</h3>
                 <p className="text-sm text-slate-500">{viewModal.empresa}</p>
               </div>
-              <div className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-lg font-bold
+              <div className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-lg font-bold
                 ${viewModal.match >= 80 ? 'bg-success-light text-green-700' : 
                   viewModal.match >= 60 ? 'bg-warning-light text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
                 {viewModal.match}%
@@ -120,7 +120,7 @@ export default function EstudiantePostulaciones() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl max-md:grid-cols-1">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md max-md:grid-cols-1">
               <div className="flex items-center gap-2">
                 <FiMapPin size={14} className="text-slate-400" />
                 <div>
@@ -149,13 +149,13 @@ export default function EstudiantePostulaciones() {
             </div>
 
             {viewModal.estado === 'aprobado' && (
-              <div className="p-4 bg-success-light border border-green-200 rounded-xl">
+              <div className="p-4 bg-success-light border border-green-200 rounded-md">
                 <p className="text-sm font-semibold text-green-800 mb-1">🎉 ¡Felicidades!</p>
                 <p className="text-sm text-green-700">Tu postulación ha sido aprobada. La empresa se pondrá en contacto contigo.</p>
               </div>
             )}
             {viewModal.estado === 'rechazado' && (
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
                 <p className="text-sm text-slate-600">Tu postulación no fue seleccionada en esta oportunidad.</p>
               </div>
             )}

@@ -188,7 +188,7 @@ export default function EstudianteDashboard() {
                   )}
                   {horasDiarias && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md">
-                      <FiClock size={11} />{horasDiarias} h/dia
+                      <FiClock size={11} />{horasDiarias} h/día
                     </span>
                   )}
                   {totalHoras && (
@@ -252,7 +252,7 @@ export default function EstudianteDashboard() {
                     <FiBriefcase size={14} /> {selectedVacancy.nombre_empresa}
                   </p>
                 </div>
-                <div className={`flex flex-col items-center px-4 py-3 rounded-xl ${afColor.bg} ${afColor.border} border min-w-[90px]`}>
+                <div className={`flex flex-col items-center px-4 py-3 rounded-md ${afColor.bg} ${afColor.border} border min-w-[90px]`}>
                   <span className={`text-2xl font-bold ${afColor.text}`}>{aff}%</span>
                   <span className="text-[10px] text-slate-500 font-medium">afinidad</span>
                 </div>

@@ -19,7 +19,7 @@ RESTART IDENTITY CASCADE;
 -- ROLES
 INSERT INTO public.roles (nombre, descripcion) VALUES 
     ('estudiante', 'Estudiante de la Carrera de Software'),
-    ('empresa', 'Empresa o Institucion con convenio'),
+    ('empresa', 'Empresa o Institución con convenio'),
     ('gestor', 'Gestor de practicas preprofesionales'),
     ('admin', 'Administrador tecnico del sistema');
 
