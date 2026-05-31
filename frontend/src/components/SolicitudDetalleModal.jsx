@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
 import Card from 'components/Card';
 import InfoField from 'components/InfoField';
 import EmptyState from 'components/EmptyState';
-import { FiCheckCircle, FiXCircle, FiLoader, FiInbox } from 'react-icons/fi';
+import Input from 'components/Input';
+import { FiCheckCircle, FiXCircle, FiLoader, FiInbox, FiPlusCircle } from 'react-icons/fi';
 
 export default function SolicitudDetalleModal({
   isOpen,
@@ -13,6 +15,8 @@ export default function SolicitudDetalleModal({
   supervisors = [],
   selectedSupervisor = '',
   onSupervisorChange,
+  onCreateSupervisor,
+  creatingSupervisor = false,
   showActions = false,
   onApprove,
   onReject,
@@ -41,6 +45,32 @@ export default function SolicitudDetalleModal({
         telefono: selectedSupervisorInfo.telefono,
       }
     : supervisorFromApi;
+
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newSupForm, setNewSupForm] = useState({
+    numero_identificacion: '',
+    nombre: '',
+    correo: '',
+    cargo: '',
+    departamento: '',
+    telefono: '',
+  });
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsCreatingNew(false);
+      setNewSupForm({numero_identificacion: '', nombre: '', correo: '', cargo: '', departamento: '', telefono: ''});
+    }
+  }, [isOpen]);
+
+  async function handleSubmitNewSupervisor() {
+    if (!onCreateSupervisor) return;
+    const success = await onCreateSupervisor(newSupForm);
+    if (success) {
+      setIsCreatingNew(false);
+      setNewSupForm({numero_identificacion: '', nombre: '', correo: '', cargo: '', departamento: '', telefono: ''});
+    }
+  }
 
   const footer = (
     <>
@@ -112,21 +142,41 @@ export default function SolicitudDetalleModal({
                 <InfoField variant="card" label="Fecha Inicio" value="-" />
                 <InfoField variant="card" label="Horas Asignadas" value={practica.horas_asignadas} />
                 <InfoField variant="card" label="Email Tutor Académico" value="-" />
-                {supervisors.length > 0 && onSupervisorChange ? (
+                {(supervisors.length > 0 || onCreateSupervisor) && onSupervisorChange ? (
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Supervisor Institucional</span>
-                    <select
-                      value={selectedSupervisor}
-                      onChange={(e) => onSupervisorChange(e.target.value)}
-                      className="min-h-[36px] px-3 py-2 border border-slate-300 rounded bg-white text-sm text-slate-800 outline-none focus:border-primary-500"
-                    >
-                      <option value="">Seleccionar supervisor...</option>
-                      {supervisors.map((sup) => (
-                        <option key={sup.supervisor_id} value={sup.supervisor_id}>
-                          {sup.nombre} ({sup.cargo})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Supervisor Institucional</span>
+                      {onCreateSupervisor && !isCreatingNew && (
+                        <button onClick={() => setIsCreatingNew(true)} className="text-[10px] flex items-center gap-1 font-bold text-primary-600 bg-transparent border-none cursor-pointer hover:underline">
+                          <FiPlusCircle /> Nuevo
+                        </button>
+                      )}
+                    </div>
+                    {isCreatingNew ? (
+                      <div className="bg-slate-50 p-3 rounded-md border border-slate-200 flex flex-col gap-2">
+                        <Input placeholder="Cédula" value={newSupForm.numero_identificacion} onChange={e => setNewSupForm(p => ({...p, numero_identificacion: e.target.value}))} />
+                        <Input placeholder="Nombre Completo" value={newSupForm.nombre} onChange={e => setNewSupForm(p => ({...p, nombre: e.target.value}))} />
+                        <Input placeholder="Cargo" value={newSupForm.cargo} onChange={e => setNewSupForm(p => ({...p, cargo: e.target.value}))} />
+                        <Input placeholder="Correo" type="email" value={newSupForm.correo} onChange={e => setNewSupForm(p => ({...p, correo: e.target.value}))} />
+                        <div className="flex justify-end gap-2 mt-1">
+                          <Button variant="secondary" size="sm" onClick={() => setIsCreatingNew(false)}>Cancelar</Button>
+                          <Button variant="primary" size="sm" loading={creatingSupervisor} onClick={handleSubmitNewSupervisor} disabled={!newSupForm.nombre || !newSupForm.numero_identificacion}>Guardar</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedSupervisor}
+                        onChange={(e) => onSupervisorChange(e.target.value)}
+                        className="min-h-[36px] px-3 py-2 border border-slate-300 rounded bg-white text-sm text-slate-800 outline-none focus:border-primary-500"
+                      >
+                        <option value="">Seleccionar supervisor...</option>
+                        {supervisors.map((sup) => (
+                          <option key={sup.supervisor_id} value={sup.supervisor_id}>
+                            {sup.nombre} ({sup.cargo})
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 ) : (
                   <InfoField variant="card" label="Supervisor Institucional" value={supervisor.nombres} />

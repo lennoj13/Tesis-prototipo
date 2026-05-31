@@ -76,10 +76,15 @@ class VacancyComponent:
                     u.nombre || ' ' || u.apellido as persona_contacto,
                     TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
                     TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
-                    (SELECT COUNT(*) FROM public.postulaciones p WHERE p.vacante_id = v.vacante_id) as total_postulaciones
+                    COALESCE(p.total, 0) as total_postulaciones
                 FROM public.vacantes v
                 JOIN public.instituciones i ON v.institucion_id = i.institucion_id
                 JOIN public.usuarios u ON i.usuario_id = u.usuario_id
+                LEFT JOIN (
+                    SELECT vacante_id, COUNT(*) as total
+                    FROM public.postulaciones
+                    GROUP BY vacante_id
+                ) p ON p.vacante_id = v.vacante_id
                 WHERE v.activo = true
                 ORDER BY v.creado_en DESC;
             '''
@@ -110,8 +115,13 @@ class VacancyComponent:
                        v.cupos, v.activo, v.supervisor_id,
                        TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
                        TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
-                       (SELECT COUNT(*) FROM public.postulaciones p WHERE p.vacante_id = v.vacante_id) as total_postulaciones
+                       COALESCE(p.total, 0) as total_postulaciones
                 FROM public.vacantes v
+                LEFT JOIN (
+                    SELECT vacante_id, COUNT(*) as total 
+                    FROM public.postulaciones 
+                    GROUP BY vacante_id
+                ) p ON p.vacante_id = v.vacante_id
                 WHERE v.institucion_id = %s
                 ORDER BY v.creado_en DESC;
             '''

@@ -21,7 +21,7 @@ class AdminComponent:
 
             user_data = dict(user_result['data'])
 
-            if user_data['rol'] == 'estudiante':
+            if user_data['rol'] in ('estudiante', 'gestor'):
                 sql_profile = """
                     SELECT pe.perfil_id, pe.carrera_id, c.nombre as carrera,
                            f.nombre as facultad, pe.semestre, pe.universidad,
@@ -121,7 +121,7 @@ class AdminComponent:
             sql = """
                 SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria, 
                        i.direccion, i.ciudad, i.correo_contacto, i.estado,
-                       u.nombre || ' ' || u.apellido as persona_contacto,
+                       u.usuario_id, u.activo, u.nombre || ' ' || u.apellido as persona_contacto,
                        TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en,
                        (SELECT COUNT(*) FROM public.vacantes v WHERE v.institucion_id = i.institucion_id AND v.activo = true) as vacantes_activas,
                        (SELECT COUNT(*) FROM public.supervisores sv WHERE sv.institucion_id = i.institucion_id AND sv.activo = true) as total_supervisores
@@ -234,6 +234,330 @@ class AdminComponent:
             report['top_empresas'] = [dict(r) for r in r4['data']] if r4['result'] and r4['data'] else []
 
             return internal_response(True, report, "Datos de reportes obtenidos")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def create_user(cedula, nombre, apellido, correo, contrasena, rol_nombre, telefono=None, extra_data=None):
+        """Crear un nuevo usuario desde el panel admin."""
+        import bcrypt
+        try:
+            # Verificar que el rol exista
+            sql_rol = "SELECT rol_id FROM public.roles WHERE nombre = %s"
+            rol_result = DataBaseHandle.getRecords(sql_rol, 1, (rol_nombre,))
+            if not rol_result['result'] or not rol_result['data']:
+                return internal_response(False, None, f"Rol '{rol_nombre}' no encontrado")
+            rol_id = rol_result['data']['rol_id']
+
+            # Validar dominio de correo
+            if rol_nombre in ['estudiante', 'gestor', 'admin'] and not correo.lower().endswith('@ug.edu.ec'):
+                return internal_response(False, None, "El correo para este rol debe terminar en @ug.edu.ec")
+
+            # Verificar duplicados
+            sql_dup = "SELECT usuario_id FROM public.usuarios WHERE cedula = %s OR correo = %s OR login = %s"
+            dup_result = DataBaseHandle.getRecords(sql_dup, 1, (cedula, correo, correo))
+            if dup_result['result'] and dup_result['data']:
+                return internal_response(False, None, "Ya existe un usuario con esa cedula o correo")
+
+            # Hash de contraseña
+            hashed = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+            sql_insert = """
+                INSERT INTO public.usuarios (cedula, login, contrasena, nombre, apellido, correo, telefono, rol_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING usuario_id
+            """
+            result = DataBaseHandle.ExecuteNonQuery(sql_insert, (
+                cedula, correo, hashed, nombre, apellido, correo, telefono, rol_id
+            ))
+            if result['result']:
+                user_id = result['data']
+                # Si es estudiante o gestor, crear perfil para enlazar con carrera
+                if rol_nombre in ('estudiante', 'gestor'):
+                    extra = extra_data or {}
+                    carrera_id_val = extra.get('carrera_id')
+                    if carrera_id_val == '': carrera_id_val = None
+                    semestre_val = extra.get('semestre')
+                    if semestre_val == '': semestre_val = None
+
+                    sql_profile = """
+                        INSERT INTO public.perfiles_estudiante (usuario_id, universidad, carrera_id, semestre)
+                        VALUES (%s, 'Universidad de Guayaquil', %s, %s)
+                    """
+                    DataBaseHandle.ExecuteNonQuery(sql_profile, (
+                        user_id, 
+                        carrera_id_val, 
+                        semestre_val
+                    ))
+                return internal_response(True, {'usuario_id': user_id}, "Usuario creado exitosamente")
+            return internal_response(False, None, result.get('message', 'Error al crear usuario'))
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def update_user(user_id, data):
+        """Actualizar datos completos de un usuario desde el panel admin."""
+        try:
+            # Check if user exists and get role
+            sql_check = """
+                SELECT u.usuario_id, r.nombre as rol_nombre 
+                FROM public.usuarios u
+                JOIN public.roles r ON u.rol_id = r.rol_id
+                WHERE u.usuario_id = %s
+            """
+            check_res = DataBaseHandle.getRecords(sql_check, 1, (user_id,))
+            if not check_res['result'] or not check_res['data']:
+                return internal_response(False, None, "Usuario no encontrado")
+            
+            rol_nombre = check_res['data']['rol_nombre']
+
+            # Update core user data
+            sql_user = """
+                UPDATE public.usuarios
+                SET cedula = COALESCE(%s, cedula),
+                    nombre = COALESCE(%s, nombre),
+                    apellido = COALESCE(%s, apellido),
+                    correo = COALESCE(%s, correo),
+                    telefono = COALESCE(%s, telefono),
+                    activo = COALESCE(%s, activo)
+                WHERE usuario_id = %s
+            """
+            DataBaseHandle.ExecuteNonQuery(sql_user, (
+                data.get('cedula'), data.get('nombre'), data.get('apellido'),
+                data.get('correo'), data.get('telefono'), data.get('activo'),
+                user_id
+            ))
+
+            # Update profile data based on role
+            if rol_nombre in ('estudiante', 'gestor'):
+                carrera_id_val = data.get('carrera_id')
+                if carrera_id_val == '': carrera_id_val = None
+                semestre_val = data.get('semestre')
+                if semestre_val == '': semestre_val = None
+
+                # Only update if values are provided (not None). If they want to explicitly remove, we'd need a different logic, but usually we just overwrite.
+                # However, if carrera_id_val is None, we don't want to coalesce it to NULL if we just didn't pass it, but data.get() returns None if not passed.
+                # Wait, if data.get('semestre') is None, COALESCE(None, semestre) -> semestre. This is correct.
+                # But if we want to overwrite with empty, we'd pass empty. Since we just converted '' to None, COALESCE(None, semestre) will IGNORE the update!
+                # To actually update it, we should do:
+                sql_profile = """
+                    UPDATE public.perfiles_estudiante
+                    SET carrera_id = %s,
+                        semestre = %s
+                    WHERE usuario_id = %s
+                """
+                DataBaseHandle.ExecuteNonQuery(sql_profile, (
+                    carrera_id_val, semestre_val, user_id
+                ))
+
+            return internal_response(True, None, "Usuario actualizado exitosamente")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def create_company(cedula_representante, nombre_representante, apellido_representante,
+                       correo, contrasena, telefono, nombre_empresa, ruc, industria,
+                       direccion=None, ciudad='Guayaquil', correo_contacto=None, sitio_web=None):
+        """Crear una empresa con su usuario representante desde el panel admin."""
+        import bcrypt
+        try:
+            # Verificar duplicados de usuario
+            sql_dup = "SELECT usuario_id FROM public.usuarios WHERE cedula = %s OR correo = %s OR login = %s"
+            dup_result = DataBaseHandle.getRecords(sql_dup, 1, (cedula_representante, correo, correo))
+            if dup_result['result'] and dup_result['data']:
+                return internal_response(False, None, "Ya existe un usuario con esa cedula o correo")
+
+            # Verificar duplicado de RUC
+            if ruc:
+                sql_ruc = "SELECT institucion_id FROM public.instituciones WHERE ruc = %s"
+                ruc_result = DataBaseHandle.getRecords(sql_ruc, 1, (ruc,))
+                if ruc_result['result'] and ruc_result['data']:
+                    return internal_response(False, None, "Ya existe una empresa con ese RUC")
+
+            # Obtener rol empresa
+            sql_rol = "SELECT rol_id FROM public.roles WHERE nombre = 'empresa'"
+            rol_result = DataBaseHandle.getRecords(sql_rol, 1)
+            if not rol_result['result'] or not rol_result['data']:
+                return internal_response(False, None, "Rol 'empresa' no encontrado en el sistema")
+            rol_id = rol_result['data']['rol_id']
+
+            # Hash contraseña
+            hashed = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+            # Crear usuario
+            sql_user = """
+                INSERT INTO public.usuarios (cedula, login, contrasena, nombre, apellido, correo, telefono, rol_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING usuario_id
+            """
+            user_result = DataBaseHandle.ExecuteNonQuery(sql_user, (
+                cedula_representante, correo, hashed, nombre_representante, apellido_representante,
+                correo, telefono, rol_id
+            ))
+            if not user_result['result']:
+                return internal_response(False, None, user_result.get('message', 'Error al crear usuario'))
+
+            user_id = user_result['data']
+
+            # Crear institución
+            sql_inst = """
+                INSERT INTO public.instituciones 
+                    (usuario_id, nombre, ruc, industria, direccion, ciudad, correo_contacto, sitio_web, estado)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'aprobado')
+                RETURNING institucion_id
+            """
+            inst_result = DataBaseHandle.ExecuteNonQuery(sql_inst, (
+                user_id, nombre_empresa, ruc, industria, direccion, ciudad,
+                correo_contacto or correo, sitio_web
+            ))
+            if inst_result['result']:
+                return internal_response(True, {
+                    'usuario_id': user_id,
+                    'institucion_id': inst_result['data']
+                }, "Empresa creada exitosamente")
+            return internal_response(False, None, inst_result.get('message', 'Error al crear institucion'))
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def delete_user(user_id, admin_user_id):
+        """Eliminación física de un usuario (y sus datos en cascada)."""
+        try:
+            if str(user_id) == str(admin_user_id):
+                return internal_response(False, None, "No puedes eliminar tu propia cuenta de administrador")
+
+            sql_check = "SELECT usuario_id FROM public.usuarios WHERE usuario_id = %s"
+            check = DataBaseHandle.getRecords(sql_check, 1, (user_id,))
+            if not check['result'] or not check['data']:
+                return internal_response(False, None, "Usuario no encontrado")
+
+            sql_del = "DELETE FROM public.usuarios WHERE usuario_id = %s"
+            result = DataBaseHandle.ExecuteNonQuery(sql_del, (user_id,))
+            
+            if result['result']:
+                return internal_response(True, None, "Usuario eliminado permanentemente")
+            return internal_response(False, None, result.get('message', 'Error al eliminar usuario'))
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def toggle_user_status(user_id, admin_user_id):
+        """Activar o desactivar un usuario (toggle)."""
+        try:
+            if str(user_id) == str(admin_user_id):
+                return internal_response(False, None, "No puedes modificar tu propia cuenta")
+
+            sql_check = "SELECT usuario_id, activo, nombre, apellido FROM public.usuarios WHERE usuario_id = %s"
+            check = DataBaseHandle.getRecords(sql_check, 1, (user_id,))
+            if not check['result'] or not check['data']:
+                return internal_response(False, None, "Usuario no encontrado")
+
+            current_status = check['data']['activo']
+            new_status = not current_status
+            action = "activado" if new_status else "desactivado"
+
+            sql = "UPDATE public.usuarios SET activo = %s, actualizado_en = NOW() WHERE usuario_id = %s"
+            result = DataBaseHandle.ExecuteNonQuery(sql, (new_status, user_id))
+
+            if result['result']:
+                return internal_response(True, {'activo': new_status}, f"Usuario {action} exitosamente")
+            return internal_response(False, None, result.get('message', 'Error al cambiar estado'))
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def get_company_detail(institucion_id):
+        """Obtener detalle completo de una empresa con supervisores y vacantes."""
+        try:
+            # Datos de la empresa
+            sql_company = """
+                SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria,
+                       i.descripcion, i.sitio_web, i.direccion, i.ciudad,
+                       i.correo_contacto, i.telefono, i.estado,
+                       u.nombre || ' ' || u.apellido as representante,
+                       u.correo as correo_representante,
+                       TO_CHAR(i.creado_en, 'YYYY-MM-DD') as fecha_registro
+                FROM public.instituciones i
+                JOIN public.usuarios u ON i.usuario_id = u.usuario_id
+                WHERE i.institucion_id = %s
+            """
+            company_result = DataBaseHandle.getRecords(sql_company, 1, (institucion_id,))
+            if not company_result['result'] or not company_result['data']:
+                return internal_response(False, None, "Empresa no encontrada")
+
+            company_data = dict(company_result['data'])
+
+            # Supervisores
+            sql_sups = """
+                SELECT supervisor_id, nombre, numero_identificacion, correo, 
+                       departamento, cargo, telefono, activo,
+                       TO_CHAR(creado_en, 'YYYY-MM-DD') as creado_en
+                FROM public.supervisores
+                WHERE institucion_id = %s
+                ORDER BY activo DESC, nombre
+            """
+            sups_result = DataBaseHandle.getRecords(sql_sups, 0, (institucion_id,))
+            company_data['supervisores'] = [dict(s) for s in sups_result['data']] if sups_result['result'] and sups_result['data'] else []
+
+            # Vacantes
+            sql_vacs = """
+                SELECT v.vacante_id, v.titulo, v.area, v.modalidad, v.ubicacion,
+                       v.cupos, v.activo, v.total_horas,
+                       TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
+                       (SELECT COUNT(*) FROM public.postulaciones p WHERE p.vacante_id = v.vacante_id) as total_postulaciones
+                FROM public.vacantes v
+                WHERE v.institucion_id = %s
+                ORDER BY v.creado_en DESC
+            """
+            vacs_result = DataBaseHandle.getRecords(sql_vacs, 0, (institucion_id,))
+            company_data['vacantes'] = [dict(v) for v in vacs_result['data']] if vacs_result['result'] and vacs_result['data'] else []
+
+            return internal_response(True, company_data, "Detalle de empresa obtenido")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def search_user_by_cedula(cedula):
+        """Buscar un usuario por cédula y devolver su detalle completo."""
+        try:
+            sql = "SELECT usuario_id FROM public.usuarios WHERE cedula = %s"
+            result = DataBaseHandle.getRecords(sql, 1, (cedula,))
+            if result['result'] and result['data']:
+                return AdminComponent.get_user_detail(result['data']['usuario_id'])
+            return internal_response(False, None, "Estudiante no encontrado con esa cédula")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))
+
+    @staticmethod
+    def create_supervisor(institucion_id, data):
+        """Crear un nuevo supervisor para una institución."""
+        try:
+            sql = '''
+                INSERT INTO public.supervisores (institucion_id, numero_identificacion, nombre, correo, departamento, cargo, telefono)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING supervisor_id
+            '''
+            params = (
+                institucion_id,
+                data.get('numero_identificacion', '9999999999'),
+                data.get('nombre'),
+                data.get('correo'),
+                data.get('departamento'),
+                data.get('cargo'),
+                data.get('telefono')
+            )
+            result = DataBaseHandle.ExecuteNonQuery(sql, params)
+            if result['result']:
+                return internal_response(True, {'supervisor_id': result['insert_id']}, "Supervisor creado exitosamente")
+            return internal_response(False, None, "No se pudo crear el supervisor")
         except Exception as err:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))

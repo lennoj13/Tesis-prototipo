@@ -52,12 +52,14 @@ export default function EmpresaDashboard() {
   const [matchingLoading, setMatchingLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
+  const [companyName, setCompanyName] = useState('');
 
   useEffect(() => {
     async function loadData() {
       try {
         const profRes = await profileService.getMyProfile();
         const companyId = profRes.data?.details?.institucion_id || profRes.data?.details?.company_id || user?.profile_id;
+        setCompanyName(profRes.data?.details?.nombre_empresa || profRes.data?.details?.nombre || user?.nombre || user?.name || 'Empresa');
 
         if (!companyId) {
           setMatchingLoading(false);
@@ -139,7 +141,7 @@ export default function EmpresaDashboard() {
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1">
-            Panel de {user?.nombre || user?.name || 'Empresa'}
+            Panel de {companyName}
           </h1>
           <p className="text-base text-slate-500">
             Gestiona vacantes y descubre talento compatible — Universidad de Guayaquil

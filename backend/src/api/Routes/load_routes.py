@@ -5,7 +5,12 @@ from ..Services.vacancy_services import VacancyService, VacancyCatalogService, V
 from ..Services.profile_service import ProfileService, PublicProfileService
 from ..Services.skills_service import SkillListService
 from ..Services.application_service import ApplicationService, ApplicationStatusService, ApplicationSolicitudService
-from ..Services.admin_service import AdminStatsService, AdminCompanyService, AdminCompanyStatusService, AdminDeleteUserService, AdminUserDetailService, AdminReportsService
+from ..Services.admin_service import (
+    AdminStatsService, AdminCompanyService, AdminCompanyStatusService,
+    AdminDeleteUserService, AdminUserDetailService, AdminReportsService,
+    AdminCreateUserService, AdminCreateCompanyService, AdminToggleUserService,
+    AdminCompanyDetailService, AdminUserSearchService, AdminCreateSupervisorService
+)
 from ..Services.matching_service import MatchingCandidatesService
 
 def load_routes(api):
@@ -38,8 +43,14 @@ def load_routes(api):
     api.add_resource(AdminStatsService, '/admin/stats')
     api.add_resource(AdminCompanyService, '/admin/companies')
     api.add_resource(AdminCompanyStatusService, '/admin/companies/<int:company_id>/status')
+    api.add_resource(AdminCompanyDetailService, '/admin/companies/<int:company_id>/detail')
+    api.add_resource(AdminCreateSupervisorService, '/admin/companies/<int:company_id>/supervisors')
     api.add_resource(AdminDeleteUserService, '/admin/users/<int:user_id>')
     api.add_resource(AdminUserDetailService, '/admin/users/<int:user_id>/detail')
+    api.add_resource(AdminToggleUserService, '/admin/users/<int:user_id>/toggle')
+    api.add_resource(AdminCreateUserService, '/admin/users/create')
+    api.add_resource(AdminUserSearchService, '/admin/users/search')
+    api.add_resource(AdminCreateCompanyService, '/admin/companies/create')
 
     # === Matching ===
     api.add_resource(MatchingCandidatesService, '/matching/candidates')

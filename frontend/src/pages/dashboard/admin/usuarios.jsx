@@ -1,10 +1,10 @@
 
 /**
- * Admin Usuarios — Lista de usuarios con acciones y detalle de perfil.
+ * Admin Usuarios — Lista de usuarios con acciones, detalle, crear y toggle estado.
  * Módulo 1: Gestión de Usuarios
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import adminService from 'services/adminService';
 import PageHeader from 'components/PageHeader';
 import DataTable from 'components/DataTable';
@@ -12,18 +12,22 @@ import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Input from 'components/Input';
-import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader } from 'react-icons/fi';
+import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader, FiUserPlus } from 'react-icons/fi';
 
-const rolLabels = { student: 'Estudiante', company: 'Empresa', admin: 'Admin' };
+const rolLabels = { estudiante: 'Estudiante', student: 'Estudiante', company: 'Empresa', empresa: 'Empresa', admin: 'Admin', gestor: 'Gestor' };
 const rolColors = {
-  student: 'bg-blue-100 text-blue-700',
-  company: 'bg-amber-100 text-amber-700',
+  student: 'bg-slate-100 text-slate-700', estudiante: 'bg-slate-100 text-slate-700',
+  company: 'bg-slate-100 text-slate-700', empresa: 'bg-slate-100 text-slate-700',
+  gestor: 'bg-slate-100 text-slate-700',
   admin: 'bg-purple-100 text-purple-700',
 };
 
 export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [viewModal, setViewModal] = useState(null);
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -32,6 +36,9 @@ export default function AdminUsuarios() {
   const [editForm, setEditForm] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  // Crear usuario
+  const [createModal, setCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', carrera_id: '', semestre: '' });
 
   async function loadUsers() {
     try {
@@ -40,6 +47,46 @@ export default function AdminUsuarios() {
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   }
+
+  const sortedAndFilteredUsers = useMemo(() => {
+    let result = [...usuarios];
+    
+    // Filter by Role
+    if (roleFilter) {
+      result = result.filter(u => u.rol_nombre.toLowerCase() === roleFilter.toLowerCase());
+    }
+    
+    // Filter by Status
+    if (statusFilter) {
+      const isActivo = statusFilter === 'activo';
+      result = result.filter(u => u.activo === isActivo);
+    }
+    
+    // Sort
+    switch (sortBy) {
+      case 'oldest':
+        result.sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en));
+        break;
+      case 'alphaAsc':
+        result.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        break;
+      case 'alphaDesc':
+        result.sort((a, b) => (b.nombre || '').localeCompare(a.nombre || ''));
+        break;
+      case 'semAsc':
+        result.sort((a, b) => (parseInt(a.semestre) || 0) - (parseInt(b.semestre) || 0));
+        break;
+      case 'semDesc':
+        result.sort((a, b) => (parseInt(b.semestre) || 0) - (parseInt(a.semestre) || 0));
+        break;
+      case 'newest':
+      default:
+        result.sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
+        break;
+    }
+    
+    return result;
+  }, [usuarios, roleFilter, statusFilter, sortBy]);
 
   useEffect(() => { loadUsers(); }, []);
 
@@ -67,7 +114,7 @@ export default function AdminUsuarios() {
       const res = await adminService.deleteUser(deleteTarget.usuario_id);
       if (res.result) {
         setToast({ type: 'success', message: `Usuario "${deleteTarget.nombre} ${deleteTarget.apellido || ''}" eliminado correctamente` });
-        setUsuarios(prev => prev.filter(u => u.usuario_id !== deleteTarget.usuario_id));
+        loadUsers();
       } else {
         setToast({ type: 'error', message: res.message || 'Error al eliminar usuario' });
       }
@@ -88,7 +135,26 @@ export default function AdminUsuarios() {
       email: row.correo || '',
       phone: row.telefono || '',
       cedula: row.cedula || '',
+      activo: row.activo !== false,
+      carrera_id: '',
+      semestre: '',
     });
+    
+    // Fetch profile details if student
+    if (row.rol_nombre === 'estudiante') {
+      try {
+        const res = await adminService.getUserDetail(row.usuario_id);
+        if (res.result && res.data?.perfil_estudiante) {
+          setEditForm(prev => ({
+            ...prev,
+            carrera_id: res.data.perfil_estudiante.carrera_id || '',
+            semestre: res.data.perfil_estudiante.semestre || ''
+          }));
+        }
+      } catch (e) {
+        console.error("Error loading student profile details for edit", e);
+      }
+    }
   }
 
   // Guardar edición
@@ -102,6 +168,26 @@ export default function AdminUsuarios() {
         setEditModal(null);
       } else {
         setToast({ type: 'error', message: res.message || 'Error al actualizar' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar' });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  // Crear usuario
+  async function handleCreateUser() {
+    setActionLoading(true);
+    try {
+      const res = await adminService.createUser(createForm);
+      if (res.result) {
+        setToast({ type: 'success', message: 'Usuario creado exitosamente' });
+        setCreateModal(false);
+        setCreateForm({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', carrera_id: '', semestre: '' });
+        loadUsers();
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al crear usuario' });
       }
     } catch (err) {
       setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar' });
@@ -124,15 +210,20 @@ export default function AdminUsuarios() {
       label: 'Nombre',
       render: (val, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#3c8dbc] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 border border-[#2f6f92]">
+          <div className={`w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 border ${row.activo ? 'bg-[#3c8dbc] border-[#2f6f92]' : 'bg-slate-400 border-slate-500'}`}>
             {(val || '?').charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="font-medium text-slate-800 m-0">{val} {row.apellido || ''}</p>
+            <p className={`font-medium m-0 ${row.activo ? 'text-slate-800' : 'text-slate-400 line-through'}`}>{val} {row.apellido || ''}</p>
             <p className="text-xs text-slate-500 m-0">{row.correo}</p>
           </div>
         </div>
       ),
+    },
+    {
+      key: 'cedula',
+      label: 'Cédula / RUC',
+      render: (val) => <span className="font-mono text-xs text-slate-600">{val || '-'}</span>
     },
     {
       key: 'rol_nombre',
@@ -152,11 +243,19 @@ export default function AdminUsuarios() {
       <PageHeader
         title="Gestión de Usuarios"
         subtitle={loading ? 'Cargando...' : `${usuarios.length} usuarios registrados`}
+        action={
+          <button
+            onClick={() => setCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-md border-none cursor-pointer transition-colors hover:bg-primary-700"
+          >
+            <FiUserPlus size={16} /> Crear Usuario
+          </button>
+        }
       />
 
       {/* Toast notification */}
       {toast && (
-        <div className={`mb-4 px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in ${
+        <div className={`fixed top-4 right-4 z-[9999] px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 shadow-lg animate-fade-in ${
           toast.type === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
@@ -167,8 +266,44 @@ export default function AdminUsuarios() {
 
       <DataTable
         columns={columns}
-        data={usuarios}
-        searchKeys={['nombre', 'correo', 'rol_nombre']}
+        data={sortedAndFilteredUsers}
+        searchKeys={['nombre', 'correo', 'rol_nombre', 'cedula']}
+        filters={
+          <>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+            >
+              <option value="">Todos los Roles</option>
+              <option value="estudiante">Estudiantes</option>
+              <option value="gestor">Gestores</option>
+              <option value="empresa">Empresas</option>
+              <option value="admin">Administradores</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+            >
+              <option value="">Todos los Estados</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+            >
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguos</option>
+              <option value="alphaAsc">A-Z</option>
+              <option value="alphaDesc">Z-A</option>
+              <option value="semAsc">Semestre (Menor a Mayor)</option>
+              <option value="semDesc">Semestre (Mayor a Menor)</option>
+            </select>
+          </>
+        }
         actions={(row) => (
           <>
             <button
@@ -230,6 +365,10 @@ export default function AdminUsuarios() {
                   <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Teléfono</p>
                   <p className="text-sm text-slate-800 m-0">{viewModal.telefono || 'No registrado'}</p>
                 </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Cédula / RUC</p>
+                <p className="text-sm font-mono text-slate-800 m-0">{viewModal.cedula || 'No registrada'}</p>
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Estado</p>
@@ -392,6 +531,48 @@ export default function AdminUsuarios() {
             <Input label="Correo Electrónico" type="email" value={editForm.email} onChange={(e) => setEditForm(p => ({...p, email: e.target.value}))} />
             <Input label="Teléfono" type="tel" value={editForm.phone} onChange={(e) => setEditForm(p => ({...p, phone: e.target.value}))} />
             
+            {(editModal.rol_nombre === 'estudiante' || editModal.rol_nombre === 'gestor') && (
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera</label>
+                  <select
+                    value={editForm.carrera_id}
+                    onChange={(e) => setEditForm(p => ({...p, carrera_id: e.target.value}))}
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                  >
+                    <option value="">Seleccione carrera...</option>
+                    <option value="1">Software</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre</label>
+                  <select
+                    value={editForm.semestre}
+                    onChange={(e) => setEditForm(p => ({...p, semestre: e.target.value}))}
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                  >
+                    <option value="">Seleccione...</option>
+                    {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {editModal.rol_nombre !== 'admin' && (
+              <div className="flex items-center gap-3 py-3 border-t border-slate-100">
+                <button
+                  className={`w-10 h-5 rounded-full relative transition-colors ${editForm.activo ? 'bg-green-500' : 'bg-slate-300'}`}
+                  onClick={() => setEditForm(p => ({...p, activo: !p.activo}))}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${editForm.activo ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-slate-800">Cuenta Activa</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">Si se desactiva, el usuario no podrá iniciar sesión.</span>
+                </div>
+              </div>
+            )}
+            
             <div className="flex justify-end gap-3 mt-4">
               <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md" onClick={() => setEditModal(null)}>Cancelar</button>
               <button className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[100px]" onClick={saveEdit} disabled={actionLoading}>
@@ -402,13 +583,77 @@ export default function AdminUsuarios() {
         )}
       </Modal>
 
+      {/* Create User Modal */}
+      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Crear Nuevo Usuario" size="sm">
+        <div className="flex flex-col gap-4">
+          <Input label="Cédula *" value={createForm.cedula} onChange={(e) => setCreateForm(p => ({...p, cedula: e.target.value}))} placeholder="0900000000" />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Nombre *" value={createForm.nombre} onChange={(e) => setCreateForm(p => ({...p, nombre: e.target.value}))} />
+            <Input label="Apellido *" value={createForm.apellido} onChange={(e) => setCreateForm(p => ({...p, apellido: e.target.value}))} />
+          </div>
+          <Input label="Correo Electrónico *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} placeholder="correo@ejemplo.com" />
+          <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
+          <Input label="Teléfono" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Rol *</label>
+            <select
+              value={createForm.rol}
+              onChange={(e) => setCreateForm(p => ({...p, rol: e.target.value}))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 focus:ring-2 focus:ring-[var(--color-header-bg)]"
+            >
+              <option value="estudiante">Estudiante</option>
+              <option value="gestor">Gestor PPP</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+
+          {(createForm.rol === 'estudiante' || createForm.rol === 'gestor') && (
+            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-md">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera</label>
+                <select
+                  value={createForm.carrera_id || ''}
+                  onChange={(e) => setCreateForm(p => ({...p, carrera_id: e.target.value}))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="1">Software</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre</label>
+                <select
+                  value={createForm.semestre || ''}
+                  onChange={(e) => setCreateForm(p => ({...p, semestre: e.target.value}))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                >
+                  <option value="">Seleccione...</option>
+                  {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 mt-4">
+            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => setCreateModal(false)}>Cancelar</button>
+            <button
+              className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[120px] cursor-pointer disabled:opacity-50"
+              onClick={handleCreateUser}
+              disabled={actionLoading || !createForm.cedula || !createForm.nombre || !createForm.apellido || !createForm.correo || !createForm.contrasena}
+            >
+              {actionLoading ? <FiLoader className="animate-spin" /> : 'Crear Usuario'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Eliminar Usuario"
-        message={deleteTarget ? `¿Estás seguro de que deseas eliminar a "${deleteTarget.nombre} ${deleteTarget.apellido || ''}"? El usuario será desactivado y no podrá acceder al sistema.` : ''}
+        message={deleteTarget ? `¿Estás seguro de que deseas eliminar permanentemente a "${deleteTarget.nombre} ${deleteTarget.apellido || ''}"? Esta acción borrará todos sus datos y no se puede deshacer.` : ''}
         confirmText={actionLoading ? 'Eliminando...' : 'Eliminar'}
       />
     </div>

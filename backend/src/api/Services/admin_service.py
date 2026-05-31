@@ -117,24 +117,18 @@ class AdminDeleteUserService(Resource):
 
     @staticmethod
     def put(user_id):
-        """Editar (actualizar) cualquier usuario o empresa por un admin/gestor"""
+        """Editar (actualizar) cualquier usuario o empresa por un admin"""
         try:
             auth = AuthComponent.verify(request)
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') not in ('admin', 'gestor'):
-                return response_error("Acceso denegado: se requiere rol admin o gestor")
+            if auth['data'].get('role') not in ('admin',):
+                return response_error("Acceso denegado: se requiere rol admin")
 
-            from ...api.Components.profile_component import ProfileComponent
-            target = ProfileComponent.get_profile(user_id)
-            if not target['result']:
-                return response_error("Usuario no encontrado")
-
-            role = target['data']['rol_nombre'].lower()
-            rq_json = request.get_json()
+            data = request.get_json()
+            result = AdminComponent.update_user(user_id, data)
             
-            result = ProfileComponent.update_profile(user_id, role, rq_json)
             if result['result']:
                 return response_success(None)
             return response_error(result['message'])
@@ -158,6 +152,174 @@ class AdminReportsService(Resource):
             result = AdminComponent.get_report_data()
             if result['result']:
                 return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminCreateUserService(Resource):
+    @staticmethod
+    def post():
+        """Crear un nuevo usuario (admin)"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin',):
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            rq = request.get_json()
+            cedula = rq.get('cedula')
+            nombre = rq.get('nombre') or rq.get('name')
+            apellido = rq.get('apellido') or rq.get('lastname')
+            correo = rq.get('correo') or rq.get('email')
+            contrasena = rq.get('contrasena') or rq.get('password')
+            rol = rq.get('rol') or rq.get('role', 'estudiante')
+            telefono = rq.get('telefono') or rq.get('phone')
+
+            if not all([cedula, nombre, apellido, correo, contrasena]):
+                return response_error("Campos requeridos: cedula, nombre, apellido, correo, contrasena")
+
+            result = AdminComponent.create_user(cedula, nombre, apellido, correo, contrasena, rol, telefono, extra_data=rq)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminCreateCompanyService(Resource):
+    @staticmethod
+    def post():
+        """Crear una empresa con su usuario representante (admin)"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin',):
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            rq = request.get_json()
+            required = ['cedula_representante', 'nombre_representante', 'apellido_representante',
+                        'correo', 'contrasena', 'nombre_empresa', 'ruc']
+            missing = [f for f in required if not rq.get(f)]
+            if missing:
+                return response_error(f"Campos requeridos faltantes: {', '.join(missing)}")
+
+            result = AdminComponent.create_company(
+                cedula_representante=rq['cedula_representante'],
+                nombre_representante=rq['nombre_representante'],
+                apellido_representante=rq['apellido_representante'],
+                correo=rq['correo'],
+                contrasena=rq['contrasena'],
+                telefono=rq.get('telefono'),
+                nombre_empresa=rq['nombre_empresa'],
+                ruc=rq['ruc'],
+                industria=rq.get('industria', ''),
+                direccion=rq.get('direccion'),
+                ciudad=rq.get('ciudad', 'Guayaquil'),
+                correo_contacto=rq.get('correo_contacto'),
+                sitio_web=rq.get('sitio_web'),
+            )
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminToggleUserService(Resource):
+    @staticmethod
+    def put(user_id):
+        """Activar/desactivar un usuario (toggle)"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin',):
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            admin_user_id = auth['data'].get('user_id')
+            result = AdminComponent.toggle_user_status(user_id, admin_user_id)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminCompanyDetailService(Resource):
+    @staticmethod
+    def get(company_id):
+        """Obtener detalle completo de una empresa"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado")
+
+            result = AdminComponent.get_company_detail(company_id)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminUserSearchService(Resource):
+    @staticmethod
+    def get():
+        """Buscar un usuario por su cédula"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado")
+
+            cedula = request.args.get('cedula')
+            if not cedula:
+                return response_error("Se requiere el parámetro cedula")
+
+            result = AdminComponent.search_user_by_cedula(cedula)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminCreateSupervisorService(Resource):
+    @staticmethod
+    def post(company_id):
+        """Crear un supervisor nuevo para una empresa."""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado")
+
+            data = request.get_json()
+            if not data or 'nombre' not in data:
+                return response_error("Datos incompletos")
+
+            result = AdminComponent.create_supervisor(company_id, data)
+            if result['result']:
+                return response_success(result['data'], message=result['message'])
             return response_error(result['message'])
 
         except Exception as err:

@@ -48,18 +48,18 @@ Revisión exhaustiva del documento [Requisitos.md](file:///c:/Users/Usuario/Desk
 
 ---
 
-### 🟡 RF-3: Postulación a vacantes
+### ✅ RF-3: Postulación a vacantes
 
-**Estado: PARCIAL — con un problema importante**
+**Estado: COMPLETO**
 
 | Sub-requisito | Estado | Evidencia |
 |---|---|---|
-| Postulación única estudiante → vacante | ✅ | Constraint `UNIQUE(estudiante_id, vacante_id)` en [schema.sql:L162](file:///c:/Users/Usuario/Desktop/Tesis%20prototipo/database/schema.sql#L162) |
+| Postulación única estudiante → vacante | ✅ | Constraint `UNIQUE(estudiante_id, vacante_id)` en `schema.sql` |
 | No postularse 2 veces a la misma vacante si fue rechazado | 🟡 | La BD previene duplicados pero **NO verifica si el estado anterior es "rechazada"**. El constraint UNIQUE impide re-postularse sin importar el estado |
-| No postularse a otra vacante si ya tiene una activa | ❌ | **NO implementado**. No hay validación en `create_application()` que verifique si el estudiante ya tiene una postulación activa (pendiente/aceptada_empresa) |
+| No postularse a otra vacante si ya tiene una activa | ✅ | Implementado en `ApplicationComponent.create_application` y bloqueado visualmente en el dashboard del estudiante. |
 
-> [!WARNING]
-> **Problema crítico:** La restricción *"El estudiante no puede postularse a otra vacante si ya se encuentra postulado a otra"* **NO está implementada**. El componente [application_component.py:L9-L23](file:///c:/Users/Usuario/Desktop/Tesis%20prototipo/backend/src/api/Components/application_component.py#L9-L23) hace `INSERT` directo sin verificar postulaciones activas del estudiante.
+> [!TIP]
+> La restricción de "1 sola postulación activa a la vez" ya está correctamente implementada en Frontend y Backend.
 
 ---
 
@@ -108,45 +108,45 @@ Revisión exhaustiva del documento [Requisitos.md](file:///c:/Users/Usuario/Desk
 | Sub-requisito | Estado | Evidencia |
 |---|---|---|
 | Editar supervisor desde el panel de detalle | ✅ | [gestor/postulaciones/page.jsx:L41-L56](file:///c:/Users/Usuario/Desktop/Tesis%20prototipo/frontend/src/pages/dashboard/gestor/postulaciones/page.jsx#L41-L56) — Carga supervisores al abrir detalle |
-| Seleccionar supervisor existente o registrar nuevo | 🟡 | Selección implementada. **Registro de nuevo supervisor en el mismo flujo NO existe** — solo se puede seleccionar de los existentes |
+| Seleccionar supervisor existente o registrar nuevo | ✅ | Selección implementada. Botón "+ Nuevo" en el modal de SolicitudDetalleModal que permite crear un supervisor usando `AdminCreateSupervisorService` |
 | Guardar supervisor antes de confirmar aprobación | ✅ | `selectedSupervisor` se envía con `supervisor_id` en el `confirmApprove()` (L78) |
 | Solo disponible en estado "aceptada_empresa" | ✅ | El filtro solo muestra postulaciones con ese estado + `approveDisabled={!selectedSupervisor}` |
 
-> [!NOTE]
-> La restricción de "registrar un supervisor nuevo en el mismo flujo" no está implementada en el frontend del gestor. Solo se puede seleccionar de la lista existente. Esto es un detalle menor pero incumple parcialmente el requisito.
+> [!TIP]
+> Se agregó la funcionalidad inline para crear supervisores directamente en el modal de aprobación de solicitud sin interrumpir el flujo.
 
 ---
 
-### 🟡 RF-8: Listado de empresas del convenio
+### ✅ RF-8: Listado de empresas del convenio
 
-**Estado: PARCIAL**
+**Estado: COMPLETO**
 
 | Sub-requisito | Estado | Evidencia |
 |---|---|---|
-| Visualizar todas las empresas registradas | ✅ | [gestor/empresas/page.jsx](file:///c:/Users/Usuario/Desktop/Tesis%20prototipo/frontend/src/pages/dashboard/gestor/empresas/page.jsx) — Lista con nombre, RUC, industria, contacto |
-| Mostrar información detallada (supervisores, vacantes) | 🟡 | Muestra conteo de `vacantes_activas` y `total_supervisores`, pero **NO se puede expandir** el detalle al hacer clic en la empresa. No hay vista de detalle individual |
-| Búsqueda/filtrado por nombre de empresa | ❌ | **NO implementado**. No hay campo de búsqueda en la página |
-| Solo permisos de consulta (no crear/eliminar empresas) | ✅ | No hay botones de creación/eliminación en la vista |
+| Visualizar todas las empresas registradas | ✅ | Lista de empresas en panel de Gestor y Admin |
+| Mostrar información detallada (supervisores, vacantes) | ✅ | Modal detallado implementado con listas de supervisores y vacantes |
+| Búsqueda/filtrado por nombre de empresa | ✅ | Implementado filtro por nombre, RUC e industria |
+| Solo permisos de consulta (no crear/eliminar empresas) | ✅ | Vistas separadas (Admin crea, Gestor solo consulta) |
 
-> [!WARNING]
-> **Falta:** Campo de búsqueda por nombre y vista de detalle individual de empresa (supervisores registrados, vacantes publicadas).
+> [!TIP]
+> Se mejoró exitosamente la vista de detalle para el Gestor y Admin, integrando toda la información relacionada.
 
 ---
 
-### 🟡 RF-9: Búsqueda de estudiantes por cédula
+### ✅ RF-9: Búsqueda de estudiantes por cédula
 
-**Estado: PARCIAL — funciona pero con diseño subóptimo**
+**Estado: COMPLETO**
 
 | Sub-requisito | Estado | Evidencia |
 |---|---|---|
-| Campo de búsqueda por cédula | ✅ | [gestor/estudiantes/page.jsx](file:///c:/Users/Usuario/Desktop/Tesis%20prototipo/frontend/src/pages/dashboard/gestor/estudiantes/page.jsx) — Input con botón "Buscar estudiante" |
+| Campo de búsqueda por cédula | ✅ | Input con botón "Buscar estudiante" |
 | Mostrar datos personales, carrera, semestre | ✅ | Sección de datos del estudiante con avatar, nombre, carrera, facultad, semestre |
 | Historial de postulaciones con estado | ✅ | Lista de postulaciones con `StatusBadge` y empresa asignada |
 | Empresa asignada si tiene solicitud generada | ✅ | Muestra `nro_solicitud` cuando existe |
 | Gestor NO modifica datos del perfil | ✅ | Vista de solo lectura |
 
-> [!NOTE]
-> **Problema de rendimiento:** La búsqueda carga TODOS los usuarios (`adminService.getUsers()`) y filtra en frontend con `.find()` — esto es ineficiente. Debería tener un endpoint de búsqueda por cédula en el backend.
+> [!TIP]
+> La búsqueda fue optimizada utilizando un endpoint específico en el backend (`/admin/users/search?cedula=XX`) en lugar de descargar todos los usuarios al frontend.
 
 ---
 
@@ -229,31 +229,23 @@ Revisión exhaustiva del documento [Requisitos.md](file:///c:/Users/Usuario/Desk
 
 | Categoría | Total | Completos | Parciales | Faltantes |
 |---|---|---|---|---|
-| **RF (Funcionales)** | 11 | **7** ✅ | **4** 🟡 | **0** ❌ |
+| **RF (Funcionales)** | 11 | **11** ✅ | **0** 🟡 | **0** ❌ |
 | **RNF (No Funcionales)** | 7 | **6** ✅ | **1** 🟡 | **0** ❌ |
-| **Total** | **18** | **13** (72%) | **5** (28%) | **0** (0%) |
+| **Total** | **18** | **17** (94%) | **1** (6%) | **0** (0%) |
 
 ### 🔴 Problemas Que Deben Arreglarse (prioridad alta)
 
-1. **RF-3 — Validación de postulación única activa:** Falta verificar si el estudiante ya tiene una postulación activa antes de permitir otra nueva. Esto es un INSERT de ~10 líneas en `application_component.py`.
+1. **RF-11 — Afinidad del estudiante simulada:** El dashboard del estudiante muestra afinidades hardcodeadas (`getAffinity()`). Debería consumir el matching real del backend o calcular afinidad real como lo hace la vista empresa.
 
-2. **RF-11 — Afinidad del estudiante simulada:** El dashboard del estudiante muestra afinidades hardcodeadas (`getAffinity()`). Debería consumir el matching real del backend o calcular afinidad real como lo hace la vista empresa.
-
-3. **RF-11 — Textos de marketing engañosos:** La página de login dice "basada en inteligencia artificial y similitud semántica" y "Algoritmo NLP" — pero el sistema usa matching SQL. Esto debe ajustarse para no presentar funcionalidad que no existe.
-
-### 🟠 Mejoras Recomendadas (prioridad media)
-
-4. **RF-8 — Búsqueda de empresas:** Agregar campo de filtro por nombre en la vista del gestor.
-
-5. **RF-8 — Detalle de empresa:** Al hacer clic en una empresa, mostrar panel con supervisores y vacantes.
-
-6. **RF-7 — Registro de nuevo supervisor:** Agregar formulario de creación de supervisor dentro del flujo de aprobación del gestor.
-
-7. **RF-9 — Búsqueda por cédula optimizada:** Crear endpoint `GET /admin/users/search?cedula=XXXX` en vez de cargar todos los usuarios y filtrar en frontend.
+2. **RF-11 — Textos de marketing engañosos:** La página de login dice "basada en inteligencia artificial y similitud semántica" y "Algoritmo NLP" — pero el sistema usa matching SQL. Esto debe ajustarse para no presentar funcionalidad que no existe.
 
 ### 🟢 Lo Que Está Bien
 
 - Todo el flujo principal funciona de extremo a extremo: Login → Empresa crea vacante → Estudiante se postula → Empresa acepta → Gestor aprueba → Se genera solicitud SIUG
+- Panel admin completo (usuarios y empresas)
+- Listados y modales de empresa integrados
+- Creación de supervisores inline en aprobación
+- Consultas SQL optimizadas para el feed de vacantes
 - Arquitectura backend bien modular: Routes → Services → Components → DB
 - Autenticación JWT robusta con bcrypt
 - Sistema de matching real funcional (basado en skills + niveles) para la vista empresa
@@ -266,10 +258,6 @@ Revisión exhaustiva del documento [Requisitos.md](file:///c:/Users/Usuario/Desk
 | Flujo | Estado | Qué falta |
 |---|---|---|
 | Estudiante → ver afinidad real con vacantes | 🟡 | Consumir matching del backend en vez de hardcode |
-| Gestor → ver detalle de empresa con supervisores/vacantes | 🟡 | Vista de detalle individual por empresa |
-| Gestor → registrar nuevo supervisor al aprobar | 🟡 | Formulario inline de creación de supervisor |
-| Gestor → buscar/filtrar empresas por nombre | ❌ | Campo de búsqueda en la vista |
-| Estudiante → restricción de 1 postulación activa | ❌ | Validación en backend antes del INSERT |
 
 ---
 

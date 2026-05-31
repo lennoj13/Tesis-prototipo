@@ -29,32 +29,21 @@ export default function GestorEstudiantes() {
     setApplications([]);
 
     try {
-      const response = await adminService.getUsers();
+      const response = await adminService.searchUserByCedula(cedula.trim());
       if (!response.result) {
-        setError(response.message || 'No se pudieron cargar usuarios');
+        setError(response.message || 'No se encontró un estudiante con esa cédula');
         return;
       }
 
-      const match = (response.data || []).find((u) => u.cedula === cedula.trim());
-      if (!match) {
-        setError('No se encontró un estudiante con esa cédula');
-        return;
-      }
-
-      const detailRes = await adminService.getUserDetail(match.usuario_id);
-      if (!detailRes.result) {
-        setError(detailRes.message || 'No se pudo cargar el detalle del estudiante');
-        return;
-      }
-
-      if (detailRes.data?.rol !== 'estudiante') {
+      const detailData = response.data;
+      if (detailData?.rol !== 'estudiante') {
         setError('La cédula ingresada no corresponde a un estudiante');
         return;
       }
 
-      setStudent(detailRes.data);
+      setStudent(detailData);
 
-      const profileId = detailRes.data?.perfil_estudiante?.perfil_id;
+      const profileId = detailData?.perfil_estudiante?.perfil_id;
       if (profileId) {
         const appsRes = await applicationService.getMyApplications(profileId);
         if (appsRes.result) {

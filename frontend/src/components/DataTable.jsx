@@ -15,6 +15,7 @@ export default function DataTable({
   pageSize = 8,
   emptyMessage = 'No hay datos para mostrar',
   emptyIcon: EmptyIcon = FiInbox,
+  filters,        // React node para filtros adicionales
 }) {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,19 +45,28 @@ export default function DataTable({
 
   return (
     <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-      {/* Search bar */}
-      {searchKeys?.length > 0 && (
-        <div className="px-5 pt-4 pb-3">
-          <div className="relative max-w-xs">
-            <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={handleSearch}
-              placeholder="Buscar..."
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md bg-slate-50 outline-none transition-colors focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-[var(--color-header-bg)] placeholder:text-slate-400"
-            />
+      {/* Search bar & Filters */}
+      {(searchKeys?.length > 0 || filters) && (
+        <div className="px-5 pt-4 pb-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="w-full sm:w-auto flex-1">
+            {searchKeys?.length > 0 && (
+              <div className="relative w-full max-w-sm">
+                <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={handleSearch}
+                  placeholder="Buscar..."
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md bg-slate-50 outline-none transition-colors focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-[var(--color-header-bg)] placeholder:text-slate-400"
+                />
+              </div>
+            )}
           </div>
+          {filters && (
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {filters}
+            </div>
+          )}
         </div>
       )}
 

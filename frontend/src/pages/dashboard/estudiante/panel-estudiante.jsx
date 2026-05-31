@@ -14,7 +14,7 @@ import Card from 'components/Card';
 import InfoField from 'components/InfoField';
 import Toast from 'components/Toast';
 import EmptyState from 'components/EmptyState';
-import { FiFileText, FiSend, FiTarget, FiMapPin, FiClock, FiUsers, FiCheckCircle, FiCalendar, FiBriefcase, FiLoader } from 'react-icons/fi';
+import { FiFileText, FiSend, FiTarget, FiMapPin, FiClock, FiUsers, FiCheckCircle, FiCalendar, FiBriefcase, FiLoader, FiAlertCircle } from 'react-icons/fi';
 
 // Función para generar un % de afinidad simulado (basado en vacancy_id para consistencia)
 function getAffinity(vacancyId) {
@@ -76,6 +76,12 @@ export default function EstudianteDashboard() {
     return myApplications.some(a => a.vacante_id === vacancyId);
   }
 
+  // Verificar si tiene una postulación activa (pendiente o aceptada_empresa)
+  const activeApplication = myApplications.find(a => 
+    a.estado === 'pendiente' || a.estado === 'aceptada_empresa'
+  );
+  const hasActiveApplication = !!activeApplication;
+
   // Postularse a una vacante
   async function handleApply() {
     if (!selectedVacancy) return;
@@ -114,6 +120,18 @@ export default function EstudianteDashboard() {
       {/* Toast */}
       {toast && (
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
+      )}
+
+      {/* Aviso de postulación activa */}
+      {hasActiveApplication && (
+        <div className="mb-5 px-4 py-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2 animate-fade-in">
+          <FiAlertCircle size={18} className="flex-shrink-0" />
+          <span>
+            <strong>Tienes una postulación {activeApplication.estado === 'pendiente' ? 'pendiente' : 'aceptada por empresa'}</strong>
+            {activeApplication.nombre_empresa && ` en ${activeApplication.nombre_empresa}`}.
+            Debes esperar a que sea procesada antes de postularte a otra vacante.
+          </span>
+        </div>
       )}
 
       {/* Vacantes */}
@@ -227,6 +245,10 @@ export default function EstudianteDashboard() {
                 <Button variant="secondary" disabled>
                   <FiCheckCircle size={16} className="mr-1" /> Ya postulado
                 </Button>
+              ) : hasActiveApplication ? (
+                <Button variant="secondary" disabled>
+                  <FiAlertCircle size={16} className="mr-1" /> Postulación activa
+                </Button>
               ) : (
                 <Button variant="primary" onClick={handleApply} loading={applying}>
                   <FiSend size={16} className="mr-1" /> Postularme
@@ -316,6 +338,16 @@ export default function EstudianteDashboard() {
                     <FiCheckCircle size={16} /> Ya te postulaste a esta vacante. Revisa el estado en "Mis Postulaciones".
                   </p>
                 </Card>
+              )}
+
+              {/* Warning: active application elsewhere */}
+              {!hasApplied(selectedVacancy.vacante_id) && hasActiveApplication && (
+                <div className="px-4 py-3 rounded-md bg-amber-50 border border-amber-200">
+                  <p className="text-sm font-medium text-amber-800 m-0 flex items-center gap-2">
+                    <FiAlertCircle size={16} /> No puedes postularte mientras tengas una postulación activa.
+                    {activeApplication.nombre_empresa && ` Tu postulación actual está en ${activeApplication.nombre_empresa}.`}
+                  </p>
+                </div>
               )}
             </div>
           );

@@ -5,7 +5,7 @@
  * Módulo 1 de la tesis: Gestión de Usuarios
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from 'context/AuthContext';
 import Logo from 'components/Logo';
 import Button from 'components/Button';
@@ -18,6 +18,18 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ cedula: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [expiredMsg, setExpiredMsg] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('expired') === 'true') {
+        setExpiredMsg('Tu sesión ha expirado o el acceso fue denegado. Por favor, vuelve a iniciar sesión.');
+        // Limpiar URL para no mostrar el mensaje eternamente si el usuario refresca
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
 
   function validate() {
     const newErrors = {};
@@ -104,6 +116,14 @@ export default function LoginPage() {
             <div className="flex items-center gap-2.5 py-3 px-4 bg-danger-light text-danger rounded-md text-sm font-medium mb-6 border border-red-500/20" role="alert">
               <FiAlertTriangle size={18} />
               <p className="m-0">{error}</p>
+            </div>
+          )}
+
+          {/* Mensaje de sesión expirada */}
+          {expiredMsg && (
+            <div className="flex items-center gap-2.5 py-3 px-4 bg-amber-50 text-amber-700 rounded-md text-sm font-medium mb-6 border border-amber-200" role="alert">
+              <FiAlertTriangle size={18} />
+              <p className="m-0">{expiredMsg}</p>
             </div>
           )}
 

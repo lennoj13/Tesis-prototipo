@@ -8,6 +8,36 @@ class ApplicationComponent:
     @staticmethod
     def create_application(estudiante_id, vacante_id, porcentaje_afinidad=0):
         try:
+            # Validar que el estudiante sea de 8vo semestre o superior
+            sql_sem = "SELECT semestre FROM public.perfiles_estudiante WHERE perfil_id = %s"
+            sem_result = DataBaseHandle.getRecords(sql_sem, 1, (estudiante_id,))
+            if sem_result['result'] and sem_result['data']:
+                semestre = sem_result['data'].get('semestre')
+                if not semestre or not semestre.isdigit() or int(semestre) < 8:
+                    return internal_response(
+                        False, None,
+                        "Solo los estudiantes de octavo semestre o superior pueden postular a vacantes."
+                    )
+
+            # Validar que el estudiante no tenga una postulación activa (pendiente o aceptada_empresa)
+            sql_check = """
+                SELECT p.postulacion_id, p.estado, v.titulo as vacante_titulo
+                FROM public.postulaciones p
+                JOIN public.vacantes v ON p.vacante_id = v.vacante_id
+                WHERE p.estudiante_id = %s 
+                  AND p.estado IN ('pendiente', 'aceptada_empresa')
+                LIMIT 1
+            """
+            check_result = DataBaseHandle.getRecords(sql_check, 1, (estudiante_id,))
+            if check_result['result'] and check_result['data']:
+                active = check_result['data']
+                estado_label = 'pendiente' if active['estado'] == 'pendiente' else 'aceptada por empresa'
+                return internal_response(
+                    False, None,
+                    f"Ya tienes una postulacion {estado_label} en la vacante \"{active['vacante_titulo']}\". "
+                    "Debes esperar a que sea procesada antes de postularte a otra."
+                )
+
             sql = """
                 INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_afinidad)
                 VALUES (%s, %s, 'pendiente', %s)
@@ -15,9 +45,9 @@ class ApplicationComponent:
             """
             result = DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id, vacante_id, porcentaje_afinidad))
             if result['result']:
-                return internal_response(True, {'application_id': result['data']}, "Postulación creada exitosamente")
+                return internal_response(True, {'application_id': result['data']}, "Postulacion creada exitosamente")
             else:
-                return internal_response(False, None, result.get('message', 'Error al crear postulación'))
+                return internal_response(False, None, result.get('message', 'Error al crear postulacion'))
         except Exception as err:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))

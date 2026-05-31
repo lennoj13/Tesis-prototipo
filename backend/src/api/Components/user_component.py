@@ -12,11 +12,11 @@ class UserComponent:
 
             sql = """
                 SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, u.correo, u.telefono, 
-                       r.nombre as rol_nombre, u.activo,
+                       r.nombre as rol_nombre, u.activo, pe.semestre,
                        TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en
                 FROM public.usuarios u
                 JOIN public.roles r ON u.rol_id = r.rol_id
-                WHERE u.activo = true
+                LEFT JOIN public.perfiles_estudiante pe ON u.usuario_id = pe.usuario_id
                 ORDER BY u.creado_en DESC
             """
 

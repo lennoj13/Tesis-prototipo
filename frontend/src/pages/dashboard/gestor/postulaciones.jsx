@@ -7,6 +7,7 @@ import EmptyState from 'components/EmptyState';
 import SolicitudDetalleModal from 'components/SolicitudDetalleModal';
 import applicationService from 'services/applicationService';
 import profileService from 'services/profileService';
+import adminService from 'services/adminService';
 import { FiEye, FiLoader } from 'react-icons/fi';
 
 export default function GestorPostulaciones() {
@@ -109,6 +110,26 @@ export default function GestorPostulaciones() {
     }
   }
 
+  const [creatingSupervisor, setCreatingSupervisor] = useState(false);
+  async function handleCreateSupervisor(formData) {
+    if (!solicitudData?.institucion?.institucion_id) return false;
+    setCreatingSupervisor(true);
+    try {
+      const res = await adminService.createSupervisor(solicitudData.institucion.institucion_id, formData);
+      if (res.result && res.data?.supervisor_id) {
+        const newSup = { supervisor_id: res.data.supervisor_id, ...formData };
+        setSupervisores(prev => [...prev, newSup]);
+        setSelectedSupervisor(res.data.supervisor_id);
+        return true;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreatingSupervisor(false);
+    }
+    return false;
+  }
+
   const pendingApps = applications.filter(a => a.estado === 'aceptada_empresa');
 
   return (
@@ -178,6 +199,8 @@ export default function GestorPostulaciones() {
         supervisors={supervisores}
         selectedSupervisor={selectedSupervisor}
         onSupervisorChange={setSelectedSupervisor}
+        onCreateSupervisor={handleCreateSupervisor}
+        creatingSupervisor={creatingSupervisor}
         showActions
         onApprove={confirmApprove}
         onReject={handleReject}

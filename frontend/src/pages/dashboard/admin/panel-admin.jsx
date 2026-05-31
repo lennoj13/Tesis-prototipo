@@ -58,7 +58,7 @@ export default function AdminDashboard() {
       <header className="mb-8">
         <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1">Panel de Administración</h1>
         <p className="text-base text-slate-500">
-          Bienvenido, {getWelcomeName(user, 'Admin')}. Vista general de la plataforma — Universidad de Guayaquil.
+          Bienvenido, {getWelcomeName(user, 'Admin')}. Vista general de la plataforma.
         </p>
       </header>
 

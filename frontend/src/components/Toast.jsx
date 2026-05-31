@@ -44,7 +44,7 @@ export default function Toast({ type = 'info', message, onClose, duration = 4000
   const ToastIcon = style.Icon;
 
   return (
-    <div className={`mb-4 px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in border ${style.bg} ${style.text}`}>
+    <div className={`fixed top-4 right-4 z-[9999] shadow-lg px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in border ${style.bg} ${style.text}`}>
       <ToastIcon size={16} className="flex-shrink-0" />
       <span className="flex-1">{message}</span>
       {onClose && (

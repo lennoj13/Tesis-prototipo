@@ -22,9 +22,21 @@ const adminService = {
     return response.data;
   },
 
+  /** Buscar usuario por cédula (optimizado) */
+  searchUserByCedula: async (cedula) => {
+    const response = await api.get(`/admin/users/search?cedula=${cedula}`);
+    return response.data;
+  },
+
   /** Obtener todas las empresas */
   getCompanies: async () => {
     const response = await api.get('/admin/companies');
+    return response.data;
+  },
+
+  /** Obtener detalle completo de una empresa */
+  getCompanyDetail: async (companyId) => {
+    const response = await api.get(`/admin/companies/${companyId}/detail`);
     return response.data;
   },
 
@@ -46,9 +58,34 @@ const adminService = {
     return response.data;
   },
 
+  /** Activar/desactivar un usuario (toggle) */
+  toggleUserStatus: async (userId) => {
+    const response = await api.put(`/admin/users/${userId}/toggle`);
+    return response.data;
+  },
+
   /** Actualizar información de un usuario */
   updateUser: async (userId, userData) => {
     const response = await api.put(`/admin/users/${userId}`, userData);
+    return response.data;
+  },
+
+  /** Crear un nuevo usuario */
+  createUser: async (userData) => {
+    const response = await api.post('/admin/users/create', userData);
+    return response.data;
+  },
+
+
+  /** Crear una nueva empresa con su representante */
+  createCompany: async (companyData) => {
+    const response = await api.post('/admin/companies/create', companyData);
+    return response.data;
+  },
+
+  /** Crear un supervisor nuevo para una empresa */
+  createSupervisor: async (companyId, supervisorData) => {
+    const response = await api.post(`/admin/companies/${companyId}/supervisors`, supervisorData);
     return response.data;
   },
 
