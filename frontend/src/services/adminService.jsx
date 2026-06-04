@@ -5,8 +5,11 @@ import api from './api';
  */
 const adminService = {
   /** Obtener estadísticas del dashboard admin */
-  getStats: async () => {
-    const response = await api.get('/admin/stats');
+  getStats: async (facultadId, carreraId) => {
+    const params = new URLSearchParams();
+    if (facultadId) params.append('facultad_id', facultadId);
+    if (carreraId) params.append('carrera_id', carreraId);
+    const response = await api.get(`/admin/stats?${params.toString()}`);
     return response.data;
   },
 
@@ -89,9 +92,24 @@ const adminService = {
     return response.data;
   },
 
+  /** Actualizar un supervisor */
+  updateSupervisor: async (supervisorId, supervisorData) => {
+    const response = await api.put(`/admin/supervisors/${supervisorId}`, supervisorData);
+    return response.data;
+  },
+
+  /** Eliminar un supervisor (soft delete) */
+  deleteSupervisor: async (supervisorId) => {
+    const response = await api.delete(`/admin/supervisors/${supervisorId}`);
+    return response.data;
+  },
+
   /** Obtener datos reales para los gráficos de reportes */
-  getReports: async () => {
-    const response = await api.get('/admin/reports');
+  getReports: async (facultadId, carreraId) => {
+    const params = new URLSearchParams();
+    if (facultadId) params.append('facultad_id', facultadId);
+    if (carreraId) params.append('carrera_id', carreraId);
+    const response = await api.get(`/admin/reports?${params.toString()}`);
     return response.data;
   },
 };

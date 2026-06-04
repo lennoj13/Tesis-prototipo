@@ -7,7 +7,7 @@ class ProfileComponent:
     def get_profile(user_id, role=None):
         try:
             sql = """
-                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, u.correo, 
+                SELECT u.usuario_id, u.cedula, u.nombre, u.apellido, u.correo, 
                        u.telefono, u.foto_perfil, r.nombre as rol_nombre
                 FROM public.usuarios u
                 JOIN public.roles r ON u.rol_id = r.rol_id
@@ -47,7 +47,8 @@ class ProfileComponent:
                 sql_profile = """
                     SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria, 
                            i.descripcion, i.sitio_web, i.direccion, i.ciudad, 
-                           i.correo_contacto, i.telefono as telefono_empresa, i.estado
+                           i.correo_contacto, i.telefono as telefono_empresa, i.estado,
+                           i.codigo_convenio, i.tipo_convenio, TO_CHAR(i.fecha_inicio_convenio, 'YYYY-MM-DD') as fecha_inicio_convenio, i.nombre_abreviado
                     FROM public.instituciones i WHERE i.usuario_id = %s
                 """
                 extra = DataBaseHandle.getRecords(sql_profile, 1, (user_id,))

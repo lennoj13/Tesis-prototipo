@@ -20,12 +20,14 @@ import PostulantesEmpresa from 'pages/dashboard/empresa/postulantes';
 import EstudianteDashboard from 'pages/dashboard/estudiante/panel-estudiante';
 import PerfilEstudiante from 'pages/dashboard/estudiante/perfil';
 import PostulacionesEstudiante from 'pages/dashboard/estudiante/postulaciones';
+import EstudianteEmpresas from 'pages/dashboard/estudiante/empresas';
 
 import GestorDashboard from 'pages/dashboard/gestor/panel-gestor';
 import GestorPostulaciones from 'pages/dashboard/gestor/postulaciones';
 import GestorHistorial from 'pages/dashboard/gestor/historial';
 import GestorEmpresas from 'pages/dashboard/gestor/empresas';
 import GestorEstudiantes from 'pages/dashboard/gestor/estudiantes';
+import GestorReportes from 'pages/dashboard/gestor/reportes';
 
 function App() {
   return (
@@ -54,6 +56,7 @@ function App() {
             <Route path="estudiante" element={<EstudianteDashboard />} />
             <Route path="estudiante/perfil" element={<PerfilEstudiante />} />
             <Route path="estudiante/postulaciones" element={<PostulacionesEstudiante />} />
+            <Route path="estudiante/empresas" element={<EstudianteEmpresas />} />
 
             {/* Gestor PPP Routes */}
             <Route path="gestor" element={<GestorDashboard />} />
@@ -61,6 +64,7 @@ function App() {
             <Route path="gestor/historial" element={<GestorHistorial />} />
             <Route path="gestor/empresas" element={<GestorEmpresas />} />
             <Route path="gestor/estudiantes" element={<GestorEstudiantes />} />
+            <Route path="gestor/reportes" element={<GestorReportes />} />
           </Route>
         </Routes>
       </AuthProvider>

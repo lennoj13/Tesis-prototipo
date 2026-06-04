@@ -65,36 +65,36 @@ INSERT INTO public.habilidades (nombre, categoria) VALUES
     ('MongoDB', 'Base de Datos');
 
 -- USUARIOS (password para todos: Prueba123.)
-INSERT INTO public.usuarios (cedula, login, contrasena, nombre, apellido, correo, telefono, rol_id) VALUES 
+INSERT INTO public.usuarios (cedula, contrasena, nombre, apellido, correo, telefono, rol_id) VALUES 
     -- 1 Admin (usuario_id = 1)
-    ('0900000001', 'admin', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 4),
+    ('0900000001', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 4),
     -- 2 Gestores (usuario_id = 2, 3) 
-    ('0900000002', 'marta.diaz', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Marta', 'Diaz', 'marta.diaz@ug.edu.ec', '0997777771', 3),
-    ('0900000003', 'carlos.ruiz', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Eduardo', 'Ruiz', 'carlos.ruiz@ug.edu.ec', '0997777772', 3),
+    ('0900000002', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Marta', 'Diaz', 'marta.diaz@ug.edu.ec', '0997777771', 3),
+    ('0900000003', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Eduardo', 'Ruiz', 'carlos.ruiz@ug.edu.ec', '0997777772', 3),
     -- 10 Estudiantes (usuario_id = 4 to 13)
     -- Los estudiantes originales:
-    ('0955236773', 'bryan.galarza', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Bryan Guillermo', 'Galarza Indacochea', 'bryan.galarzaind@ug.edu.ec', '0998094515', 1),
-    ('0942646266', 'naldo.anchundia', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Naldo Jonnel', 'Anchundia Caicedo', 'naldo.anchundiac@ug.edu.ec', '0990020956', 1),
-    ('1312657255', 'jorge.intriago', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge David', 'Intriago Loor', 'jorge.intriagoloo@ug.edu.ec', '0991111111', 1),
-    -- Los 7 estudiantes nuevos con login igual a cedula y nombres reales:
-    ('0911223344', '0911223344', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Maria Fernanda', 'Gomez Silva', 'maria.gomez@ug.edu.ec', '0991122334', 1),
-    ('0922334455', '0922334455', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis Antonio', 'Perez Castro', 'luis.perez@ug.edu.ec', '0992233445', 1),
-    ('0933445566', '0933445566', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana Sofia', 'Martinez Vera', 'ana.martinez@ug.edu.ec', '0993344556', 1),
-    ('0944556677', '0944556677', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro Jose', 'Castro Mendoza', 'pedro.castro@ug.edu.ec', '0994455667', 1),
-    ('0955667788', '0955667788', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Gabriela Elena', 'Vera Loor', 'gabriela.vera@ug.edu.ec', '0995566778', 1),
-    ('0966778899', '0966778899', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Alberto', 'Mora Sanchez', 'carlos.mora@ug.edu.ec', '0996677889', 1),
-    ('0977889900', '0977889900', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Diana Carolina', 'Silva Torres', 'diana.silva@ug.edu.ec', '0997788990', 1),
+    ('0955236773', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Bryan Guillermo', 'Galarza Indacochea', 'bryan.galarzaind@ug.edu.ec', '0998094515', 1),
+    ('0942646266', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Naldo Jonnel', 'Anchundia Caicedo', 'naldo.anchundiac@ug.edu.ec', '0990020956', 1),
+    ('1312657255', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge David', 'Intriago Loor', 'jorge.intriagoloo@ug.edu.ec', '0991111111', 1),
+    -- Los 7 estudiantes nuevos con nombres reales:
+    ('0911223344', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Maria Fernanda', 'Gomez Silva', 'maria.gomez@ug.edu.ec', '0991122334', 1),
+    ('0922334455', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis Antonio', 'Perez Castro', 'luis.perez@ug.edu.ec', '0992233445', 1),
+    ('0933445566', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana Sofia', 'Martinez Vera', 'ana.martinez@ug.edu.ec', '0993344556', 1),
+    ('0944556677', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro Jose', 'Castro Mendoza', 'pedro.castro@ug.edu.ec', '0994455667', 1),
+    ('0955667788', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Gabriela Elena', 'Vera Loor', 'gabriela.vera@ug.edu.ec', '0995566778', 1),
+    ('0966778899', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Alberto', 'Mora Sanchez', 'carlos.mora@ug.edu.ec', '0996677889', 1),
+    ('0977889900', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Diana Carolina', 'Silva Torres', 'diana.silva@ug.edu.ec', '0997788990', 1),
     -- 10 Empresas (usuario_id = 14 to 23)
-    ('0990123456', 'techsolutions', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana', 'Garcia', 'rrhh@techsolutionsgye.com', '0994567890', 2),
-    ('0991234567', 'datamind', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro', 'Sanchez', 'contacto@datamindgye.com', '0995678901', 2),
-    ('0992345678', 'innovasoft', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis', 'Fernandez', 'rrhh@innovasoft.com', '0996789012', 2),
-    ('0993456789', 'nexustech', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carla', 'Ruiz', 'rrhh@nexustech.com', '0997890123', 2),
-    ('0994567890', 'globalsystems', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge', 'Moreno', 'rrhh@globalsystems.com', '0998901234', 2),
-    ('0995678901', 'smartcode', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Elena', 'Vargas', 'rrhh@smartcode.com', '0999012345', 2),
-    ('0996789012', 'clouddevs', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Andres', 'Rojas', 'rrhh@clouddevs.com', '0990123456', 2),
-    ('0997890123', 'fintechsol', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Sofia', 'Mendoza', 'rrhh@fintechsolutions.com', '0991234567', 2),
-    ('0998901234', 'appworks', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Mario', 'Castro', 'rrhh@appworks.com', '0992345678', 2),
-    ('0999012345', 'cybersecurity', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Laura', 'Guzman', 'rrhh@cybersecurityec.com', '0993456789', 2);
+    ('0990123456', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana', 'Garcia', 'rrhh@techsolutionsgye.com', '0994567890', 2),
+    ('0991234567', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro', 'Sanchez', 'contacto@datamindgye.com', '0995678901', 2),
+    ('0992345678', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis', 'Fernandez', 'rrhh@innovasoft.com', '0996789012', 2),
+    ('0993456789', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carla', 'Ruiz', 'rrhh@nexustech.com', '0997890123', 2),
+    ('0994567890', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge', 'Moreno', 'rrhh@globalsystems.com', '0998901234', 2),
+    ('0995678901', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Elena', 'Vargas', 'rrhh@smartcode.com', '0999012345', 2),
+    ('0996789012', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Andres', 'Rojas', 'rrhh@clouddevs.com', '0990123456', 2),
+    ('0997890123', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Sofia', 'Mendoza', 'rrhh@fintechsolutions.com', '0991234567', 2),
+    ('0998901234', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Mario', 'Castro', 'rrhh@appworks.com', '0992345678', 2),
+    ('0999012345', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Laura', 'Guzman', 'rrhh@cybersecurityec.com', '0993456789', 2);
 
 -- PERFILES DE ESTUDIANTE (carrera_id = 1 -> SOFTWARE)
 INSERT INTO public.perfiles_estudiante (usuario_id, carrera_id, semestre, universidad, resumen_experiencia, intereses) VALUES 

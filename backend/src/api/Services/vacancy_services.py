@@ -29,6 +29,17 @@ class VacancyService(Resource):
             institucion_id = db_result['data']['institucion_id']
             rq_json = request.get_json()
 
+            supervisor_id = rq_json.get('supervisor_id')
+            new_supervisor = rq_json.get('new_supervisor')
+
+            if new_supervisor and not supervisor_id:
+                from ...api.Components.admin_component import AdminComponent
+                sup_result = AdminComponent.create_supervisor(institucion_id, new_supervisor)
+                if sup_result['result']:
+                    supervisor_id = sup_result['data'].get('supervisor_id')
+                else:
+                    return response_error(f"Error al crear supervisor: {sup_result['message']}")
+
             result = VacancyComponent.create_vacancy(
                 institucion_id=institucion_id,
                 titulo=rq_json.get('titulo') or rq_json.get('title', ''),
@@ -43,7 +54,7 @@ class VacancyService(Resource):
                 total_horas=rq_json.get('total_horas') or rq_json.get('total_hours'),
                 horas_diarias=rq_json.get('horas_diarias') or rq_json.get('daily_hours'),
                 horario=rq_json.get('horario') or rq_json.get('schedule'),
-                supervisor_id=rq_json.get('supervisor_id')
+                supervisor_id=supervisor_id
             )
 
             if result['result']:
@@ -58,6 +69,13 @@ class VacancyService(Resource):
     def get():
         """Obtener vacantes: todas, por empresa, o por ID"""
         try:
+            auth = AuthComponent.verify(request)
+            facultad_id = None
+            if auth['result']:
+                role = auth['data'].get('role')
+                if role in ('gestor', 'estudiante'):
+                    facultad_id = auth['data'].get('facultad_id')
+
             vacancy_id = request.args.get('vacancy_id') or request.args.get('vacante_id')
             institution_id = request.args.get('company_id') or request.args.get('institution_id') or request.args.get('institucion_id')
 
@@ -66,7 +84,7 @@ class VacancyService(Resource):
             elif institution_id:
                 result = VacancyComponent.get_vacancies_by_company(int(institution_id))
             else:
-                result = VacancyComponent.get_all_vacancies()
+                result = VacancyComponent.get_all_vacancies(facultad_id)
 
             if result['result']:
                 return response_success(result['data'])

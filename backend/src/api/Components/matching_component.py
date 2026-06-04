@@ -47,8 +47,10 @@ class MatchingComponent:
                 vskills_result = DataBaseHandle.getRecords(sql_vskills, 0, (vid,))
                 vacancy_skills = vskills_result['data'] if vskills_result['result'] and vskills_result['data'] else []
 
-                if not vacancy_skills:
-                    continue
+                # Obtener postulaciones para esta vacante
+                sql_applied_all = "SELECT estudiante_id, postulacion_id, estado FROM public.postulaciones WHERE vacante_id = %s"
+                app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
+                applied_map = {r['estudiante_id']: r for r in app_all_result['data']} if app_all_result['result'] and app_all_result['data'] else {}
 
                 # 3. Obtener todos los estudiantes con sus skills
                 sql_students = """
@@ -66,6 +68,7 @@ class MatchingComponent:
                 candidates = []
                 for student in students:
                     sid = student['estudiante_id']
+                    has_applied = sid in applied_map
 
                     # Obtener skills del estudiante
                     sql_sskills = """
@@ -77,7 +80,7 @@ class MatchingComponent:
                     sskills_result = DataBaseHandle.getRecords(sql_sskills, 0, (sid,))
                     student_skills = sskills_result['data'] if sskills_result['result'] and sskills_result['data'] else []
 
-                    if not student_skills:
+                    if not student_skills and not has_applied:
                         continue
 
                     # 4. Calcular afinidad
@@ -104,21 +107,14 @@ class MatchingComponent:
                             })
 
                     if max_points == 0:
-                        continue
+                        affinity = 0
+                    else:
+                        affinity = round((earned_points / max_points) * 100, 1)
+                        affinity = min(affinity, 100)
 
-                    affinity = round((earned_points / max_points) * 100, 1)
-                    affinity = min(affinity, 100)
-
-                    # Solo incluir candidatos con afinidad > 30%
-                    if affinity >= 30:
-                        # Verificar si ya se postuló
-                        sql_applied = """
-                            SELECT postulacion_id, estado
-                            FROM public.postulaciones 
-                            WHERE estudiante_id = %s AND vacante_id = %s
-                        """
-                        app_result = DataBaseHandle.getRecords(sql_applied, 1, (sid, vid))
-                        already_applied = app_result['data'] if app_result['result'] and app_result['data'] else None
+                    # Solo incluir candidatos con afinidad >= 30% O que ya hayan postulado
+                    if affinity >= 30 or has_applied:
+                        already_applied = applied_map.get(sid)
 
                         # Todas las skills del estudiante
                         all_skills = [{'name': s['habilidad_nombre'], 'category': s['habilidad_categoria'], 'level': s['nivel']} for s in student_skills]

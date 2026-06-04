@@ -34,6 +34,13 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
 
   const isStudent = user?.rol === 'estudiante';
 
+  const getDisplayName = () => {
+    if (!user) return 'Usuario';
+    const firstName = user.nombre ? user.nombre.split(' ')[0] : '';
+    const lastName = user.lastname ? user.lastname.split(' ')[0] : '';
+    return `${firstName} ${lastName}`.trim() || 'Usuario';
+  };
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-5 z-50 shadow-sm"
@@ -66,7 +73,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
               {user?.nombre?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex flex-col items-start leading-tight max-md:hidden">
-              <span className="text-sm font-semibold text-white">{user?.nombre || 'Usuario'}</span>
+              <span className="text-sm font-semibold text-white">{getDisplayName()}</span>
               <span className="text-xs text-white/60">{rolLabels[user?.rol] || 'Sin rol'}</span>
             </div>
             <FiChevronDown
@@ -79,7 +86,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
             <div className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] bg-white border border-slate-200 rounded-md p-1.5 animate-fade-in z-[200]">
               {/* Info del usuario */}
               <div className="px-3 py-2.5 mb-1">
-                <p className="text-sm font-semibold text-slate-800">{user?.nombre || 'Usuario'}</p>
+                <p className="text-sm font-semibold text-slate-800">{getDisplayName()}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{user?.email || ''}</p>
               </div>
               <div className="h-px bg-slate-200 mx-2 my-1" />

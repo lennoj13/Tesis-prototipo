@@ -12,7 +12,8 @@ import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Input from 'components/Input';
-import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader, FiUserPlus } from 'react-icons/fi';
+import InfoField from 'components/InfoField';
+import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader, FiUserPlus, FiCreditCard, FiCalendar, FiActivity, FiUsers, FiPlusCircle } from 'react-icons/fi';
 
 const rolLabels = { estudiante: 'Estudiante', student: 'Estudiante', company: 'Empresa', empresa: 'Empresa', admin: 'Admin', gestor: 'Gestor' };
 const rolColors = {
@@ -27,6 +28,8 @@ export default function AdminUsuarios() {
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [facultadFilter, setFacultadFilter] = useState('');
+  const [carreraFilter, setCarreraFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [viewModal, setViewModal] = useState(null);
   const [detailData, setDetailData] = useState(null);
@@ -38,7 +41,7 @@ export default function AdminUsuarios() {
   const [toast, setToast] = useState(null);
   // Crear usuario
   const [createModal, setCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', carrera_id: '', semestre: '' });
+  const [createForm, setCreateForm] = useState({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', facultad_id: '1', carrera_id: '', semestre: '' });
 
   async function loadUsers() {
     try {
@@ -49,18 +52,14 @@ export default function AdminUsuarios() {
   }
 
   const sortedAndFilteredUsers = useMemo(() => {
-    let result = [...usuarios];
-    
-    // Filter by Role
-    if (roleFilter) {
-      result = result.filter(u => u.rol_nombre.toLowerCase() === roleFilter.toLowerCase());
-    }
-    
-    // Filter by Status
-    if (statusFilter) {
-      const isActivo = statusFilter === 'activo';
-      result = result.filter(u => u.activo === isActivo);
-    }
+    let result = [...usuarios].filter(u => {
+      if (roleFilter && u.rol_nombre !== roleFilter) return false;
+      if (statusFilter === 'activo' && !u.activo) return false;
+      if (statusFilter === 'inactivo' && u.activo) return false;
+      if (facultadFilter && u.facultad_id && u.facultad_id.toString() !== facultadFilter) return false;
+      if (carreraFilter && u.carrera_id && u.carrera_id.toString() !== carreraFilter) return false;
+      return true;
+    });
     
     // Sort
     switch (sortBy) {
@@ -107,6 +106,7 @@ export default function AdminUsuarios() {
     }
   }
 
+  // Delete user handling
   async function handleDelete() {
     if (!deleteTarget) return;
     setActionLoading(true);
@@ -136,6 +136,7 @@ export default function AdminUsuarios() {
       phone: row.telefono || '',
       cedula: row.cedula || '',
       activo: row.activo !== false,
+      facultad_id: '1',
       carrera_id: '',
       semestre: '',
     });
@@ -147,6 +148,7 @@ export default function AdminUsuarios() {
         if (res.result && res.data?.perfil_estudiante) {
           setEditForm(prev => ({
             ...prev,
+            facultad_id: res.data.perfil_estudiante.facultad_id || '1',
             carrera_id: res.data.perfil_estudiante.carrera_id || '',
             semestre: res.data.perfil_estudiante.semestre || ''
           }));
@@ -159,6 +161,28 @@ export default function AdminUsuarios() {
 
   // Guardar edición
   async function saveEdit() {
+    const missingFields = [];
+    if (!editForm.cedula) missingFields.push('Cédula');
+    if (!editForm.name) missingFields.push('Nombre');
+    if (!editForm.lastname) missingFields.push('Apellido');
+    if (!editForm.email) missingFields.push('Correo');
+    if (!editForm.phone) missingFields.push('Teléfono');
+
+    if (missingFields.length > 0) {
+      setToast({ type: 'error', message: `Faltan campos obligatorios: ${missingFields.join(', ')}` });
+      return;
+    }
+    if (editModal.rol_nombre === 'estudiante') {
+      if (!editForm.facultad_id || !editForm.carrera_id || !editForm.semestre) {
+        setToast({ type: 'error', message: 'Facultad, Carrera y Semestre son obligatorios para Estudiantes' });
+        return;
+      }
+    } else if (editModal.rol_nombre === 'gestor') {
+      if (!editForm.facultad_id || !editForm.carrera_id) {
+        setToast({ type: 'error', message: 'Facultad y Carrera son obligatorias para Gestores' });
+        return;
+      }
+    }
     setActionLoading(true);
     try {
       const res = await adminService.updateUser(editModal.usuario_id, editForm);
@@ -178,6 +202,29 @@ export default function AdminUsuarios() {
 
   // Crear usuario
   async function handleCreateUser() {
+    const missingFields = [];
+    if (!createForm.cedula) missingFields.push('Cédula');
+    if (!createForm.nombre) missingFields.push('Nombre');
+    if (!createForm.apellido) missingFields.push('Apellido');
+    if (!createForm.correo) missingFields.push('Correo');
+    if (!createForm.contrasena) missingFields.push('Contraseña');
+    if (!createForm.telefono) missingFields.push('Teléfono');
+
+    if (missingFields.length > 0) {
+      setToast({ type: 'error', message: `Faltan campos obligatorios: ${missingFields.join(', ')}` });
+      return;
+    }
+    if (createForm.rol === 'estudiante') {
+      if (!createForm.facultad_id || !createForm.carrera_id || !createForm.semestre) {
+        setToast({ type: 'error', message: 'Facultad, Carrera y Semestre son obligatorios para Estudiantes' });
+        return;
+      }
+    } else if (createForm.rol === 'gestor') {
+      if (!createForm.facultad_id || !createForm.carrera_id) {
+        setToast({ type: 'error', message: 'Facultad y Carrera son obligatorias para Gestores' });
+        return;
+      }
+    }
     setActionLoading(true);
     try {
       const res = await adminService.createUser(createForm);
@@ -223,7 +270,7 @@ export default function AdminUsuarios() {
     {
       key: 'cedula',
       label: 'Cédula / RUC',
-      render: (val) => <span className="font-mono text-xs text-slate-600">{val || '-'}</span>
+      render: (val) => <span className="text-slate-700">{val || '-'}</span>
     },
     {
       key: 'rol_nombre',
@@ -273,7 +320,7 @@ export default function AdminUsuarios() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
             >
               <option value="">Todos los Roles</option>
               <option value="estudiante">Estudiantes</option>
@@ -284,16 +331,32 @@ export default function AdminUsuarios() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
             >
               <option value="">Todos los Estados</option>
               <option value="activo">Activos</option>
               <option value="inactivo">Inactivos</option>
             </select>
             <select
+              value={facultadFilter}
+              onChange={(e) => setFacultadFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
+            >
+              <option value="">Todas las Facultades</option>
+              <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+            </select>
+            <select
+              value={carreraFilter}
+              onChange={(e) => setCarreraFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="">Todas las Carreras</option>
+              <option value="1">Software</option>
+            </select>
+            <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
             >
               <option value="newest">Más recientes</option>
               <option value="oldest">Más antiguos</option>
@@ -351,33 +414,12 @@ export default function AdminUsuarios() {
             </div>
 
             {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-md">
-              <div className="flex items-center gap-2">
-                <FiMail className="text-slate-400" size={14} />
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Correo</p>
-                  <p className="text-sm text-slate-800 m-0">{viewModal.correo}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiPhone className="text-slate-400" size={14} />
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Teléfono</p>
-                  <p className="text-sm text-slate-800 m-0">{viewModal.telefono || 'No registrado'}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Cédula / RUC</p>
-                <p className="text-sm font-mono text-slate-800 m-0">{viewModal.cedula || 'No registrada'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Estado</p>
-                <StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Registro</p>
-                <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.creado_en ? new Date(viewModal.creado_en).toLocaleDateString('es-EC') : '-'}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <InfoField label="Correo" value={viewModal.correo} icon={FiMail} variant="default" />
+              <InfoField label="Teléfono" value={viewModal.telefono || 'No registrado'} icon={FiPhone} variant="default" />
+              <InfoField label="Cédula / RUC" value={viewModal.cedula || 'No registrada'} icon={FiCreditCard} variant="default" />
+              <InfoField label="Estado" value={<StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} />} icon={FiActivity} variant="default" />
+              <InfoField label="Registro" value={viewModal.creado_en ? new Date(viewModal.creado_en).toLocaleDateString('es-EC') : '-'} icon={FiCalendar} variant="default" />
             </div>
 
             {/* Loading state for extra detail */}
@@ -395,30 +437,16 @@ export default function AdminUsuarios() {
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FiBookOpen size={14} /> Perfil Académico
                   </h4>
-                  <div className="grid grid-cols-2 gap-3 p-4 bg-blue-50/50 rounded-md">
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Carrera</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{detailData.perfil_estudiante.carrera || 'No especificada'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Semestre</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{detailData.perfil_estudiante.semestre || 'No especificado'}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Universidad</p>
-                      <p className="text-sm font-medium text-slate-800 m-0">{detailData.perfil_estudiante.universidad || 'Universidad de Guayaquil'}</p>
-                    </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <InfoField label="Facultad" value={detailData.perfil_estudiante.facultad || 'No especificada'} variant="default" />
+                    <InfoField label="Carrera" value={detailData.perfil_estudiante.carrera || 'No especificada'} variant="default" />
+                    <InfoField label="Universidad" value={detailData.perfil_estudiante.universidad || 'Universidad de Guayaquil'} variant="default" />
+                    <InfoField label="Semestre" value={detailData.perfil_estudiante.semestre || 'No especificado'} variant="default" />
                     {detailData.perfil_estudiante.intereses && (
-                      <div className="col-span-2">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Intereses</p>
-                        <p className="text-sm text-slate-700 m-0">{detailData.perfil_estudiante.intereses}</p>
-                      </div>
+                      <InfoField className="col-span-2" label="Intereses" value={detailData.perfil_estudiante.intereses} variant="default" />
                     )}
                     {detailData.perfil_estudiante.resumen_experiencia && (
-                      <div className="col-span-2">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Experiencia</p>
-                        <p className="text-sm text-slate-700 m-0">{detailData.perfil_estudiante.resumen_experiencia}</p>
-                      </div>
+                      <InfoField className="col-span-2" label="Experiencia" value={detailData.perfil_estudiante.resumen_experiencia} variant="default" />
                     )}
                   </div>
                 </div>
@@ -472,6 +500,19 @@ export default function AdminUsuarios() {
               </>
             )}
 
+            {/* Gestor Profile Detail */}
+            {detailData?.perfil_gestor && (
+              <div className="border-t border-slate-100 pt-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FiBookOpen size={14} /> Asignación Académica
+                </h4>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <InfoField label="Facultad" value={detailData.perfil_gestor.facultad || 'No especificada'} variant="default" />
+                  <InfoField label="Carrera" value={detailData.perfil_gestor.carrera || 'No especificada'} variant="default" />
+                </div>
+              </div>
+            )}
+
             {/* Company Profile Detail */}
             {detailData?.perfil_empresa && (
               <div className="border-t border-slate-100 pt-4">
@@ -493,7 +534,7 @@ export default function AdminUsuarios() {
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Estado</p>
-                    <StatusBadge status={detailData.perfil_empresa.estado || 'pendiente'} />
+                    <StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} />
                   </div>
                   {detailData.perfil_empresa.ciudad && (
                     <div className="col-span-2">
@@ -525,16 +566,24 @@ export default function AdminUsuarios() {
           <div className="flex flex-col gap-4">
             <Input label="Cédula / RUC" value={editForm.cedula} onChange={(e) => setEditForm(p => ({...p, cedula: e.target.value}))} />
             <Input label="Nombre" value={editForm.name} onChange={(e) => setEditForm(p => ({...p, name: e.target.value}))} />
-            {editModal.rol_nombre !== 'empresa' && (
-              <Input label="Apellido" value={editForm.lastname} onChange={(e) => setEditForm(p => ({...p, lastname: e.target.value}))} />
-            )}
-            <Input label="Correo Electrónico" type="email" value={editForm.email} onChange={(e) => setEditForm(p => ({...p, email: e.target.value}))} />
-            <Input label="Teléfono" type="tel" value={editForm.phone} onChange={(e) => setEditForm(p => ({...p, phone: e.target.value}))} />
+            <Input label="Apellido" value={editForm.lastname} onChange={(e) => setEditForm(p => ({...p, lastname: e.target.value}))} />
+            <Input label="Correo *" type="email" value={editForm.email} onChange={(e) => setEditForm(p => ({...p, email: e.target.value}))} />
+            <Input label="Teléfono *" type="tel" value={editForm.phone} onChange={(e) => setEditForm(p => ({...p, phone: e.target.value}))} />
             
             {(editModal.rol_nombre === 'estudiante' || editModal.rol_nombre === 'gestor') && (
-              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera</label>
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-md">
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Facultad *</label>
+                  <select
+                    value={editForm.facultad_id}
+                    onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value}))}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                  >
+                    <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+                  </select>
+                </div>
+                <div className={editModal.rol_nombre === 'estudiante' ? '' : 'col-span-2'}>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera *</label>
                   <select
                     value={editForm.carrera_id}
                     onChange={(e) => setEditForm(p => ({...p, carrera_id: e.target.value}))}
@@ -544,17 +593,19 @@ export default function AdminUsuarios() {
                     <option value="1">Software</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre</label>
-                  <select
-                    value={editForm.semestre}
-                    onChange={(e) => setEditForm(p => ({...p, semestre: e.target.value}))}
-                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
-                  >
-                    <option value="">Seleccione...</option>
-                    {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
+                {editModal.rol_nombre === 'estudiante' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre *</label>
+                    <select
+                      value={editForm.semestre}
+                      onChange={(e) => setEditForm(p => ({...p, semestre: e.target.value}))}
+                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                    >
+                      <option value="">Seleccione...</option>
+                      {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
 
@@ -586,14 +637,6 @@ export default function AdminUsuarios() {
       {/* Create User Modal */}
       <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Crear Nuevo Usuario" size="sm">
         <div className="flex flex-col gap-4">
-          <Input label="Cédula *" value={createForm.cedula} onChange={(e) => setCreateForm(p => ({...p, cedula: e.target.value}))} placeholder="0900000000" />
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Nombre *" value={createForm.nombre} onChange={(e) => setCreateForm(p => ({...p, nombre: e.target.value}))} />
-            <Input label="Apellido *" value={createForm.apellido} onChange={(e) => setCreateForm(p => ({...p, apellido: e.target.value}))} />
-          </div>
-          <Input label="Correo Electrónico *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} placeholder="correo@ejemplo.com" />
-          <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
-          <Input label="Teléfono" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Rol *</label>
             <select
@@ -606,11 +649,30 @@ export default function AdminUsuarios() {
               <option value="admin">Administrador</option>
             </select>
           </div>
+          <Input label="Cédula *" value={createForm.cedula} onChange={(e) => setCreateForm(p => ({...p, cedula: e.target.value}))} placeholder="0900000000" />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Nombre *" value={createForm.nombre} onChange={(e) => setCreateForm(p => ({...p, nombre: e.target.value}))} />
+            <Input label="Apellido *" value={createForm.apellido} onChange={(e) => setCreateForm(p => ({...p, apellido: e.target.value}))} />
+          </div>
+          <Input label="Correo Electrónico *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} placeholder="correo@ejemplo.com" />
+          <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
+          <Input label="Teléfono *" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
+
 
           {(createForm.rol === 'estudiante' || createForm.rol === 'gestor') && (
             <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-md">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera</label>
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Facultad *</label>
+                <select
+                  value={createForm.facultad_id || '1'}
+                  onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value}))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                >
+                  <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+                </select>
+              </div>
+              <div className={createForm.rol === 'estudiante' ? '' : 'col-span-2'}>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Carrera *</label>
                 <select
                   value={createForm.carrera_id || ''}
                   onChange={(e) => setCreateForm(p => ({...p, carrera_id: e.target.value}))}
@@ -620,17 +682,19 @@ export default function AdminUsuarios() {
                   <option value="1">Software</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre</label>
-                <select
-                  value={createForm.semestre || ''}
-                  onChange={(e) => setCreateForm(p => ({...p, semestre: e.target.value}))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
-                >
-                  <option value="">Seleccione...</option>
-                  {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+              {createForm.rol === 'estudiante' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Semestre *</label>
+                  <select
+                    value={createForm.semestre || ''}
+                    onChange={(e) => setCreateForm(p => ({...p, semestre: e.target.value}))}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+                  >
+                    <option value="">Seleccione...</option>
+                    {[1,2,3,4,5,6,7,8,9,10].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 

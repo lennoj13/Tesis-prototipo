@@ -198,9 +198,25 @@ class ApplicationComponent:
             return internal_response(False, [], str(err))
 
     @staticmethod
-    def get_all_applications():
+    def get_all_applications(facultad_id=None, carrera_id=None):
         try:
-            sql = """
+            where_clauses = []
+            params = []
+            
+            if facultad_id:
+                where_clauses.append("(pe.facultad_id = %s OR i.facultad_id = %s)")
+                params.extend([facultad_id, facultad_id])
+            if carrera_id:
+                where_clauses.append("pe.carrera_id = %s")
+                params.append(carrera_id)
+                
+            where_str = " AND ".join(where_clauses)
+            if where_str:
+                where_str = "WHERE " + where_str
+            else:
+                where_str = ""
+
+            sql = f"""
                 SELECT p.postulacion_id, p.estado, p.nro_solicitud,
                        CAST(p.porcentaje_afinidad AS FLOAT) as porcentaje_afinidad,
                        TO_CHAR(p.creado_en, 'YYYY-MM-DD') as creado_en,
@@ -219,9 +235,10 @@ class ApplicationComponent:
                 JOIN public.vacantes v ON p.vacante_id = v.vacante_id
                 JOIN public.instituciones i ON v.institucion_id = i.institucion_id
                 LEFT JOIN public.supervisores sup ON COALESCE(p.supervisor_id, v.supervisor_id) = sup.supervisor_id
+                {where_str}
                 ORDER BY p.creado_en DESC
             """
-            result = DataBaseHandle.getRecords(sql, 0)
+            result = DataBaseHandle.getRecords(sql, 0, tuple(params)) if params else DataBaseHandle.getRecords(sql, 0)
             if result['result']:
                 return internal_response(True, result['data'] or [], "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))

@@ -144,7 +144,7 @@ export default function EmpresaDashboard() {
             Panel de {companyName}
           </h1>
           <p className="text-base text-slate-500">
-            Gestiona vacantes y descubre talento compatible — Universidad de Guayaquil
+            Gestiona vacantes y descubre talento compatible.
           </p>
         </div>
         <Link to="/dashboard/empresa/vacantes/nueva">

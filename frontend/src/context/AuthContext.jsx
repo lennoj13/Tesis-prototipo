@@ -11,7 +11,7 @@ import { ROLE_ROUTES, ROLE_LABELS } from '../utils/constants';
 
 // --- Estado inicial ---
 const initialState = {
-  user: null,       // { user_id, username, nombre, name, lastname, email, rol, role, role_id, profile_id }
+  user: null,       // { user_id, nombre, name, lastname, email, rol, role, role_id, profile_id }
   token: null,      // JWT string
   isLoading: true,  // Cargando sesion del localStorage
   error: null,
@@ -100,7 +100,7 @@ export function AuthProvider({ children }) {
           id: user_info.user_id,
           user_id: user_info.user_id,
           cedula: user_info.cedula,
-          username: user_info.username,
+
           nombre: user_info.name,
           name: user_info.name,
           lastname: user_info.lastname,
@@ -109,6 +109,7 @@ export function AuthProvider({ children }) {
           role: backendRole,
           role_id: user_info.role_id,
           profile_id: user_info.profile_id,
+          facultad_nombre: user_info.facultad_nombre
         };
 
         localStorage.setItem('matchpp_token', token);

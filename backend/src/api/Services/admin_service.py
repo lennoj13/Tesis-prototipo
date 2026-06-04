@@ -16,9 +16,17 @@ class AdminStatsService(Resource):
                 return response_error("No autorizado")
             
             if auth['data'].get('role') not in ('admin', 'gestor'):
-                return response_error("Acceso denegado: se requiere rol admin")
+                return response_error("Acceso denegado: se requiere rol admin o gestor")
 
-            result = AdminComponent.get_stats()
+            # Force filters from token if user is gestor
+            if auth['data'].get('role') == 'gestor':
+                facultad_id = auth['data'].get('facultad_id')
+                carrera_id = auth['data'].get('carrera_id')
+            else:
+                facultad_id = request.args.get('facultad_id')
+                carrera_id = request.args.get('carrera_id')
+
+            result = AdminComponent.get_stats(facultad_id, carrera_id)
             if result['result']:
                 return response_success(result['data'])
             return response_error(result['message'])
@@ -36,8 +44,8 @@ class AdminUserDetailService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') not in ('admin', 'gestor'):
-                return response_error("Acceso denegado: se requiere rol admin")
+            if auth['data'].get('role') not in ('admin', 'gestor', 'estudiante'):
+                return response_error("Acceso denegado")
 
             result = AdminComponent.get_user_detail(user_id)
             if result['result']:
@@ -56,8 +64,17 @@ class AdminCompanyService(Resource):
             auth = AuthComponent.verify(request)
             if not auth['result']:
                 return response_error("No autorizado")
+                
+            if auth['data'].get('role') not in ('admin', 'gestor', 'estudiante'):
+                return response_error("Acceso denegado")
 
-            result = AdminComponent.get_all_companies()
+            facultad_id = None
+            if auth['data'].get('role') in ('gestor', 'estudiante'):
+                facultad_id = auth['data'].get('facultad_id')
+
+            approved_only = auth['data'].get('role') == 'estudiante'
+
+            result = AdminComponent.get_all_companies(facultad_id, approved_only)
             if result['result']:
                 return response_success(result['data'])
             return response_error(result['message'])
@@ -149,7 +166,14 @@ class AdminReportsService(Resource):
             if auth['data'].get('role') not in ('admin', 'gestor'):
                 return response_error("Acceso denegado: se requiere rol admin o gestor")
 
-            result = AdminComponent.get_report_data()
+            if auth['data'].get('role') == 'gestor':
+                facultad_id = auth['data'].get('facultad_id')
+                carrera_id = auth['data'].get('carrera_id')
+            else:
+                facultad_id = request.args.get('facultad_id')
+                carrera_id = request.args.get('carrera_id')
+
+            result = AdminComponent.get_report_data(facultad_id, carrera_id)
             if result['result']:
                 return response_success(result['data'])
             return response_error(result['message'])
@@ -224,6 +248,13 @@ class AdminCreateCompanyService(Resource):
                 ciudad=rq.get('ciudad', 'Guayaquil'),
                 correo_contacto=rq.get('correo_contacto'),
                 sitio_web=rq.get('sitio_web'),
+                facultad_id=rq.get('facultad_id', 1),
+                telefono_empresa=rq.get('telefono_empresa'),
+                fecha_limite_convenio=rq.get('fecha_limite_convenio'),
+                codigo_convenio=rq.get('codigo_convenio'),
+                tipo_convenio=rq.get('tipo_convenio', 'PRACTICAS PREPROFESIONALES'),
+                fecha_inicio_convenio=rq.get('fecha_inicio_convenio'),
+                nombre_abreviado=rq.get('nombre_abreviado')
             )
             if result['result']:
                 return response_success(result['data'])
@@ -276,6 +307,28 @@ class AdminCompanyDetailService(Resource):
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))
 
+    @staticmethod
+    def put(company_id):
+        """Editar datos de la empresa y representante"""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error("No autorizado")
+            
+            if auth['data'].get('role') not in ('admin',):
+                return response_error("Acceso denegado: se requiere rol admin")
+
+            data = request.get_json()
+            result = AdminComponent.update_company(company_id, data)
+            
+            if result['result']:
+                return response_success(None)
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
 class AdminUserSearchService(Resource):
     @staticmethod
     def get():
@@ -319,9 +372,46 @@ class AdminCreateSupervisorService(Resource):
 
             result = AdminComponent.create_supervisor(company_id, data)
             if result['result']:
-                return response_success(result['data'], message=result['message'])
+                return response_success(result['data'])
             return response_error(result['message'])
 
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+class AdminSupervisorService(Resource):
+    @staticmethod
+    def put(supervisor_id):
+        """Actualizar un supervisor existente."""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result'] or auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("No autorizado o sin permisos")
+            
+            data = request.get_json()
+            if not data:
+                return response_error("Datos incompletos")
+
+            result = AdminComponent.update_supervisor(supervisor_id, data)
+            if result['result']:
+                return response_success(None)
+            return response_error(result['message'])
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+
+    @staticmethod
+    def delete(supervisor_id):
+        """Eliminación lógica de un supervisor."""
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result'] or auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("No autorizado o sin permisos")
+
+            result = AdminComponent.delete_supervisor(supervisor_id)
+            if result['result']:
+                return response_success(None)
+            return response_error(result['message'])
         except Exception as err:
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))

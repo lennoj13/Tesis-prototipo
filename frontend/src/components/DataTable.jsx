@@ -47,8 +47,8 @@ export default function DataTable({
     <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
       {/* Search bar & Filters */}
       {(searchKeys?.length > 0 || filters) && (
-        <div className="px-5 pt-4 pb-3 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="w-full sm:w-auto flex-1">
+        <div className="px-5 pt-4 pb-3 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+          <div className="w-full xl:w-auto flex-1 min-w-[200px]">
             {searchKeys?.length > 0 && (
               <div className="relative w-full max-w-sm">
                 <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -63,7 +63,7 @@ export default function DataTable({
             )}
           </div>
           {filters && (
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-start xl:justify-end">
               {filters}
             </div>
           )}
@@ -101,25 +101,36 @@ export default function DataTable({
                 </td>
               </tr>
             ) : (
-              paged.map((row, i) => (
-                <tr
-                  key={row.id || i}
-                  className="border-b border-slate-200 transition-colors hover:bg-slate-100 even:bg-slate-50 last:border-b-0"
-                >
-                  {columns.map((col) => (
-                    <td key={col.key} className="py-3.5 px-5 text-slate-700 whitespace-nowrap">
-                      {col.render ? col.render(row[col.key], row) : row[col.key]}
-                    </td>
-                  ))}
-                  {actions && (
-                    <td className="py-3.5 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {actions(row)}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
+              <>
+                {paged.map((row, i) => (
+                  <tr
+                    key={row.id || i}
+                    className="border-b border-slate-200 transition-colors hover:bg-slate-100 even:bg-slate-50 last:border-b-0"
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} className="py-3.5 px-5 text-slate-700 whitespace-nowrap">
+                        {col.render ? col.render(row[col.key], row) : row[col.key]}
+                      </td>
+                    ))}
+                    {actions && (
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {actions(row)}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                
+                {/* Filas de relleno para mantener la altura constante en la última página */}
+                {paged.length > 0 && paged.length < pageSize && (
+                  Array.from({ length: pageSize - paged.length }).map((_, i) => (
+                    <tr key={`empty-${i}`} className="border-b border-transparent pointer-events-none">
+                      <td colSpan={columns.length + (actions ? 1 : 0)} className="py-3.5 px-5 h-[53px]"></td>
+                    </tr>
+                  ))
+                )}
+              </>
             )}
           </tbody>
         </table>

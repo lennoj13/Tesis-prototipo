@@ -51,7 +51,12 @@ class ApplicationService(Resource):
             elif vacancy_id:
                 result = ApplicationComponent.get_applications_by_vacancy(int(vacancy_id))
             elif auth['data'].get('role') in ('admin', 'gestor'):
-                result = ApplicationComponent.get_all_applications()
+                if auth['data'].get('role') == 'gestor':
+                    facultad_id = auth['data'].get('facultad_id')
+                    carrera_id = auth['data'].get('carrera_id')
+                    result = ApplicationComponent.get_all_applications(facultad_id, carrera_id)
+                else:
+                    result = ApplicationComponent.get_all_applications()
             else:
                 profile_id = auth['data'].get('profile_id')
                 if profile_id:

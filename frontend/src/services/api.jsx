@@ -45,7 +45,7 @@ api.interceptors.response.use(
       localStorage.removeItem('matchpp_user');
       // Solo redirigir si estamos en el cliente
       if (typeof window !== 'undefined') {
-        window.location.href = '/login?expired=true';
+        window.dispatchEvent(new Event('auth_expired'));
       }
     }
     return Promise.reject(error);

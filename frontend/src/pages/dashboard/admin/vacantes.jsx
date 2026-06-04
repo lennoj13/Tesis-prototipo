@@ -4,20 +4,26 @@
  * Módulo 3: Gestión de Vacantes (vista admin)
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import vacancyService from 'services/vacancyService';
 import PageHeader from 'components/PageHeader';
 import DataTable from 'components/DataTable';
 import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
-import { FiEye, FiTrash2 } from 'react-icons/fi';
+import InfoField from 'components/InfoField';
+import { FiEye, FiTrash2, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft, FiUsers } from 'react-icons/fi';
 
 export default function AdminVacantes() {
   const [vacantes, setVacantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  const [modalidadFilter, setModalidadFilter] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState('');
+  const [facultadFilter, setFacultadFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     async function load() {
@@ -29,6 +35,30 @@ export default function AdminVacantes() {
     }
     load();
   }, []);
+
+  const sortedAndFilteredVacantes = React.useMemo(() => {
+    let result = [...vacantes];
+    
+    if (modalidadFilter) {
+      result = result.filter(v => v.modalidad === modalidadFilter);
+    }
+    if (estadoFilter) {
+      const isActive = estadoFilter === 'abierta';
+      result = result.filter(v => v.activo === isActive);
+    }
+    if (facultadFilter) {
+      result = result.filter(v => String(v.facultad_id) === facultadFilter);
+    }
+
+    switch (sortBy) {
+      case 'oldest': result.sort((a,b) => new Date(a.creado_en) - new Date(b.creado_en)); break;
+      case 'alphaAsc': result.sort((a,b) => (a.titulo || '').localeCompare(b.titulo || '')); break;
+      case 'alphaDesc': result.sort((a,b) => (b.titulo || '').localeCompare(a.titulo || '')); break;
+      case 'newest': default: result.sort((a,b) => new Date(b.creado_en) - new Date(a.creado_en)); break;
+    }
+    
+    return result;
+  }, [vacantes, modalidadFilter, estadoFilter, facultadFilter, sortBy]);
 
   const columns = [
     {
@@ -72,8 +102,49 @@ export default function AdminVacantes() {
 
       <DataTable
         columns={columns}
-        data={vacantes}
+        data={sortedAndFilteredVacantes}
         searchKeys={['titulo', 'nombre_empresa', 'area']}
+        filters={
+          <>
+            <select
+              value={facultadFilter}
+              onChange={(e) => setFacultadFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
+            >
+              <option value="">Todas las Facultades</option>
+              <option value="1">Ciencias Matemáticas y Físicas</option>
+            </select>
+            <select
+              value={modalidadFilter}
+              onChange={(e) => setModalidadFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="">Modalidad</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Hibrido">Híbrido</option>
+              <option value="Remoto">Remoto</option>
+            </select>
+            <select
+              value={estadoFilter}
+              onChange={(e) => setEstadoFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="">Todos los Estados</option>
+              <option value="abierta">Abiertas</option>
+              <option value="cerrada">Cerradas</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguos</option>
+              <option value="alphaAsc">A-Z</option>
+              <option value="alphaDesc">Z-A</option>
+            </select>
+          </>
+        }
         actions={(row) => (
           <>
             <button
@@ -96,22 +167,49 @@ export default function AdminVacantes() {
 
       <Modal isOpen={!!viewModal} onClose={() => setViewModal(null)} title="Detalle de Vacante" size="lg">
         {viewModal && (
-          <div className="flex flex-col gap-5">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">{viewModal.titulo}</h3>
-              <p className="text-sm text-slate-500">{viewModal.nombre_empresa}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-md max-md:grid-cols-2">
-              <div><p className="text-xs text-slate-500 mb-1">Área</p><p className="text-sm font-semibold text-slate-800">{viewModal.area || '-'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Modalidad</p><p className="text-sm font-semibold text-slate-800">{viewModal.modalidad || 'Presencial'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Estado</p><StatusBadge status={viewModal.activo ? 'abierta' : 'cerrada'} /></div>
-              <div><p className="text-xs text-slate-500 mb-1">Postulantes</p><p className="text-sm font-semibold text-slate-800">{viewModal.total_postulaciones || 0}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Ubicación</p><p className="text-sm font-semibold text-slate-800">{viewModal.ubicacion || '-'}</p></div>
-            </div>
-            {viewModal.descripcion && (
+          <div className="flex flex-col gap-6 p-1">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
-                <p className="text-xs text-slate-500 mb-2">Descripción</p>
-                <p className="text-sm text-slate-700 leading-relaxed p-4 bg-slate-50 rounded-md">{viewModal.descripcion}</p>
+                <h3 className="text-xl font-bold text-slate-900 m-0 leading-tight">{viewModal.titulo}</h3>
+                <p className="text-sm font-medium text-primary-600 m-0 mt-1">{viewModal.nombre_empresa}</p>
+              </div>
+              <StatusBadge status={viewModal.activo ? 'abierta' : 'cerrada'} />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
+              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} />
+              <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.ubicacion || 'No especificada'} />
+              <InfoField icon={FiClock} label="Modalidad" value={viewModal.modalidad || 'Presencial'} />
+              <InfoField icon={FiCalendar} label="Horario" value={viewModal.horario || 'No especificado'} />
+              <InfoField icon={FiClock} label="Total Horas" value={viewModal.total_horas ? `${viewModal.total_horas}h` : '-'} />
+              <InfoField icon={FiClock} label="Horas Diarias" value={viewModal.horas_diarias ? `${viewModal.horas_diarias}h/día` : '-'} />
+              <InfoField icon={FiUsers} label="Cupos Disponibles" value={viewModal.cupos || 1} />
+              <InfoField icon={FiUsers} label="Total Postulantes" value={viewModal.total_postulaciones || 0} />
+              <InfoField icon={FiCalendar} label="Fecha Publicación" value={viewModal.creado_en || '-'} />
+              <InfoField icon={FiCalendar} label="Fecha Expiración" value={viewModal.fecha_expiracion || '-'} />
+            </div>
+
+            {viewModal.descripcion && (
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiAlignLeft className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Descripción</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <p className="text-sm text-slate-700 m-0 whitespace-pre-wrap leading-relaxed">{viewModal.descripcion}</p>
+                </div>
+              </div>
+            )}
+            
+            {viewModal.requisitos && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FiBriefcase className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Requisitos Adicionales</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <p className="text-sm text-slate-700 m-0 whitespace-pre-wrap leading-relaxed">{viewModal.requisitos}</p>
+                </div>
               </div>
             )}
           </div>

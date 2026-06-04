@@ -31,10 +31,23 @@ export default function AdminEmpresas() {
   const [createForm, setCreateForm] = useState({
     cedula_representante: '', nombre_representante: '', apellido_representante: '',
     correo: '', contrasena: '', telefono: '', nombre_empresa: '', ruc: '',
-    industria: '', direccion: '', ciudad: 'Guayaquil', correo_contacto: '', sitio_web: ''
+    industria: '', direccion: '', ciudad: 'Guayaquil', correo_contacto: '', sitio_web: '',
+    facultad_id: '1', telefono_empresa: '', fecha_limite_convenio: ''
   });
 
+  // Supervisor management states
+  const [showAddSupervisor, setShowAddSupervisor] = useState(false);
+  const [newSupForm, setNewSupForm] = useState({ numero_identificacion: '', nombre: '', apellido: '', cargo: '', correo: '', telefono: '', departamento: '' });
+  const [supLoading, setSupLoading] = useState(false);
+  const [editingSupId, setEditingSupId] = useState(null);
+  const [editSupForm, setEditSupForm] = useState({});
+  const [expandedSup, setExpandedSup] = useState({}); // Record of expanded supervisor cards
+  
+  // UI states
+  const [activeTab, setActiveTab] = useState('general'); // 'general', 'supervisores', 'vacantes'
+
   const [statusFilter, setStatusFilter] = useState('');
+  const [facultadFilter, setFacultadFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => { load(); }, []);
@@ -44,9 +57,15 @@ export default function AdminEmpresas() {
     
     // Filter by Status
     if (statusFilter) {
-      result = result.filter(e => e.estado === statusFilter);
+      if (statusFilter === 'activa') result = result.filter(e => e.activo === true);
+      if (statusFilter === 'inactiva') result = result.filter(e => e.activo === false);
     }
     
+    // Filter by Facultad
+    if (facultadFilter) {
+      result = result.filter(u => String(u.facultad_id) === facultadFilter);
+    }
+
     // Sort
     switch (sortBy) {
       case 'oldest':
@@ -65,7 +84,7 @@ export default function AdminEmpresas() {
     }
     
     return result;
-  }, [empresas, statusFilter, sortBy]);
+  }, [empresas, statusFilter, facultadFilter, sortBy]);
 
   async function load() {
     try {
@@ -99,18 +118,97 @@ export default function AdminEmpresas() {
     finally { setDetailLoading(false); }
   }
 
+  // Supervisor Management Methods
+  async function handleAddSupervisor() {
+    if (!newSupForm.nombre || !newSupForm.correo || !detailData?.institucion_id) return;
+    setSupLoading(true);
+    try {
+      const res = await adminService.createSupervisor(detailData.institucion_id, newSupForm);
+      if (res.result) {
+        setToast({ type: 'success', message: 'Supervisor agregado correctamente' });
+        const addedSup = { ...newSupForm, supervisor_id: res.data.supervisor_id, activo: true };
+        setDetailData(prev => ({ ...prev, supervisores: [...(prev.supervisores || []), addedSup] }));
+        setShowAddSupervisor(false);
+        setNewSupForm({ numero_identificacion: '', nombre: '', apellido: '', cargo: '', correo: '', telefono: '', departamento: '' });
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al agregar supervisor' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Error de conexión' });
+    } finally { setSupLoading(false); }
+  }
+
+  function openEditSup(sup) {
+    setEditingSupId(sup.supervisor_id);
+    setEditSupForm({
+      numero_identificacion: sup.numero_identificacion || '',
+      nombre: sup.nombre || '',
+      apellido: sup.apellido || '',
+      cargo: sup.cargo || '',
+      correo: sup.correo || '',
+      telefono: sup.telefono || '',
+      departamento: sup.departamento || ''
+    });
+  }
+
+  async function handleUpdateSupervisor() {
+    if (!editSupForm.nombre || !editSupForm.correo) return;
+    setSupLoading(true);
+    try {
+      const res = await adminService.updateSupervisor(editingSupId, editSupForm);
+      if (res.result) {
+        setToast({ type: 'success', message: 'Supervisor actualizado correctamente' });
+        setDetailData(prev => ({
+          ...prev,
+          supervisores: prev.supervisores.map(s => s.supervisor_id === editingSupId ? { ...s, ...editSupForm } : s)
+        }));
+        setEditingSupId(null);
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al actualizar supervisor' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Error de conexión' });
+    } finally { setSupLoading(false); }
+  }
+
+  async function handleDeleteSupervisor(supervisor_id) {
+    if (!window.confirm("¿Seguro que deseas eliminar a este supervisor?")) return;
+    try {
+      const res = await adminService.deleteSupervisor(supervisor_id);
+      if (res.result) {
+        setToast({ type: 'success', message: 'Supervisor eliminado correctamente' });
+        setDetailData(prev => ({
+          ...prev,
+          supervisores: prev.supervisores.filter(s => s.supervisor_id !== supervisor_id)
+        }));
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al eliminar supervisor' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Error de conexión' });
+    }
+  }
+
+  const toggleExpandSup = (supId) => {
+    setExpandedSup(prev => ({ ...prev, [supId]: !prev[supId] }));
+  };
+
   const handleEdit = (row) => {
     setEditModal(row);
     setEditForm({
       company_name: row.nombre_empresa || '', ruc: row.ruc || '',
       industry: row.industria || '', correo_contacto: row.correo_contacto || '',
+      telefono_empresa: row.telefono_empresa || '', fecha_limite_convenio: row.fecha_limite_convenio || '',
+      codigo_convenio: row.codigo_convenio || '', tipo_convenio: row.tipo_convenio || 'PRACTICAS PREPROFESIONALES',
+      fecha_inicio_convenio: row.fecha_inicio_convenio || '', nombre_abreviado: row.nombre_abreviado || '',
+      activo: row.activo
     });
   };
 
   const saveEdit = async () => {
     setActionLoading(true);
     try {
-      const { data: res } = await api.put(`/admin/companies/${editModal.institucion_id}`, editForm);
+      const { data: res } = await api.put(`/admin/companies/${editModal.institucion_id}/detail`, editForm);
       if (res.result) {
         if (editForm.activo !== editModal.activo && editModal.usuario_id) {
           await adminService.toggleUserStatus(editModal.usuario_id);
@@ -118,17 +216,29 @@ export default function AdminEmpresas() {
         setEmpresas(prev => prev.map(e => e.institucion_id === editModal.institucion_id ? { 
           ...e, nombre_empresa: editForm.company_name, ruc: editForm.ruc, 
           industria: editForm.industry, correo_contacto: editForm.correo_contacto,
+          telefono_empresa: editForm.telefono_empresa, fecha_limite_convenio: editForm.fecha_limite_convenio,
+          codigo_convenio: editForm.codigo_convenio, tipo_convenio: editForm.tipo_convenio,
+          fecha_inicio_convenio: editForm.fecha_inicio_convenio, nombre_abreviado: editForm.nombre_abreviado,
           activo: editForm.activo
         } : e));
         setEditModal(null);
         setToast({ type: 'success', message: 'Empresa actualizada' });
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al actualizar' });
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err);
+      setToast({ type: 'error', message: err.response?.data?.message || 'Error de conexión' });
+    }
     finally { setActionLoading(false); }
   };
 
   // Crear empresa
   async function handleCreateCompany() {
+    if (!createForm.nombre_empresa || !createForm.ruc || !createForm.telefono_empresa || !createForm.cedula_representante || !createForm.nombre_representante || !createForm.apellido_representante || !createForm.correo || !createForm.contrasena || !createForm.telefono) {
+      setToast({ type: 'error', message: 'Llene todos los campos obligatorios, incluyendo los teléfonos' });
+      return;
+    }
     setActionLoading(true);
     try {
       const res = await adminService.createCompany(createForm);
@@ -138,7 +248,9 @@ export default function AdminEmpresas() {
         setCreateForm({
           cedula_representante: '', nombre_representante: '', apellido_representante: '',
           correo: '', contrasena: '', telefono: '', nombre_empresa: '', ruc: '',
-          industria: '', direccion: '', ciudad: 'Guayaquil', correo_contacto: '', sitio_web: ''
+          industria: '', direccion: '', ciudad: 'Guayaquil', correo_contacto: '', sitio_web: '',
+          facultad_id: '1', telefono_empresa: '', fecha_limite_convenio: '',
+          codigo_convenio: '', tipo_convenio: 'PRACTICAS PREPROFESIONALES', fecha_inicio_convenio: '', nombre_abreviado: ''
         });
         load();
       } else {
@@ -170,6 +282,7 @@ export default function AdminEmpresas() {
   }
 
   const columns = [
+    { key: 'codigo_convenio', label: 'Código', render: (val) => val || '-' },
     {
       key: 'nombre_empresa', label: 'Empresa',
       render: (val, row) => (
@@ -179,9 +292,10 @@ export default function AdminEmpresas() {
         </div>
       ),
     },
+    { key: 'tipo_convenio', label: 'Tipo Convenio', render: (val) => val || '-' },
     { key: 'industria', label: 'Sector', render: (val) => val || '-' },
-    { key: 'estado', label: 'Estado', render: (val) => <StatusBadge status={val || 'pendiente'} /> },
-    { key: 'correo_contacto', label: 'Contacto', render: (val) => val || '-' },
+    { key: 'activo', label: 'Estado', render: (val) => <StatusBadge status={val ? 'activo' : 'inactivo'} /> },
+    { key: 'fecha_limite_convenio', label: 'Expira Convenio', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
   return (
@@ -211,19 +325,26 @@ export default function AdminEmpresas() {
         filters={
           <>
             <select
+              value={facultadFilter}
+              onChange={(e) => setFacultadFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
+            >
+              <option value="">Todas las Facultades</option>
+              <option value="1">Ciencias Matemáticas y Físicas</option>
+            </select>
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
             >
               <option value="">Todos los Estados</option>
-              <option value="aprobado">Aprobado</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="rechazado">Rechazado</option>
+              <option value="activa">Activas</option>
+              <option value="inactiva">Inactivas</option>
             </select>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
             >
               <option value="newest">Más recientes</option>
               <option value="oldest">Más antiguos</option>
@@ -240,16 +361,7 @@ export default function AdminEmpresas() {
             <button onClick={() => handleEdit(row)} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-amber-50 hover:text-amber-600" title="Editar empresa">
               <FiEdit2 size={16} />
             </button>
-            {(row.estado === 'pending' || row.estado === 'pendiente') && (
-              <>
-                <button onClick={() => handleStatusUpdate(row.institucion_id, 'aprobado')} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-green-50 hover:text-green-600" title="Aprobar">
-                  <FiCheckCircle size={16} />
-                </button>
-                <button onClick={() => handleStatusUpdate(row.institucion_id, 'rechazado')} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600" title="Rechazar">
-                  <FiXCircle size={16} />
-                </button>
-              </>
-            )}
+
             <button onClick={() => setDeleteTarget(row)} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600" title="Eliminar empresa">
               <FiTrash2 size={16} />
             </button>
@@ -258,7 +370,7 @@ export default function AdminEmpresas() {
       />
 
       {/* Detail Modal with supervisors and vacancies */}
-      <Modal isOpen={!!viewModal} onClose={() => { setViewModal(null); setDetailData(null); }} title="Detalle de Empresa" size="lg">
+      <Modal isOpen={!!viewModal} onClose={() => { setViewModal(null); setDetailData(null); setShowAddSupervisor(false); setExpandedSup({}); setEditingSupId(null); setActiveTab('general'); }} title="Detalle de Empresa" size="lg">
         {viewModal && (
           <div className="flex flex-col gap-5">
             <div className="flex items-center gap-4">
@@ -269,7 +381,7 @@ export default function AdminEmpresas() {
                 <p className="text-lg font-bold text-slate-900 m-0">{viewModal.nombre_empresa}</p>
                 <p className="text-sm text-slate-500 m-0">{viewModal.ruc || 'Sin RUC'}</p>
               </div>
-              <div className="ml-auto"><StatusBadge status={viewModal.estado || 'pendiente'} /></div>
+              <div className="ml-auto"><StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} /></div>
             </div>
 
             {detailLoading ? (
@@ -279,68 +391,235 @@ export default function AdminEmpresas() {
               </div>
             ) : detailData ? (
               <>
-                {/* Info general */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md">
-                  <div className="flex items-center gap-2"><FiBriefcase className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sector</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.industria || '-'}</p></div></div>
-                  <div className="flex items-center gap-2"><FiMapPin className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Ubicación</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p></div></div>
-                  <div className="flex items-center gap-2"><FiMail className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Contacto</p><p className="text-sm text-slate-800 m-0">{detailData.correo_contacto || '-'}</p></div></div>
-                  <div className="flex items-center gap-2"><FiPhone className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Teléfono</p><p className="text-sm text-slate-800 m-0">{detailData.telefono || '-'}</p></div></div>
-                  {detailData.sitio_web && <div className="flex items-center gap-2 col-span-2"><FiGlobe className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sitio Web</p><a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">{detailData.sitio_web}</a></div></div>}
-                  <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Representante</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.representante || '-'}</p></div>
+                  {/* Tabs for Navigation */}
+                <div className="flex items-center gap-1 mt-4 border-b border-slate-200">
+                  <button onClick={() => setActiveTab('general')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'general' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer`}>
+                    Información
+                  </button>
+                  <button onClick={() => setActiveTab('supervisores')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'supervisores' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                    Supervisores <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{(detailData.supervisores?.filter(s => s.activo) || []).length}</span>
+                  </button>
+                  <button onClick={() => setActiveTab('vacantes')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'vacantes' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                    Vacantes <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{detailData.vacantes?.length || 0}</span>
+                  </button>
                 </div>
 
-                {/* Supervisores */}
-                <div className="border-t border-slate-100 pt-4">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <FiUsers size={14} /> Supervisores ({detailData.supervisores?.length || 0})
-                  </h4>
-                  {detailData.supervisores?.length > 0 ? (
-                    <div className="grid gap-2">
-                      {detailData.supervisores.map(sup => (
-                        <div key={sup.supervisor_id} className={`flex items-center justify-between p-3 rounded-md border ${sup.activo ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800 m-0">{sup.nombre}</p>
-                            <p className="text-xs text-slate-500 m-0">{sup.cargo || 'Sin cargo'} {sup.departamento ? `· ${sup.departamento}` : ''}</p>
-                            <p className="text-xs text-slate-400 m-0">{sup.correo || ''} {sup.telefono ? `· ${sup.telefono}` : ''}</p>
-                          </div>
-                          <StatusBadge status={sup.activo ? 'activo' : 'inactivo'} />
-                        </div>
-                      ))}
+                <div className="mt-4 h-[50vh] min-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                  {/* Info general */}
+                  {activeTab === 'general' && (
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md animate-fade-in">
+                      <div className="flex items-center gap-2"><FiBriefcase className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sector</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.industria || '-'}</p></div></div>
+                      <div className="flex items-center gap-2"><FiMapPin className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Ubicación</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p></div></div>
+                      <div className="flex items-center gap-2"><FiMail className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Contacto</p><p className="text-sm text-slate-800 m-0">{detailData.correo_contacto || '-'}</p></div></div>
+                      <div className="flex items-center gap-2"><FiPhone className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Tel. Empresa</p><p className="text-sm text-slate-800 m-0">{detailData.telefono || '-'}</p></div></div>
+                      {detailData.sitio_web && <div className="flex items-center gap-2 col-span-2"><FiGlobe className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sitio Web</p><a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">{detailData.sitio_web}</a></div></div>}
+                      <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Representante</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.representante || '-'} (Tel: {detailData.telefono_representante || '-'})</p></div>
+                      <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Fecha Límite de Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_limite_convenio || 'Sin fecha'}</p></div>
                     </div>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic m-0">No hay supervisores registrados</p>
                   )}
-                </div>
 
-                {/* Vacantes */}
-                <div className="border-t border-slate-100 pt-4">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <FiBriefcase size={14} /> Vacantes ({detailData.vacantes?.length || 0})
-                  </h4>
-                  {detailData.vacantes?.length > 0 ? (
-                    <div className="grid gap-2">
-                      {detailData.vacantes.map(vac => (
-                        <div key={vac.vacante_id} className={`flex items-center justify-between p-3 rounded-md border ${vac.activo ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800 m-0">{vac.titulo}</p>
-                            <p className="text-xs text-slate-500 m-0">{vac.area || '-'} · {vac.modalidad} · {vac.total_horas || '-'}h</p>
+                  {/* Supervisores */}
+                  {activeTab === 'supervisores' && (
+                    <div className="animate-fade-in">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm text-slate-500 m-0">Gestión de personal de supervisión de la empresa.</p>
+                        {!showAddSupervisor && (
+                          <button onClick={() => setShowAddSupervisor(true)} className="text-xs font-bold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-md border-none cursor-pointer hover:bg-primary-100 flex items-center gap-1 transition-colors">
+                            <FiPlusCircle /> Nuevo Supervisor
+                          </button>
+                        )}
+                      </div>
+
+                      {showAddSupervisor && (
+                        <div className="bg-primary-50 p-4 rounded-md border border-primary-100 flex flex-col gap-3 mb-4 animate-fade-in">
+                          <h4 className="text-[11px] font-bold text-primary-700 uppercase tracking-wider m-0">Datos del Nuevo Supervisor</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Nombre *</label>
+                              <input value={newSupForm.nombre} onChange={e => setNewSupForm(p => ({...p, nombre: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Apellido *</label>
+                              <input value={newSupForm.apellido} onChange={e => setNewSupForm(p => ({...p, apellido: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Correo *</label>
+                              <input type="email" value={newSupForm.correo} onChange={e => setNewSupForm(p => ({...p, correo: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Cédula *</label>
+                              <input value={newSupForm.numero_identificacion} onChange={e => setNewSupForm(p => ({...p, numero_identificacion: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Cargo *</label>
+                              <input value={newSupForm.cargo} onChange={e => setNewSupForm(p => ({...p, cargo: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Departamento *</label>
+                              <input value={newSupForm.departamento} onChange={e => setNewSupForm(p => ({...p, departamento: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] font-semibold text-slate-700">Teléfono *</label>
+                              <input type="tel" value={newSupForm.telefono} onChange={e => setNewSupForm(p => ({...p, telefono: e.target.value}))} className="px-2 py-1.5 text-xs border border-slate-300 rounded outline-none focus:border-primary-400 bg-white" />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500">{vac.total_postulaciones} postulaciones</span>
-                            <StatusBadge status={vac.activo ? 'activo' : 'inactivo'} />
+                          <div className="flex justify-end gap-2 mt-2">
+                            <button onClick={() => setShowAddSupervisor(false)} className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50 cursor-pointer transition-colors">Cancelar</button>
+                            <button onClick={handleAddSupervisor} disabled={!newSupForm.nombre || !newSupForm.apellido || !newSupForm.correo || !newSupForm.numero_identificacion || !newSupForm.cargo || !newSupForm.departamento || !newSupForm.telefono || supLoading} className="px-3 py-1.5 text-xs font-semibold text-white bg-primary-600 rounded flex items-center gap-1 hover:bg-primary-700 disabled:opacity-50 border-none cursor-pointer transition-colors">
+                              {supLoading ? <FiLoader className="animate-spin" /> : 'Guardar Supervisor'}
+                            </button>
                           </div>
                         </div>
-                      ))}
+                      )}
+
+                      {detailData.supervisores?.filter(s => s.activo).length > 0 ? (
+                        <div className="grid gap-3">
+                          {detailData.supervisores.filter(s => s.activo).map(sup => (
+                            <div key={sup.supervisor_id} className="flex flex-col p-4 rounded-lg border transition-all bg-white border-slate-200 shadow-sm hover:shadow-md">
+                              {editingSupId === sup.supervisor_id ? (
+                                // Inline Edit Form
+                                <div className="animate-fade-in flex flex-col gap-3">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Nombre *</label>
+                                      <input value={editSupForm.nombre} onChange={e => setEditSupForm(p => ({...p, nombre: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Apellido *</label>
+                                      <input value={editSupForm.apellido} onChange={e => setEditSupForm(p => ({...p, apellido: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Correo *</label>
+                                      <input value={editSupForm.correo} onChange={e => setEditSupForm(p => ({...p, correo: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Cargo *</label>
+                                      <input value={editSupForm.cargo} onChange={e => setEditSupForm(p => ({...p, cargo: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Departamento *</label>
+                                      <input value={editSupForm.departamento} onChange={e => setEditSupForm(p => ({...p, departamento: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Teléfono *</label>
+                                      <input value={editSupForm.telefono} onChange={e => setEditSupForm(p => ({...p, telefono: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[10px] font-semibold text-slate-700">Cédula *</label>
+                                      <input value={editSupForm.numero_identificacion} onChange={e => setEditSupForm(p => ({...p, numero_identificacion: e.target.value}))} className="px-2 py-1 text-xs border border-slate-300 rounded outline-none focus:border-primary-400" />
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end gap-2 mt-1">
+                                    <button onClick={() => setEditingSupId(null)} className="px-3 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50 cursor-pointer">Cancelar</button>
+                                    <button onClick={handleUpdateSupervisor} disabled={supLoading || !editSupForm.nombre || !editSupForm.apellido || !editSupForm.correo || !editSupForm.numero_identificacion || !editSupForm.cargo || !editSupForm.departamento || !editSupForm.telefono} className="px-3 py-1 text-xs font-semibold text-white bg-primary-600 rounded flex items-center gap-1 hover:bg-primary-700 disabled:opacity-50 border-none cursor-pointer">
+                                      {supLoading ? <FiLoader className="animate-spin" /> : 'Guardar Cambios'}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // View Mode
+                                <>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex flex-col min-w-0">
+                                      <p className="text-sm font-semibold text-slate-800 m-0 truncate">{sup.nombre} {sup.apellido || ''}</p>
+                                      <p className="text-xs text-slate-500 m-0 truncate">{sup.cargo || 'Sin cargo'} {sup.departamento ? `· ${sup.departamento}` : ''}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <button onClick={() => toggleExpandSup(sup.supervisor_id)} className="text-[11px] font-semibold text-primary-600 hover:text-primary-800 bg-transparent border-none cursor-pointer transition-colors">
+                                        {expandedSup[sup.supervisor_id] ? 'Ver menos' : 'Ver más'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Expanded Data */}
+                                  {expandedSup[sup.supervisor_id] && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 animate-fade-in">
+                                      <div className="flex items-start gap-2.5">
+                                        <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                                          <FiMail className="text-slate-400" size={12} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-[10px] text-slate-400 uppercase font-bold m-0">Correo</p>
+                                          <p className="text-xs font-medium text-slate-700 m-0 truncate" title={sup.correo}>{sup.correo}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-start gap-2.5">
+                                        <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                                          <FiPhone className="text-slate-400" size={12} />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] text-slate-400 uppercase font-bold m-0">Teléfono</p>
+                                          <p className="text-xs font-medium text-slate-700 m-0">{sup.telefono || '-'}</p>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-2 flex items-center justify-end gap-2 mt-2">
+                                        <button onClick={() => openEditSup(sup)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 cursor-pointer transition-colors text-xs font-semibold">
+                                          <FiEdit2 size={12} /> Editar
+                                        </button>
+                                        <button onClick={() => handleDeleteSupervisor(sup.supervisor_id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 cursor-pointer transition-colors text-xs font-semibold">
+                                          <FiTrash2 size={12} /> Eliminar
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50">
+                          <FiUsers size={32} className="text-slate-300 mb-3" />
+                          <p className="text-sm font-medium text-slate-600 m-0">No hay supervisores registrados</p>
+                          <p className="text-xs text-slate-400 m-0 mt-1 text-center max-w-xs">Registra un supervisor para esta empresa para que pueda gestionar practicantes.</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic m-0">No hay vacantes registradas</p>
+                  )}
+
+                  {/* Vacantes */}
+                  {activeTab === 'vacantes' && (
+                    <div className="animate-fade-in">
+                      <p className="text-sm text-slate-500 mb-3 m-0">Ofertas de prácticas publicadas por esta empresa.</p>
+                      {detailData.vacantes?.length > 0 ? (
+                        <div className="grid gap-3">
+                          {detailData.vacantes.map(vac => (
+                            <div key={vac.vacante_id} className={`flex items-center justify-between p-4 rounded-lg border shadow-sm ${vac.activo ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+                              <div>
+                                <p className="text-sm font-bold text-slate-800 m-0">{vac.titulo}</p>
+                                <p className="text-xs text-slate-500 m-0 mt-1">{vac.area || '-'} · {vac.modalidad} · {vac.total_horas || '-'}h</p>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <p className="text-xs font-bold text-primary-600 m-0">{vac.total_postulaciones}</p>
+                                  <p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Postulantes</p>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${vac.estado === 'abierta' || vac.activo ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
+                                  {vac.estado || (vac.activo ? 'abierta' : 'cerrada')}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50">
+                          <FiBriefcase size={32} className="text-slate-300 mb-3" />
+                          <p className="text-sm font-medium text-slate-600 m-0">No hay vacantes publicadas</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </>
             ) : (
               <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md">
+                <div className="col-span-2">
+                  <p className="text-xs text-slate-500 mb-1">Convenio</p>
+                  <p className="text-sm font-semibold text-slate-800">{viewModal.codigo_convenio || 'Sin código'} · {viewModal.tipo_convenio || '-'}</p>
+                </div>
                 <div><p className="text-xs text-slate-500 mb-1">Sector</p><p className="text-sm font-semibold text-slate-800">{viewModal.industria || '-'}</p></div>
                 <div><p className="text-xs text-slate-500 mb-1">Contacto</p><p className="text-sm font-semibold text-slate-800">{viewModal.correo_contacto || '-'}</p></div>
+                <div><p className="text-xs text-slate-500 mb-1">Inicio Convenio</p><p className="text-sm font-semibold text-slate-800">{viewModal.fecha_inicio_convenio || '-'}</p></div>
               </div>
             )}
           </div>
@@ -353,10 +632,18 @@ export default function AdminEmpresas() {
           <div className="flex flex-col gap-4">
             <Input label="RUC" value={editForm.ruc} onChange={(e) => setEditForm(p => ({...p, ruc: e.target.value}))} />
             <Input label="Nombre Empresa" value={editForm.company_name} onChange={(e) => setEditForm(p => ({...p, company_name: e.target.value}))} />
+            <Input label="Nombre Abreviado" value={editForm.nombre_abreviado} onChange={(e) => setEditForm(p => ({...p, nombre_abreviado: e.target.value}))} />
+            <Input label="Código Convenio" value={editForm.codigo_convenio} onChange={(e) => setEditForm(p => ({...p, codigo_convenio: e.target.value}))} />
+            <Input label="Tipo Convenio" value={editForm.tipo_convenio} onChange={(e) => setEditForm(p => ({...p, tipo_convenio: e.target.value}))} />
             <Input label="Sector / Industria" value={editForm.industry} onChange={(e) => setEditForm(p => ({...p, industry: e.target.value}))} />
+            <Input label="Teléfono de Empresa" value={editForm.telefono_empresa} onChange={(e) => setEditForm(p => ({...p, telefono_empresa: e.target.value}))} />
             <Input label="Correo de contacto" type="email" value={editForm.correo_contacto} onChange={(e) => setEditForm(p => ({...p, correo_contacto: e.target.value}))} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Fecha Inicio Convenio" type="date" value={editForm.fecha_inicio_convenio} onChange={(e) => setEditForm(p => ({...p, fecha_inicio_convenio: e.target.value}))} />
+              <Input label="Fecha Límite Convenio" type="date" value={editForm.fecha_limite_convenio} onChange={(e) => setEditForm(p => ({...p, fecha_limite_convenio: e.target.value}))} />
+            </div>
             
-            <div className="flex items-center gap-3 py-3 border-t border-slate-100">
+            <div className="flex items-center gap-3 py-3 border-t border-slate-100 mt-1">
               <button
                 className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${editForm.activo ? 'bg-green-500' : 'bg-slate-300'}`}
                 onClick={() => setEditForm(p => ({...p, activo: !p.activo}))}
@@ -384,14 +671,30 @@ export default function AdminEmpresas() {
           {/* Datos de la empresa */}
           <div>
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Datos de la Empresa</h4>
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Facultad Asociada</label>
+              <select
+                value={createForm.facultad_id}
+                onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value}))}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
+              >
+                <option value="1">Ciencias Matemáticas y Físicas</option>
+              </select>
+            </div>
             <div className="grid grid-cols-2 gap-3">
+              <Input label="Código Convenio" value={createForm.codigo_convenio} onChange={(e) => setCreateForm(p => ({...p, codigo_convenio: e.target.value}))} placeholder="UG-..." />
+              <Input label="Tipo Convenio" value={createForm.tipo_convenio} onChange={(e) => setCreateForm(p => ({...p, tipo_convenio: e.target.value}))} />
               <Input label="Nombre Empresa *" value={createForm.nombre_empresa} onChange={(e) => setCreateForm(p => ({...p, nombre_empresa: e.target.value}))} />
+              <Input label="Nombre Abreviado" value={createForm.nombre_abreviado} onChange={(e) => setCreateForm(p => ({...p, nombre_abreviado: e.target.value}))} />
               <Input label="RUC *" value={createForm.ruc} onChange={(e) => setCreateForm(p => ({...p, ruc: e.target.value}))} placeholder="0990000000001" />
               <Input label="Industria / Sector" value={createForm.industria} onChange={(e) => setCreateForm(p => ({...p, industria: e.target.value}))} placeholder="Tecnología, Banca, etc." />
               <Input label="Ciudad" value={createForm.ciudad} onChange={(e) => setCreateForm(p => ({...p, ciudad: e.target.value}))} />
               <Input label="Dirección" value={createForm.direccion} onChange={(e) => setCreateForm(p => ({...p, direccion: e.target.value}))} />
+              <Input label="Teléfono de Empresa *" value={createForm.telefono_empresa} onChange={(e) => setCreateForm(p => ({...p, telefono_empresa: e.target.value}))} />
               <Input label="Sitio Web" value={createForm.sitio_web} onChange={(e) => setCreateForm(p => ({...p, sitio_web: e.target.value}))} placeholder="https://..." />
-              <Input label="Correo de contacto" type="email" value={createForm.correo_contacto} onChange={(e) => setCreateForm(p => ({...p, correo_contacto: e.target.value}))} />
+              <Input label="Correo de Empresa" type="email" value={createForm.correo_contacto} onChange={(e) => setCreateForm(p => ({...p, correo_contacto: e.target.value}))} />
+              <Input label="Fecha Inicio Convenio" type="date" value={createForm.fecha_inicio_convenio} onChange={(e) => setCreateForm(p => ({...p, fecha_inicio_convenio: e.target.value}))} />
+              <Input label="Fecha Límite Convenio" type="date" value={createForm.fecha_limite_convenio} onChange={(e) => setCreateForm(p => ({...p, fecha_limite_convenio: e.target.value}))} />
             </div>
           </div>
 
@@ -400,7 +703,7 @@ export default function AdminEmpresas() {
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Datos del Representante (Cuenta de acceso)</h4>
             <div className="grid grid-cols-2 gap-3">
               <Input label="Cédula *" value={createForm.cedula_representante} onChange={(e) => setCreateForm(p => ({...p, cedula_representante: e.target.value}))} />
-              <Input label="Teléfono" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
+              <Input label="Teléfono (Representante) *" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
               <Input label="Nombre *" value={createForm.nombre_representante} onChange={(e) => setCreateForm(p => ({...p, nombre_representante: e.target.value}))} />
               <Input label="Apellido *" value={createForm.apellido_representante} onChange={(e) => setCreateForm(p => ({...p, apellido_representante: e.target.value}))} />
               <Input label="Correo *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} />
@@ -413,7 +716,7 @@ export default function AdminEmpresas() {
             <button
               className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[140px] cursor-pointer disabled:opacity-50"
               onClick={handleCreateCompany}
-              disabled={actionLoading || !createForm.nombre_empresa || !createForm.ruc || !createForm.cedula_representante || !createForm.correo || !createForm.contrasena}
+              disabled={actionLoading || !createForm.nombre_empresa || !createForm.ruc || !createForm.cedula_representante || !createForm.correo || !createForm.contrasena || !createForm.telefono || !createForm.telefono_empresa}
             >
               {actionLoading ? <FiLoader className="animate-spin" /> : 'Crear Empresa'}
             </button>

@@ -9,7 +9,8 @@ from ..Services.admin_service import (
     AdminStatsService, AdminCompanyService, AdminCompanyStatusService,
     AdminDeleteUserService, AdminUserDetailService, AdminReportsService,
     AdminCreateUserService, AdminCreateCompanyService, AdminToggleUserService,
-    AdminCompanyDetailService, AdminUserSearchService, AdminCreateSupervisorService
+    AdminCompanyDetailService, AdminUserSearchService, AdminCreateSupervisorService,
+    AdminSupervisorService
 )
 from ..Services.matching_service import MatchingCandidatesService
 
@@ -45,6 +46,7 @@ def load_routes(api):
     api.add_resource(AdminCompanyStatusService, '/admin/companies/<int:company_id>/status')
     api.add_resource(AdminCompanyDetailService, '/admin/companies/<int:company_id>/detail')
     api.add_resource(AdminCreateSupervisorService, '/admin/companies/<int:company_id>/supervisors')
+    api.add_resource(AdminSupervisorService, '/admin/supervisors/<int:supervisor_id>')
     api.add_resource(AdminDeleteUserService, '/admin/users/<int:user_id>')
     api.add_resource(AdminUserDetailService, '/admin/users/<int:user_id>/detail')
     api.add_resource(AdminToggleUserService, '/admin/users/<int:user_id>/toggle')

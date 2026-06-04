@@ -4,23 +4,46 @@ from ...api.Components.jwt_component import JWTComponent
 
 class UserComponent:
     @staticmethod
-    def get_all_user():
+    def get_all_user(facultad_id=None, carrera_id=None):
         try:
             result = False
             data = None
             message = None
 
-            sql = """
-                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, u.correo, u.telefono, 
+            where_clauses = []
+            params = []
+
+            if facultad_id:
+                # If they filter by facultad, filter estudiantes, gestores and empresas
+                where_clauses.append("(pe.facultad_id = %s OR pg.facultad_id = %s OR i.facultad_id = %s OR r.nombre = 'admin')")
+                params.extend([facultad_id, facultad_id, facultad_id])
+            
+            if carrera_id:
+                where_clauses.append("(pe.carrera_id = %s OR pg.carrera_id = %s OR r.nombre IN ('empresa', 'admin'))")
+                params.extend([carrera_id, carrera_id])
+
+            where_str = " AND ".join(where_clauses)
+            if where_str:
+                where_str = "WHERE " + where_str
+            else:
+                where_str = ""
+
+            sql = f"""
+                SELECT u.usuario_id, u.cedula, u.nombre, u.apellido, u.correo, u.telefono,
                        r.nombre as rol_nombre, u.activo, pe.semestre,
+                       COALESCE(pe.facultad_id, pg.facultad_id, i.facultad_id) as facultad_id, 
+                       COALESCE(pe.carrera_id, pg.carrera_id) as carrera_id,
                        TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en
                 FROM public.usuarios u
                 JOIN public.roles r ON u.rol_id = r.rol_id
                 LEFT JOIN public.perfiles_estudiante pe ON u.usuario_id = pe.usuario_id
+                LEFT JOIN public.perfiles_gestor pg ON u.usuario_id = pg.usuario_id
+                LEFT JOIN public.instituciones i ON u.usuario_id = i.usuario_id
+                {where_str}
                 ORDER BY u.creado_en DESC
             """
 
-            result_user = DataBaseHandle.getRecords(sql, 0)
+            result_user = DataBaseHandle.getRecords(sql, 0, tuple(params)) if params else DataBaseHandle.getRecords(sql, 0)
             if result_user and result_user.get('result', False):
                 result = True
                 data = result_user.get('data', [])
@@ -40,7 +63,7 @@ class UserComponent:
             message = None
 
             sql = """
-                SELECT u.usuario_id, u.cedula, u.login, u.nombre, u.apellido, 
+                SELECT u.usuario_id, u.cedula, u.nombre, u.apellido,
                        u.correo, u.telefono, r.nombre as rol_nombre, r.rol_id,
                        CASE 
                            WHEN r.nombre = 'estudiante' THEN pe.perfil_id

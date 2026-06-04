@@ -1,4 +1,3 @@
-
 /**
  * Nueva Vacante — Formulario real con envío a la API.
  * Módulo 3: Gestión de Vacantes (vista empresa)
@@ -34,6 +33,9 @@ export default function NuevaVacante() {
     total_hours: '', daily_hours: '', schedule: '',
     slots: 1, expires_at: '', supervisor_id: ''
   });
+  const [newSupervisor, setNewSupervisor] = useState({
+    numero_identificacion: '', nombre: '', correo: '', cargo: '', telefono: ''
+  });
   const [errors, setErrors] = useState({});
 
   const [supervisores, setSupervisores] = useState([]);
@@ -52,7 +54,14 @@ export default function NuevaVacante() {
     if (!form.description.trim() || form.description.length < 20) newErrors.description = 'Mínimo 20 caracteres';
     if (!form.area) newErrors.area = 'Selecciona un área';
     if (!form.expires_at) newErrors.expires_at = 'La fecha límite es obligatoria';
-    if (!form.supervisor_id) newErrors.supervisor_id = 'Selecciona el supervisor asignado';
+    
+    if (!form.supervisor_id) {
+      newErrors.supervisor_id = 'Selecciona un supervisor';
+    } else if (form.supervisor_id === 'new') {
+      if (!newSupervisor.nombre.trim()) newErrors.sup_nombre = 'El nombre es obligatorio';
+      if (!newSupervisor.correo.trim()) newErrors.sup_correo = 'El correo es obligatorio';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -71,7 +80,7 @@ export default function NuevaVacante() {
     setError(null);
 
     try {
-      const res = await vacancyService.create({
+      const payload = {
         title: form.title,
         description: form.description,
         requirements: form.requirements,
@@ -83,22 +92,29 @@ export default function NuevaVacante() {
         schedule: form.schedule || null,
         slots: parseInt(form.slots) || 1,
         expires_at: form.expires_at,
-        supervisor_id: parseInt(form.supervisor_id),
-      });
+        skills: [],
+      };
 
+      if (form.supervisor_id === 'new') {
+        payload.new_supervisor = newSupervisor;
+      } else {
+        payload.supervisor_id = parseInt(form.supervisor_id, 10);
+      }
+
+      const res = await vacancyService.createVacancy(payload);
       if (res.result) {
         navigate('/dashboard/empresa/vacantes');
       } else {
-        setError(res.message || 'Error al crear la vacante');
+        setError(res.message || 'Error al crear vacante');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al conectar con el servidor');
+      setError('Error al conectar con el servidor. Intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const fieldBase = `w-full py-2.5 px-3.5 text-[0.9375rem] text-slate-800 bg-white border-[1.5px] rounded-md outline-none transition-all placeholder:text-slate-400 focus:border-primary-500 focus:ring-3 focus:ring-[var(--color-header-bg)]`;
+  const fieldBase = `px-3 py-2 text-sm bg-white border rounded-md outline-none transition-colors w-full`;
   const fieldErr = `border-danger focus:ring-danger-light`;
   const fieldOk = `border-slate-300`;
 
@@ -156,16 +172,47 @@ export default function NuevaVacante() {
                 {modalidades.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 md:col-span-1">
               <label className="text-sm font-semibold text-slate-700">Supervisor Responsable <span className="text-danger">*</span></label>
               <select name="supervisor_id" value={form.supervisor_id} onChange={handleChange} className={`${fieldBase} ${errors.supervisor_id ? fieldErr : fieldOk}`}>
                 <option value="">Seleccionar supervisor...</option>
                 {supervisores.map((sup) => (
                   <option key={sup.supervisor_id} value={sup.supervisor_id}>{sup.nombre} ({sup.cargo})</option>
                 ))}
+                <option value="new" className="font-bold text-primary-600">+ Registrar Nuevo Supervisor</option>
               </select>
               {errors.supervisor_id && <p className="text-[0.8125rem] text-danger">{errors.supervisor_id}</p>}
             </div>
+            
+            {form.supervisor_id === 'new' && (
+              <div className="md:col-span-3 p-4 bg-primary-50 rounded-md border border-primary-100 flex flex-col gap-3 mt-2 animate-fade-in">
+                <h4 className="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">Datos del Nuevo Supervisor</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Nombre Completo <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.nombre} onChange={e => {setNewSupervisor(p => ({...p, nombre: e.target.value})); if(errors.sup_nombre) setErrors(p => ({...p, sup_nombre: ''}));}} className={`${fieldBase} ${errors.sup_nombre ? fieldErr : fieldOk}`} />
+                    {errors.sup_nombre && <p className="text-[0.8125rem] text-danger">{errors.sup_nombre}</p>}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Correo <span className="text-danger">*</span></label>
+                    <input type="email" value={newSupervisor.correo} onChange={e => {setNewSupervisor(p => ({...p, correo: e.target.value})); if(errors.sup_correo) setErrors(p => ({...p, sup_correo: ''}));}} className={`${fieldBase} ${errors.sup_correo ? fieldErr : fieldOk}`} />
+                    {errors.sup_correo && <p className="text-[0.8125rem] text-danger">{errors.sup_correo}</p>}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Cédula / Identificación</label>
+                    <input value={newSupervisor.numero_identificacion} onChange={e => setNewSupervisor(p => ({...p, numero_identificacion: e.target.value}))} className={`${fieldBase} ${fieldOk}`} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Cargo</label>
+                    <input value={newSupervisor.cargo} onChange={e => setNewSupervisor(p => ({...p, cargo: e.target.value}))} placeholder="Ej: Gerente de TI" className={`${fieldBase} ${fieldOk}`} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Teléfono</label>
+                    <input type="tel" value={newSupervisor.telefono} onChange={e => setNewSupervisor(p => ({...p, telefono: e.target.value}))} className={`${fieldBase} ${fieldOk}`} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">

@@ -18,7 +18,7 @@ CREATE TABLE public.roles (
 CREATE TABLE public.usuarios (
     usuario_id SERIAL PRIMARY KEY,
     cedula VARCHAR(15) UNIQUE,
-    login VARCHAR(100) NOT NULL UNIQUE,
+
     contrasena VARCHAR(255) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
@@ -61,6 +61,17 @@ CREATE TABLE public.perfiles_estudiante (
     creado_en TIMESTAMP DEFAULT NOW(),
     actualizado_en TIMESTAMP DEFAULT NOW()
 );
+
+-- 5b. PERFILES DE GESTOR
+CREATE TABLE public.perfiles_gestor (
+    perfil_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL UNIQUE REFERENCES public.usuarios(usuario_id) ON DELETE CASCADE,
+    facultad_id INTEGER REFERENCES public.facultades(facultad_id),
+    carrera_id INTEGER REFERENCES public.carreras(carrera_id),
+    creado_en TIMESTAMP DEFAULT NOW(),
+    actualizado_en TIMESTAMP DEFAULT NOW()
+);
+
 
 -- 6. INSTITUCIONES
 CREATE TABLE public.instituciones (

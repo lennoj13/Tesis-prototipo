@@ -62,17 +62,23 @@ class VacancyComponent:
             HandleLogs.write_log("Error al agregar habilidades: " + str(err))
 
     @staticmethod
-    def get_all_vacancies():
+    def get_all_vacancies(facultad_id=None):
         try:
             result = False
             data = None
             message = None
 
-            sql = '''
+            where_clause = ""
+            params = []
+            if facultad_id:
+                where_clause = "WHERE i.facultad_id = %s"
+                params.append(facultad_id)
+
+            sql = f'''
                 SELECT v.vacante_id, v.titulo, v.area, v.descripcion, v.requisitos,
                     v.modalidad, v.ubicacion, v.total_horas, v.horas_diarias, v.horario,
                     v.cupos, v.activo, v.supervisor_id,
-                    i.nombre as nombre_empresa, i.correo_contacto, i.industria,
+                    i.nombre as nombre_empresa, i.correo_contacto, i.industria, i.facultad_id,
                     u.nombre || ' ' || u.apellido as persona_contacto,
                     TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
                     TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
@@ -85,10 +91,10 @@ class VacancyComponent:
                     FROM public.postulaciones
                     GROUP BY vacante_id
                 ) p ON p.vacante_id = v.vacante_id
-                WHERE v.activo = true
+                {where_clause}
                 ORDER BY v.creado_en DESC;
             '''
-            db_result = DataBaseHandle.getRecords(sql, 0)
+            db_result = DataBaseHandle.getRecords(sql, 0, tuple(params)) if params else DataBaseHandle.getRecords(sql, 0)
 
             if db_result['result']:
                 result = True

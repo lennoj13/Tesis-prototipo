@@ -15,7 +15,8 @@ import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Button from 'components/Button';
-import { FiEdit2, FiTrash2, FiEye, FiUsers, FiPlusCircle, FiSave, FiCheckCircle } from 'react-icons/fi';
+import InfoField from 'components/InfoField';
+import { FiEdit2, FiTrash2, FiEye, FiUsers, FiPlusCircle, FiSave, FiCheckCircle, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft } from 'react-icons/fi';
 
 const areas = [
   'Desarrollo Web', 'Desarrollo Backend', 'Desarrollo Móvil',
@@ -278,34 +279,55 @@ export default function EmpresaVacantes() {
       {/* Modal Ver Detalle */}
       <Modal isOpen={!!viewModal} onClose={() => setViewModal(null)} title="Detalle de Vacante" size="lg">
         {viewModal && (
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xl font-bold text-slate-900">{viewModal.title}</h3>
-            <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-md max-md:grid-cols-2">
-              <div><p className="text-xs text-slate-500 mb-1">Área</p><p className="text-sm font-semibold text-slate-800">{viewModal.area}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Modalidad</p><p className="text-sm font-semibold text-slate-800">{viewModal.modality || 'Presencial'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Ubicación</p><p className="text-sm font-semibold text-slate-800">{viewModal.location || '-'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Horas totales</p><p className="text-sm font-semibold text-slate-800">{viewModal.total_hours || '-'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Horas al día</p><p className="text-sm font-semibold text-slate-800">{viewModal.daily_hours || '-'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Horario</p><p className="text-sm font-semibold text-slate-800">{viewModal.schedule || '-'}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Plazas</p><p className="text-sm font-semibold text-primary-600">{viewModal.slots || 1}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Postulantes</p><p className="text-sm font-semibold text-primary-600">{viewModal.applications_count || 0}</p></div>
-              <div><p className="text-xs text-slate-500 mb-1">Estado</p><StatusBadge status={viewModal.is_active ? 'abierta' : 'cerrada'} /></div>
-            </div>
-            {viewModal.description && (
+          <div className="flex flex-col gap-6 p-1">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
-                <p className="text-xs text-slate-500 mb-1">Descripción</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{viewModal.description}</p>
+                <h3 className="text-xl font-bold text-slate-900 m-0 leading-tight">{viewModal.title}</h3>
+                <p className="text-sm font-medium text-primary-600 m-0 mt-1">{viewModal.area}</p>
+              </div>
+              <StatusBadge status={viewModal.is_active ? 'abierta' : 'cerrada'} />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
+              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} />
+              <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.location || 'No especificada'} />
+              <InfoField icon={FiClock} label="Modalidad" value={viewModal.modality || 'Presencial'} />
+              <InfoField icon={FiCalendar} label="Horario" value={viewModal.schedule || 'No especificado'} />
+              <InfoField icon={FiClock} label="Total Horas" value={viewModal.total_hours ? `${viewModal.total_hours}h` : '-'} />
+              <InfoField icon={FiClock} label="Horas Diarias" value={viewModal.daily_hours ? `${viewModal.daily_hours}h/día` : '-'} />
+              <InfoField icon={FiUsers} label="Cupos Disponibles" value={viewModal.slots || 1} />
+              <InfoField icon={FiUsers} label="Total Postulantes" value={viewModal.applications_count || 0} />
+              <InfoField icon={FiCalendar} label="Fecha Publicación" value={viewModal.created_at ? new Date(viewModal.created_at).toLocaleDateString() : '-'} />
+              <InfoField icon={FiCalendar} label="Fecha Expiración" value={viewModal.expires_at ? new Date(viewModal.expires_at).toLocaleDateString() : '-'} />
+            </div>
+
+            {viewModal.description && (
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiAlignLeft className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Descripción</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <p className="text-sm text-slate-700 m-0 whitespace-pre-wrap leading-relaxed">{viewModal.description}</p>
+                </div>
               </div>
             )}
+            
             {viewModal.requirements && (
               <div>
-                <p className="text-xs text-slate-500 mb-1">Requisitos</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{viewModal.requirements}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <FiBriefcase className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Requisitos Adicionales</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <p className="text-sm text-slate-700 m-0 whitespace-pre-wrap leading-relaxed">{viewModal.requirements}</p>
+                </div>
               </div>
             )}
+
             <div className="flex justify-end pt-2">
               <Button variant="secondary" onClick={() => { setViewModal(null); openEdit(viewModal); }} icon={<FiEdit2 />}>
-                Editar
+                Editar Vacante
               </Button>
             </div>
           </div>

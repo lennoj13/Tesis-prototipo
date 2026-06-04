@@ -18,21 +18,18 @@ const ESTADO_COLORS = {
   'Rechazada': '#ef4444',
 };
 
-export default function AdminReportes() {
+export default function GestorReportes() {
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const [facultadFilter, setFacultadFilter] = useState('');
-  const [carreraFilter, setCarreraFilter] = useState('');
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
         const [statsRes, reportsRes] = await Promise.all([
-          adminService.getStats(facultadFilter, carreraFilter),
-          adminService.getReports(facultadFilter, carreraFilter),
+          adminService.getStats(), // No filters sent; backend extracts from Gestor token
+          adminService.getReports(), // No filters sent; backend extracts from Gestor token
         ]);
         if (statsRes.result && statsRes.data) setStats(statsRes.data);
         if (reportsRes.result && reportsRes.data) setReports(reportsRes.data);
@@ -40,7 +37,7 @@ export default function AdminReportes() {
       finally { setLoading(false); }
     }
     load();
-  }, [facultadFilter, carreraFilter]);
+  }, []);
 
   const s = stats || {};
   const kpiCards = [
@@ -59,7 +56,7 @@ export default function AdminReportes() {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 gap-2">
         <FiLoader className="animate-spin" size={20} />
-        <span>Cargando reportes...</span>
+        <span>Cargando reportes de tu carrera...</span>
       </div>
     );
   }
@@ -67,39 +64,11 @@ export default function AdminReportes() {
   return (
     <div className={`animate-fade-in transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
       <PageHeader
-        title="Reportes y Analítica"
-        subtitle="Estadísticas del sistema de prácticas preprofesionales."
-        action={
-          <div className="flex items-center gap-3">
-            <select
-              value={facultadFilter}
-              onChange={(e) => {
-                setFacultadFilter(e.target.value);
-                setCarreraFilter(''); // Reset carrera when facultad changes
-              }}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
-            >
-              <option value="">Todas las Facultades</option>
-              <option value="1">Ciencias Matemáticas y Físicas</option>
-            </select>
-            <select
-              value={carreraFilter}
-              onChange={(e) => setCarreraFilter(e.target.value)}
-              disabled={!facultadFilter}
-              className={`px-3 py-2 text-sm border rounded-md outline-none transition-colors ${
-                !facultadFilter 
-                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
-                  : 'bg-white border-slate-200 focus:border-primary-400 text-slate-700'
-              }`}
-            >
-              <option value="">Todas las Carreras</option>
-              <option value="1">Software</option>
-            </select>
-          </div>
-        }
+        title="Reportes de Mi Carrera"
+        subtitle="Analíticas exclusivas de tu facultad y carrera asignada."
       />
 
-      {/* KPI Cards — datos reales */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
         {kpiCards.map((kpi) => (
           <StatCard
@@ -112,7 +81,7 @@ export default function AdminReportes() {
         ))}
       </div>
 
-      {/* Charts grid — datos reales de PostgreSQL */}
+      {/* Charts grid */}
       <div className="grid grid-cols-2 gap-6 mb-6 max-md:grid-cols-1">
         {/* Postulaciones por Estado */}
         <Card title="Postulaciones por Estado">
@@ -141,7 +110,7 @@ export default function AdminReportes() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState variant="flat" icon={FiInbox} message="Sin postulaciones registradas" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin postulaciones registradas en tu carrera" />
           )}
         </Card>
 
@@ -172,12 +141,12 @@ export default function AdminReportes() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState variant="flat" icon={FiInbox} message="Sin vacantes activas" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin vacantes activas publicadas para tu carrera" />
           )}
         </Card>
 
         {/* Habilidades más Demandadas */}
-        <Card title="Habilidades más Demandadas">
+        <Card title="Habilidades Demandadas">
           {habilidadesDemandadas.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={habilidadesDemandadas} layout="vertical">
@@ -189,12 +158,12 @@ export default function AdminReportes() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState variant="flat" icon={FiInbox} message="Sin habilidades registradas en vacantes" />
+            <EmptyState variant="flat" icon={FiInbox} message="Sin requisitos de habilidades" />
           )}
         </Card>
 
         {/* Top Empresas por Postulaciones */}
-        <Card title="Empresas con más Postulaciones">
+        <Card title="Empresas con más Demanda">
           {topEmpresas.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={topEmpresas} layout="vertical">
@@ -202,7 +171,7 @@ export default function AdminReportes() {
                 <XAxis type="number" tick={{ fontSize: 12, fill: '#94a3b8' }} allowDecimals={false} />
                 <YAxis dataKey="nombre" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={120} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="postulaciones" fill="#22c55e" radius={[0, 6, 6, 0]} barSize={22} name="Postulaciones" />
+                <Bar dataKey="postulaciones" fill="#22c55e" radius={[0, 6, 6, 0]} barSize={22} name="Postulaciones de tu carrera" />
               </BarChart>
             </ResponsiveContainer>
           ) : (

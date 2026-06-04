@@ -23,6 +23,7 @@ const menuConfig = {
   estudiante: [
     { section: 'PRINCIPAL' },
     { label: 'Feed de Vacantes', href: '/dashboard/estudiante', icon: FiHome },
+    { label: 'Empresas en Convenio', href: '/dashboard/estudiante/empresas', icon: FiBriefcase },
     { label: 'Mis Postulaciones', href: '/dashboard/estudiante/postulaciones', icon: FiSend },
     { section: 'PERFIL' },
     { label: 'Mi Perfil', href: '/dashboard/estudiante/perfil', icon: FiTarget },
@@ -38,6 +39,7 @@ const menuConfig = {
   gestor: [
     { section: 'PRINCIPAL' },
     { label: 'Dashboard', href: '/dashboard/gestor', icon: FiHome },
+    { label: 'Reportes', href: '/dashboard/gestor/reportes', icon: FiBarChart2 },
     { section: 'GESTIÓN PPP' },
     { label: 'Postulaciones Pendientes', href: '/dashboard/gestor/postulaciones', icon: FiCheckSquare },
     { label: 'Historial de Postulaciones', href: '/dashboard/gestor/historial', icon: FiFileText },

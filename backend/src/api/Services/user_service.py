@@ -13,7 +13,13 @@ class UserService(Resource):
             if not auth['result']:
                 return response_error(auth['message'])
 
-            result_user = UserComponent.get_all_user()
+            facultad_id = None
+            carrera_id = None
+            if auth['data'].get('role') == 'gestor':
+                facultad_id = auth['data'].get('facultad_id')
+                carrera_id = auth['data'].get('carrera_id')
+
+            result_user = UserComponent.get_all_user(facultad_id, carrera_id)
             if result_user['result']:
                 return response_success(result_user['data'])
             else:
@@ -39,7 +45,6 @@ class CurrentUserService(Resource):
                     response_data = {
                         'user_info': {
                             'user_id': user_data.get('usuario_id'),
-                            'username': user_data.get('login'),
                             'name': user_data.get('nombre'),
                             'lastname': user_data.get('apellido'),
                             'email': user_data.get('correo'),
