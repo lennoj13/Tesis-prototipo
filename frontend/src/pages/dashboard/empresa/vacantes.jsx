@@ -183,11 +183,11 @@ export default function EmpresaVacantes() {
     try {
       const res = await vacancyService.delete(id);
       if (res.result !== false) {
-        setToast({ type: 'success', message: 'Vacante eliminada' });
-        setVacantes(prev => prev.filter(v => v.vacancy_id !== id));
+        setToast({ type: 'success', message: 'Vacante cerrada' });
+        setVacantes(prev => prev.map(v => v.vacancy_id === id ? { ...v, is_active: false } : v));
       }
     } catch (err) {
-      setToast({ type: 'error', message: 'Error al eliminar vacante' });
+      setToast({ type: 'error', message: 'Error al cerrar vacante' });
     }
   };
 
@@ -268,7 +268,7 @@ export default function EmpresaVacantes() {
             <button
               onClick={() => setDeleteConfirm(row)}
               className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
-              title="Eliminar"
+              title="Cerrar"
             >
               <FiTrash2 size={16} />
             </button>
@@ -451,8 +451,8 @@ export default function EmpresaVacantes() {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => handleDelete(deleteConfirm?.vacancy_id)}
-        title="Eliminar Vacante"
-        message={`¿Eliminar "${deleteConfirm?.title}"? Esta vacante dejará de estar disponible.`}
+        title="Cerrar Vacante"
+        message={`¿Cerrar "${deleteConfirm?.title}"? Esta vacante dejará de estar disponible y no aparecerá en el catálogo.`}
       />
     </div>
   );

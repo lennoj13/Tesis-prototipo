@@ -250,9 +250,9 @@ class VacancyComponent:
     @staticmethod
     def delete_vacancy(vacante_id):
         try:
-            sql = "UPDATE public.vacantes SET estado = 'cerrada' WHERE vacante_id = %s"
+            sql = "UPDATE public.vacantes SET activo = false WHERE vacante_id = %s"
             DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
-            return internal_response(True, None, "Vacante eliminada")
+            return internal_response(True, None, "Vacante cerrada exitosamente")
         except Exception as err:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))

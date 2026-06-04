@@ -93,7 +93,7 @@ export default function NuevaVacante() {
         payload.supervisor_id = parseInt(form.supervisor_id, 10);
       }
 
-      const res = await vacancyService.createVacancy(payload);
+      const res = await vacancyService.create(payload);
       if (res.result) {
         navigate('/dashboard/empresa/vacantes');
       } else {
