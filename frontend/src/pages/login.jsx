@@ -159,7 +159,7 @@ export default function LoginPage() {
               <span className="font-medium">Estudiante:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0955236773</code>
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Empresa:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0990123456</code>
+              <span className="font-medium">Empresa:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0990151100</code>
             </p>
             <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
               <span className="font-medium">Gestor PPP:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000002</code>

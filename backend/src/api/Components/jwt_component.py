@@ -24,7 +24,9 @@ class JWTComponent:
                 'name': user_data.get('name'),
                 'lastname': user_data.get('lastname'),
                 'email': user_data.get('email'),
-                'profile_id': user_data.get('profile_id')
+                'profile_id': user_data.get('profile_id'),
+                'facultad_id': user_data.get('facultad_id'),
+                'carrera_id': user_data.get('carrera_id')
             }
 
             respuesta = jwt.encode(payload, Parametros.secret_jwt, 'HS256')

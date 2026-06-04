@@ -28,6 +28,8 @@ import GestorHistorial from 'pages/dashboard/gestor/historial';
 import GestorEmpresas from 'pages/dashboard/gestor/empresas';
 import GestorEstudiantes from 'pages/dashboard/gestor/estudiantes';
 import GestorReportes from 'pages/dashboard/gestor/reportes';
+import GestorVacantes from 'pages/dashboard/gestor/vacantes';
+import CambiarClave from 'pages/dashboard/CambiarClave';
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
 
           
           <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route path="cambiar-clave" element={<CambiarClave />} />
+            
             {/* Admin Routes */}
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="admin/empresas" element={<EmpresasAdmin />} />
@@ -63,6 +67,7 @@ function App() {
             <Route path="gestor/postulaciones" element={<GestorPostulaciones />} />
             <Route path="gestor/historial" element={<GestorHistorial />} />
             <Route path="gestor/empresas" element={<GestorEmpresas />} />
+            <Route path="gestor/vacantes" element={<GestorVacantes />} />
             <Route path="gestor/estudiantes" element={<GestorEstudiantes />} />
             <Route path="gestor/reportes" element={<GestorReportes />} />
           </Route>

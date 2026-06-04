@@ -76,9 +76,9 @@ export default function EstudianteDashboard() {
     return myApplications.some(a => a.vacante_id === vacancyId);
   }
 
-  // Verificar si tiene una postulación activa (pendiente o aceptada_empresa)
+  // Verificar si tiene una postulación activa
   const activeApplication = myApplications.find(a => 
-    a.estado === 'pendiente' || a.estado === 'aceptada_empresa'
+    ['pendiente', 'aceptada_empresa', 'aceptada_gestor', 'aprobada', 'APROBADO_PARA_FORMALIZACION', 'generada'].includes(a.estado)
   );
   const hasActiveApplication = !!activeApplication;
 
@@ -127,9 +127,17 @@ export default function EstudianteDashboard() {
         <div className="mb-5 px-4 py-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2 animate-fade-in">
           <FiAlertCircle size={18} className="flex-shrink-0" />
           <span>
-            <strong>Tienes una postulación {activeApplication.estado === 'pendiente' ? 'pendiente' : 'aceptada por empresa'}</strong>
+            <strong>
+              {activeApplication.estado === 'pendiente' 
+                ? 'Tienes una postulación pendiente' 
+                : activeApplication.estado === 'aceptada_empresa' 
+                  ? 'Tienes una postulación aceptada por la empresa'
+                  : 'Tienes una postulación formalizada en curso'}
+            </strong>
             {activeApplication.nombre_empresa && ` en ${activeApplication.nombre_empresa}`}.
-            Debes esperar a que sea procesada antes de postularte a otra vacante.
+            {activeApplication.estado === 'pendiente' 
+              ? ' Debes esperar a que sea procesada o cancelarla antes de postularte a otra vacante.' 
+              : ' No puedes postularte a nuevas vacantes mientras tengas un proceso activo.'}
           </span>
         </div>
       )}

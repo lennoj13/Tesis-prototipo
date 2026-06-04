@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from 'context/AuthContext';
 import Logo from './Logo';
-import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft } from 'react-icons/fi';
+import { FiChevronDown, FiUser, FiLogOut, FiMenu, FiArrowLeft, FiLock } from 'react-icons/fi';
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
@@ -33,6 +33,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   };
 
   const isStudent = user?.rol === 'estudiante';
+  const showChangePassword = user?.rol === 'estudiante' || user?.rol === 'gestor';
 
   const getDisplayName = () => {
     if (!user) return 'Usuario';
@@ -100,9 +101,21 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
                     <FiUser size={16} />
                     <span>Mi Perfil</span>
                   </Link>
-                  <div className="h-px bg-slate-200 mx-2 my-1" />
                 </>
               )}
+              {showChangePassword && (
+                <>
+                  <Link
+                    to="/dashboard/cambiar-clave"
+                    className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-slate-700 rounded-md cursor-pointer transition-colors duration-150 hover:bg-slate-100 no-underline"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <FiLock size={16} />
+                    <span>Cambiar Clave</span>
+                  </Link>
+                </>
+              )}
+              {(isStudent || showChangePassword) && <div className="h-px bg-slate-200 mx-2 my-1" />}
               <button
                 className="flex items-center gap-2.5 w-full py-2.5 px-3 border-none bg-transparent font-sans text-sm text-danger rounded-md cursor-pointer transition-colors duration-150 hover:bg-danger-light"
                 onClick={logout}

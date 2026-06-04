@@ -109,12 +109,26 @@ class VacancyCatalogService(Resource):
 
 class VacancyDetailService(Resource):
     @staticmethod
+    def _verify_ownership(auth_data, vacancy_id):
+        if auth_data['role'] not in ('company', 'empresa'):
+            return False, "No tienes permiso para modificar esta vacante"
+        user_id = auth_data['user_id']
+        sql = "SELECT i.institucion_id FROM public.instituciones i JOIN public.vacantes v ON i.institucion_id = v.institucion_id WHERE i.usuario_id = %s AND v.vacante_id = %s"
+        res = DataBaseHandle.getRecords(sql, 1, (user_id, vacancy_id))
+        if not res['result'] or not res['data']:
+            return False, "Vacante no encontrada o no pertenece a tu empresa"
+        return True, ""
+
+    @staticmethod
     def put(vacancy_id):
         """Actualizar una vacante"""
         try:
             auth = AuthComponent.verify(request)
             if not auth['result']:
                 return response_error(auth['message'])
+
+            owned, err_msg = VacancyDetailService._verify_ownership(auth['data'], vacancy_id)
+            if not owned: return response_error(err_msg)
 
             rq_json = request.get_json()
             result = VacancyComponent.update_vacancy(vacancy_id, rq_json)
@@ -132,6 +146,9 @@ class VacancyDetailService(Resource):
             auth = AuthComponent.verify(request)
             if not auth['result']:
                 return response_error(auth['message'])
+
+            owned, err_msg = VacancyDetailService._verify_ownership(auth['data'], vacancy_id)
+            if not owned: return response_error(err_msg)
 
             result = VacancyComponent.delete_vacancy(vacancy_id)
             if result['result']:

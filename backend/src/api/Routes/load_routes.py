@@ -1,6 +1,6 @@
 from ..Services.login_service import LoginService
 
-from ..Services.user_service import UserService, CurrentUserService
+from ..Services.user_service import UserService, CurrentUserService, ChangePasswordService
 from ..Services.vacancy_services import VacancyService, VacancyCatalogService, VacancyDetailService
 from ..Services.profile_service import ProfileService, PublicProfileService
 from ..Services.skills_service import SkillListService
@@ -22,6 +22,7 @@ def load_routes(api):
 
     # === Usuarios ===
     api.add_resource(UserService, '/user/list')
+    api.add_resource(ChangePasswordService, '/security/change-password')
 
     # === Perfiles ===
     api.add_resource(ProfileService, '/user/profile')

@@ -4,21 +4,18 @@
  * RF-8: Listado de empresas del convenio
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PageHeader from 'components/PageHeader';
 import StatusBadge from 'components/StatusBadge';
 import Card from 'components/Card';
-import EmptyState from 'components/EmptyState';
 import Modal from 'components/Modal';
 import DataTable from 'components/DataTable';
 import adminService from 'services/adminService';
-import Input from 'components/Input';
-import { FiSearch, FiEye, FiUsers, FiBriefcase, FiMapPin, FiMail, FiPhone, FiGlobe, FiLoader, FiPlusCircle, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiEye, FiUsers, FiBriefcase, FiMapPin, FiMail, FiPhone, FiLoader, FiPlusCircle, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 export default function GestorEmpresas() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   // Detalle
   const [viewModal, setViewModal] = useState(null);
   const [detailData, setDetailData] = useState(null);
@@ -33,12 +30,20 @@ export default function GestorEmpresas() {
   const [editSupForm, setEditSupForm] = useState({});
   const [expandedSup, setExpandedSup] = useState({});
   const [activeTab, setActiveTab] = useState('general');
+  const modalContentRef = useRef(null);
 
   useEffect(() => { loadCompanies(); }, []);
 
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 4000); return () => clearTimeout(t); }
   }, [toast]);
+
+  useEffect(() => {
+    if (modalContentRef.current) {
+      const scrollParent = modalContentRef.current.closest('.overflow-y-auto');
+      if (scrollParent) scrollParent.scrollTo(0, 0);
+    }
+  }, [activeTab]);
 
   async function loadCompanies() {
     try {
@@ -135,14 +140,6 @@ export default function GestorEmpresas() {
     setExpandedSup(prev => ({ ...prev, [supId]: !prev[supId] }));
   };
 
-  // Filtrar empresas
-  const filtered = search.trim()
-    ? companies.filter(c =>
-        (c.nombre_empresa || '').toLowerCase().includes(search.toLowerCase()) ||
-        (c.ruc || '').toLowerCase().includes(search.toLowerCase()) ||
-        (c.industria || '').toLowerCase().includes(search.toLowerCase())
-      )
-    : companies;
 
   return (
     <div className="animate-fade-in">
@@ -151,42 +148,38 @@ export default function GestorEmpresas() {
         subtitle="Empresas con convenio para prácticas preprofesionales"
       />
 
-      {/* Barra de búsqueda integrada en DataTable */}
       {loading ? (
         <Card>
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-            <FiLoader className="animate-spin text-primary-600" size={32} />
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+            <FiLoader className="animate-spin" size={24} />
             <span className="text-sm font-medium">Cargando empresas...</span>
           </div>
         </Card>
       ) : (
         <DataTable
           columns={[
-            { key: 'codigo_convenio', label: 'Código', render: (val) => val || '-' },
             {
               key: 'nombre_empresa',
               label: 'Empresa',
               render: (val, row) => (
                 <div>
                   <p className="font-medium text-slate-800 m-0">{val}</p>
-                  <p className="text-xs text-slate-500 m-0">{row.ruc || 'Sin RUC'}</p>
+                  <p className="text-[10px] text-slate-500 m-0">RUC: {row.ruc || 'N/A'} • {row.industria || 'Sin sector'}</p>
                 </div>
               ),
             },
-            { key: 'tipo_convenio', label: 'Tipo Convenio', render: (val) => val || '-' },
-            { key: 'industria', label: 'Sector', render: (val) => val || '-' },
-            { 
-              key: 'vacantes_activas', 
-              label: 'Vacantes Activas', 
-              render: (val) => <span className="font-bold text-primary-600">{val || 0}</span> 
-            },
-            { 
-              key: 'total_supervisores', 
-              label: 'Supervisores', 
-              render: (val) => <span className="font-bold text-slate-600">{val || 0}</span> 
+            {
+              key: 'codigo_convenio',
+              label: 'Convenio',
+              render: (val, row) => (
+                <div>
+                  <p className="font-medium text-slate-700 m-0">{val || 'Sin código'}</p>
+                  <p className="text-[10px] text-slate-400 m-0">{row.tipo_convenio || '-'}</p>
+                </div>
+              )
             },
             { key: 'activo', label: 'Estado', render: (val) => <StatusBadge status={val ? 'activo' : 'inactivo'} /> },
-            { key: 'fecha_limite_convenio', label: 'Expira Convenio', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
+            { key: 'fecha_limite_convenio', label: 'Expira', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
           ]}
           data={companies}
           searchKeys={['nombre_empresa', 'ruc', 'industria']}
@@ -205,52 +198,129 @@ export default function GestorEmpresas() {
       {/* Detail Modal */}
       <Modal isOpen={!!viewModal} onClose={() => { setViewModal(null); setDetailData(null); setShowAddSupervisor(false); setExpandedSup({}); setEditingSupId(null); setActiveTab('general'); }} title="Detalle de Empresa" size="lg">
         {viewModal && (
-          <div className="flex flex-col gap-5">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center text-xl font-bold">
-                {(viewModal.nombre_empresa || '?').charAt(0)}
+          <div className="flex flex-col" ref={modalContentRef}>
+            <div className="sticky top-[-20px] bg-white z-10 -mx-6 px-6 pt-5 -mt-5 pb-0 shadow-[0_4px_6px_-6px_rgba(0,0,0,0.1)] border-b border-slate-200">
+              {/* Header */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center text-xl font-bold">
+                  {(viewModal.nombre_empresa || '?').charAt(0)}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-slate-900 m-0">{viewModal.nombre_empresa}</p>
+                  <p className="text-sm text-slate-500 m-0">RUC: {viewModal.ruc || 'Sin RUC'}</p>
+                </div>
+                <div className="ml-auto"><StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} /></div>
               </div>
-              <div>
-                <p className="text-lg font-bold text-slate-900 m-0">{viewModal.nombre_empresa}</p>
-                <p className="text-sm text-slate-500 m-0">RUC: {viewModal.ruc || 'Sin RUC'}</p>
-              </div>
-              <div className="ml-auto"><StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} /></div>
-            </div>
 
-            {detailLoading ? (
-              <div className="flex items-center justify-center gap-2 py-8 text-slate-400">
-                <FiLoader className="animate-spin" size={18} />
-                <span className="text-sm">Cargando información detallada...</span>
-              </div>
-            ) : detailData ? (
-              <>
-                {/* Tabs for Navigation */}
-                <div className="flex items-center gap-1 mt-4 border-b border-slate-200">
-                  <button onClick={() => setActiveTab('general')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'general' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer`}>
+              {detailData && !detailLoading && (
+                <div className="flex items-center gap-1">
+                  {/* Tabs for Navigation */}
+                  <button onClick={() => setActiveTab('general')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'general' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer`}>
                     Información
                   </button>
-                  <button onClick={() => setActiveTab('supervisores')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'supervisores' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                  <button onClick={() => setActiveTab('supervisores')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'supervisores' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
                     Supervisores <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{(detailData.supervisores?.filter(s => s.activo) || []).length}</span>
                   </button>
-                  <button onClick={() => setActiveTab('vacantes')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'vacantes' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                  <button onClick={() => setActiveTab('vacantes')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'vacantes' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
                     Vacantes <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{detailData.vacantes?.length || 0}</span>
                   </button>
                 </div>
+              )}
+            </div>
 
-                <div className="mt-4 h-[50vh] min-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="min-h-[400px] pt-5">
+              {detailLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-slate-400">
+                  <FiLoader className="animate-spin" size={18} />
+                  <span className="text-sm">Cargando información detallada...</span>
+                </div>
+              ) : detailData ? (
+                <>
                   {/* Info general */}
                   {activeTab === 'general' && (
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md animate-fade-in">
-                      <div className="flex items-center gap-2 col-span-2"><FiBriefcase className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.codigo_convenio || 'Sin código'} · {detailData.tipo_convenio || '-'}</p></div></div>
-                      <div className="flex items-center gap-2"><FiBriefcase className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sector</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.industria || '-'}</p></div></div>
-                      <div className="flex items-center gap-2"><FiMapPin className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Ubicación</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p></div></div>
-                      <div className="flex items-center gap-2"><FiMail className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Correo contacto</p><p className="text-sm text-slate-800 m-0">{detailData.correo_contacto || '-'}</p></div></div>
-                      <div className="flex items-center gap-2"><FiPhone className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Teléfono</p><p className="text-sm text-slate-800 m-0">{detailData.telefono || '-'}</p></div></div>
-                      {detailData.sitio_web && <div className="flex items-center gap-2 col-span-2"><FiGlobe className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sitio Web</p><a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">{detailData.sitio_web}</a></div></div>}
-                      <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Representante</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.representante || '-'} ({detailData.correo_representante || '-'})</p></div>
-                      <div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Inicio Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_inicio_convenio || '-'}</p></div>
-                      <div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Fecha de registro</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_registro ? new Date(detailData.fecha_registro).toLocaleDateString('es-EC') : '-'}</p></div>
+                    <div className="flex flex-col gap-6 animate-fade-in pb-4">
+                      {/* Datos de la Empresa */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiBriefcase size={14} /> Información de la Empresa
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.codigo_convenio || 'Sin código'} · {detailData.tipo_convenio || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">SECTOR</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.industria || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">UBICACIÓN</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CORREO CONTACTO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.correo_contacto || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">TELÉFONO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.telefono || '-'}</p>
+                          </div>
+                          {detailData.sitio_web && (
+                            <div className="col-span-2">
+                              <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">SITIO WEB</p>
+                              <a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline m-0 mt-0.5 truncate block">
+                                {detailData.sitio_web}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Representante */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiUsers size={14} /> Representante Legal
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">NOMBRE COMPLETO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CÉDULA / IDENTIFICACIÓN</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.cedula_representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CORREO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.correo_representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">TELÉFONO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.telefono_representante || '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Fechas de Registro y Convenio */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiMapPin size={14} /> Tiempos del Convenio
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">FECHA DE REGISTRO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_registro ? new Date(detailData.fecha_registro).toLocaleDateString('es-EC') : '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">INICIO CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_inicio_convenio || 'Sin fecha'}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">FECHA LÍMITE DE CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_limite_convenio || 'Sin fecha'}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -445,9 +515,9 @@ export default function GestorEmpresas() {
                       )}
                     </div>
                   )}
-                </div>
               </>
             ) : null}
+            </div>
           </div>
         )}
       </Modal>

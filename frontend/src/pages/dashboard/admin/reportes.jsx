@@ -16,6 +16,20 @@ const ESTADO_COLORS = {
   'Aceptada Empresa': '#3b82f6',
   'Aprobada': '#22c55e',
   'Rechazada': '#ef4444',
+  'Rechazada por Gestor': '#dc2626',
+  'Cancelada': '#94a3b8',
+  'Anulada': '#64748b',
+  'Completada': '#10b981',
+};
+
+const facultadesCarreras = {
+  "1": [
+    { id: "1", nombre: "Software" },
+    { id: "2", nombre: "Ciencias de Datos e Inteligencia Artificial" }
+  ],
+  "2": [
+    { id: "3", nombre: "Ingeniería de la Producción" }
+  ]
 };
 
 export default function AdminReportes() {
@@ -81,6 +95,7 @@ export default function AdminReportes() {
             >
               <option value="">Todas las Facultades</option>
               <option value="1">Ciencias Matemáticas y Físicas</option>
+              <option value="2">Ingeniería Química</option>
             </select>
             <select
               value={carreraFilter}
@@ -93,7 +108,9 @@ export default function AdminReportes() {
               }`}
             >
               <option value="">Todas las Carreras</option>
-              <option value="1">Software</option>
+              {facultadFilter && facultadesCarreras[facultadFilter]?.map(c => (
+                <option key={c.id} value={c.id}>{c.nombre}</option>
+              ))}
             </select>
           </div>
         }

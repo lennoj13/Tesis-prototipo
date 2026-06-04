@@ -16,7 +16,12 @@ import { FiEye, FiMapPin, FiCalendar, FiBriefcase } from 'react-icons/fi';
 const statusMap = {
   pending: 'pendiente',
   approved: 'aprobado',
+  aprobada: 'aprobado',
   rejected: 'rechazado',
+  rechazada: 'rechazado',
+  rechazada_gestor: 'rechazado',
+  anulada: 'anulada',
+  completada: 'completada',
 };
 
 export default function EstudiantePostulaciones() {
@@ -24,32 +29,50 @@ export default function EstudiantePostulaciones() {
   const [postulaciones, setPostulaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const res = await applicationService.getMyApplications(user?.profile_id);
+      if (res.result) {
+        setPostulaciones((res.data || []).map(a => ({
+          id: a.postulacion_id || a.application_id,
+          vacante: a.titulo || a.title,
+          empresa: a.nombre_empresa || a.company_name,
+          match: a.porcentaje_afinidad || a.match_percentage || 0,
+          estado: statusMap[a.estado] || a.estado || a.status,
+          fecha: a.creado_en || a.created_at,
+          area: a.area || '',
+          modalidad: a.modalidad || a.modality || '',
+          ubicacion: a.ubicacion || a.location || '',
+        })));
+      }
+    } catch (err) {
+      console.error('Error cargando postulaciones:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await applicationService.getMyApplications(user?.profile_id);
-        if (res.result) {
-          setPostulaciones((res.data || []).map(a => ({
-            id: a.postulacion_id || a.application_id,
-            vacante: a.titulo || a.title,
-            empresa: a.nombre_empresa || a.company_name,
-            match: a.porcentaje_afinidad || a.match_percentage || 0,
-            estado: statusMap[a.estado] || a.estado || a.status,
-            fecha: a.creado_en || a.created_at,
-            area: a.area || '',
-            modalidad: a.modalidad || a.modality || '',
-            ubicacion: a.ubicacion || a.location || '',
-          })));
-        }
-      } catch (err) {
-        console.error('Error cargando postulaciones:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadData();
   }, [user]);
+
+  const handleCancelApplication = async () => {
+    if (!viewModal || !viewModal.id) return;
+    setCancelLoading(true);
+    try {
+      const res = await applicationService.updateStatus(viewModal.id, { estado: 'cancelada' });
+      if (res.result) {
+        setViewModal(null);
+        await loadData();
+      }
+    } catch (e) {
+      console.error('Error al cancelar:', e);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const columns = [
     {
@@ -157,6 +180,34 @@ export default function EstudiantePostulaciones() {
             {viewModal.estado === 'rechazado' && (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
                 <p className="text-sm text-slate-600">Tu postulación no fue seleccionada en esta oportunidad.</p>
+              </div>
+            )}
+            {viewModal.estado === 'cancelada' && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
+                <p className="text-sm text-slate-600">Has cancelado esta postulación.</p>
+              </div>
+            )}
+            {viewModal.estado === 'anulada' && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
+                <p className="text-sm text-slate-600">Esta práctica ha sido anulada administrativamente.</p>
+              </div>
+            )}
+            {viewModal.estado === 'completada' && (
+              <div className="p-4 bg-success-light border border-green-200 rounded-md">
+                <p className="text-sm font-semibold text-green-800 mb-1">✅ Práctica Completada</p>
+                <p className="text-sm text-green-700">Has finalizado satisfactoriamente esta práctica preprofesional.</p>
+              </div>
+            )}
+            
+            {viewModal.estado === 'pendiente' && (
+              <div className="flex justify-end pt-4 border-t border-slate-100">
+                <button
+                  onClick={handleCancelApplication}
+                  disabled={cancelLoading}
+                  className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md text-sm font-semibold hover:bg-red-50 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {cancelLoading ? 'Cancelando...' : 'Cancelar Postulación'}
+                </button>
               </div>
             )}
           </div>

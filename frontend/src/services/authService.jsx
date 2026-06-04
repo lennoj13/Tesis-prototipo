@@ -20,6 +20,17 @@ const authService = {
 
 
   /**
+   * Cambiar contraseña del usuario actual
+   */
+  changePassword: async (old_password, new_password) => {
+    const response = await api.post('/security/change-password', {
+      old_password,
+      new_password,
+    });
+    return response.data;
+  },
+
+  /**
    * Obtener datos del usuario autenticado
    */
   getCurrentUser: async () => {

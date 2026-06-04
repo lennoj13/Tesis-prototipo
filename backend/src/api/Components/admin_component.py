@@ -106,22 +106,32 @@ class AdminComponent:
     @staticmethod
     def get_stats(facultad_id=None, carrera_id=None):
         try:
+            params = {}
+            
             est_where = "r.nombre = 'estudiante' AND u.activo = true"
-            if facultad_id: est_where += f" AND pe.facultad_id = {int(facultad_id)}"
-            if carrera_id: est_where += f" AND pe.carrera_id = {int(carrera_id)}"
+            if facultad_id:
+                est_where += " AND pe.facultad_id = %(fac_id)s"
+                params['fac_id'] = int(facultad_id)
+            if carrera_id:
+                est_where += " AND pe.carrera_id = %(car_id)s"
+                params['car_id'] = int(carrera_id)
             est_sql = f"SELECT COUNT(DISTINCT u.usuario_id) as count FROM public.usuarios u JOIN public.roles r ON u.rol_id = r.rol_id LEFT JOIN public.perfiles_estudiante pe ON u.usuario_id = pe.usuario_id WHERE {est_where}"
             
             emp_where = "r.nombre = 'empresa' AND u.activo = true"
-            if facultad_id: emp_where += f" AND i.facultad_id = {int(facultad_id)}"
+            if facultad_id:
+                emp_where += " AND i.facultad_id = %(fac_id)s"
             emp_sql = f"SELECT COUNT(DISTINCT u.usuario_id) as count FROM public.usuarios u JOIN public.roles r ON u.rol_id = r.rol_id LEFT JOIN public.instituciones i ON u.usuario_id = i.usuario_id WHERE {emp_where}"
             
             vac_where = "v.activo = true"
-            if facultad_id: vac_where += f" AND i.facultad_id = {int(facultad_id)}"
+            if facultad_id:
+                vac_where += " AND i.facultad_id = %(fac_id)s"
             vac_sql = f"SELECT COUNT(DISTINCT v.vacante_id) as count FROM public.vacantes v LEFT JOIN public.instituciones i ON v.institucion_id = i.institucion_id WHERE {vac_where}"
 
             pos_where = "1=1"
-            if facultad_id: pos_where += f" AND pe.facultad_id = {int(facultad_id)}"
-            if carrera_id: pos_where += f" AND pe.carrera_id = {int(carrera_id)}"
+            if facultad_id:
+                pos_where += " AND pe.facultad_id = %(fac_id)s"
+            if carrera_id:
+                pos_where += " AND pe.carrera_id = %(car_id)s"
             pos_base_sql = f"SELECT COUNT(DISTINCT p.postulacion_id) as count FROM public.postulaciones p LEFT JOIN public.perfiles_estudiante pe ON p.estudiante_id = pe.perfil_id WHERE {pos_where}"
 
             queries = {
@@ -133,12 +143,12 @@ class AdminComponent:
                 'postulaciones_aceptadas': pos_base_sql + " AND p.estado = 'aceptada_empresa'",
                 'postulaciones_aprobadas': pos_base_sql + " AND p.estado = 'aprobada'",
                 'postulaciones_rechazadas': pos_base_sql + " AND p.estado = 'rechazada'",
-                'empresas_pendientes': f"SELECT COUNT(DISTINCT i.institucion_id) as count FROM public.instituciones i WHERE i.estado = 'pendiente'" + (f" AND i.facultad_id = {int(facultad_id)}" if facultad_id else ""),
+                'empresas_pendientes': f"SELECT COUNT(DISTINCT i.institucion_id) as count FROM public.instituciones i WHERE i.estado = 'pendiente'" + (" AND i.facultad_id = %(fac_id)s" if facultad_id else ""),
             }
             
             stats = {}
             for key, sql in queries.items():
-                result = DataBaseHandle.getRecords(sql, 1)
+                result = DataBaseHandle.getRecords(sql, 1, params)
                 stats[key] = result['data']['count'] if result['result'] and result['data'] else 0
 
             return internal_response(True, stats, "Estadísticas obtenidas")
@@ -218,20 +228,25 @@ class AdminComponent:
         """Obtener datos reales para los gráficos de reportes."""
         try:
             report = {}
+            params = {}
 
             pos_join = ""
             pos_where = ""
             if facultad_id or carrera_id:
                 pos_join = " JOIN public.perfiles_estudiante pe ON p.estudiante_id = pe.perfil_id "
                 pos_where = " AND 1=1 "
-                if facultad_id: pos_where += f" AND pe.facultad_id = {int(facultad_id)}"
-                if carrera_id: pos_where += f" AND pe.carrera_id = {int(carrera_id)}"
+                if facultad_id:
+                    pos_where += " AND pe.facultad_id = %(fac_id)s"
+                    params['fac_id'] = int(facultad_id)
+                if carrera_id:
+                    pos_where += " AND pe.carrera_id = %(car_id)s"
+                    params['car_id'] = int(carrera_id)
 
             vac_join = ""
             vac_where = ""
             if facultad_id:
                 vac_join = " JOIN public.instituciones i ON v.institucion_id = i.institucion_id "
-                vac_where = f" AND i.facultad_id = {int(facultad_id)}"
+                vac_where = " AND i.facultad_id = %(fac_id)s"
 
             # 1. Postulaciones por estado
             sql_estados = f"""
@@ -241,6 +256,10 @@ class AdminComponent:
                         WHEN 'aceptada_empresa' THEN 'Aceptada Empresa'
                         WHEN 'aprobada' THEN 'Aprobada'
                         WHEN 'rechazada' THEN 'Rechazada'
+                        WHEN 'rechazada_gestor' THEN 'Rechazada por Gestor'
+                        WHEN 'cancelada' THEN 'Cancelada'
+                        WHEN 'anulada' THEN 'Anulada'
+                        WHEN 'completada' THEN 'Completada'
                         ELSE p.estado
                     END as nombre,
                     COUNT(DISTINCT p.postulacion_id) as valor
@@ -250,7 +269,7 @@ class AdminComponent:
                 GROUP BY p.estado
                 ORDER BY valor DESC
             """
-            r1 = DataBaseHandle.getRecords(sql_estados, 0)
+            r1 = DataBaseHandle.getRecords(sql_estados, 0, params)
             report['postulaciones_por_estado'] = [dict(r) for r in r1['data']] if r1['result'] and r1['data'] else []
 
             # 2. Vacantes por área
@@ -262,7 +281,7 @@ class AdminComponent:
                 GROUP BY v.area
                 ORDER BY valor DESC
             """
-            r2 = DataBaseHandle.getRecords(sql_areas, 0)
+            r2 = DataBaseHandle.getRecords(sql_areas, 0, params)
             report['vacantes_por_area'] = [dict(r) for r in r2['data']] if r2['result'] and r2['data'] else []
 
             # 3. Habilidades más demandadas en vacantes activas
@@ -277,12 +296,12 @@ class AdminComponent:
                 ORDER BY valor DESC
                 LIMIT 10
             """
-            r3 = DataBaseHandle.getRecords(sql_skills, 0)
+            r3 = DataBaseHandle.getRecords(sql_skills, 0, params)
             report['habilidades_demandadas'] = [dict(r) for r in r3['data']] if r3['result'] and r3['data'] else []
 
             # 4. Top empresas por postulaciones recibidas
             emp_where = ""
-            if facultad_id: emp_where = f" AND i.facultad_id = {int(facultad_id)}"
+            if facultad_id: emp_where = " AND i.facultad_id = %(fac_id)s"
 
             sql_empresas = f"""
                 SELECT i.nombre as nombre, COUNT(DISTINCT p.postulacion_id) as postulaciones
@@ -295,7 +314,7 @@ class AdminComponent:
                 ORDER BY postulaciones DESC
                 LIMIT 5
             """
-            r4 = DataBaseHandle.getRecords(sql_empresas, 0)
+            r4 = DataBaseHandle.getRecords(sql_empresas, 0, params)
             report['top_empresas'] = [dict(r) for r in r4['data']] if r4['result'] and r4['data'] else []
 
             return internal_response(True, report, "Datos de reportes obtenidos")
@@ -526,47 +545,7 @@ class AdminComponent:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))
 
-    @staticmethod
-    def delete_user(user_id, admin_user_id):
-        """Eliminación física de un usuario (y sus datos en cascada)."""
-        try:
-            if str(user_id) == str(admin_user_id):
-                return internal_response(False, None, "No puedes eliminar tu propia cuenta de administrador")
 
-            sql_check = """
-                SELECT u.usuario_id, u.activo, r.nombre as rol_nombre 
-                FROM public.usuarios u
-                JOIN public.roles r ON u.rol_id = r.rol_id
-                WHERE u.usuario_id = %s
-            """
-            check = DataBaseHandle.getRecords(sql_check, 1, (user_id,))
-            if not check['result'] or not check['data']:
-                return internal_response(False, None, "Usuario no encontrado")
-            
-            rol = check['data']['rol_nombre']
-
-            if rol == 'empresa':
-                # Eliminación lógica (desactivar)
-                sql_del = "UPDATE public.usuarios SET activo = false, actualizado_en = NOW() WHERE usuario_id = %s"
-                result = DataBaseHandle.ExecuteNonQuery(sql_del, (user_id,))
-                msg = "Empresa desactivada lógicamente"
-            else:
-                # Eliminación física en cascada
-                sql_del = """
-                    DELETE FROM public.habilidades_estudiante WHERE estudiante_id IN (SELECT estudiante_id FROM public.perfiles_estudiante WHERE usuario_id = %s);
-                    DELETE FROM public.postulaciones WHERE estudiante_id IN (SELECT estudiante_id FROM public.perfiles_estudiante WHERE usuario_id = %s);
-                    DELETE FROM public.perfiles_estudiante WHERE usuario_id = %s;
-                    DELETE FROM public.usuarios WHERE usuario_id = %s;
-                """
-                result = DataBaseHandle.ExecuteNonQuery(sql_del, (user_id,) * 4)
-                msg = "Usuario eliminado permanentemente"
-            
-            if result['result']:
-                return internal_response(True, None, msg)
-            return internal_response(False, None, result.get('message', 'Error al procesar la eliminación'))
-        except Exception as err:
-            HandleLogs.write_error(err)
-            return internal_response(False, None, str(err))
 
     @staticmethod
     def update_company(institucion_id, data):
@@ -593,6 +572,10 @@ class AdminComponent:
                     tipo_convenio = COALESCE(%s, tipo_convenio),
                     fecha_inicio_convenio = COALESCE(%s, fecha_inicio_convenio),
                     nombre_abreviado = COALESCE(%s, nombre_abreviado),
+                    sitio_web = COALESCE(%s, sitio_web),
+                    direccion = COALESCE(%s, direccion),
+                    ciudad = COALESCE(%s, ciudad),
+                    descripcion = COALESCE(%s, descripcion),
                     actualizado_en = NOW()
                 WHERE institucion_id = %s
             """
@@ -605,7 +588,9 @@ class AdminComponent:
                 data.get('ruc'), data.get('company_name'), data.get('industry'),
                 data.get('correo_contacto'), data.get('telefono_empresa'),
                 fecha_limite, data.get('codigo_convenio'), data.get('tipo_convenio'),
-                fecha_inicio, data.get('nombre_abreviado'), institucion_id
+                fecha_inicio, data.get('nombre_abreviado'),
+                data.get('sitio_web'), data.get('direccion'), data.get('ciudad'), data.get('descripcion'),
+                institucion_id
             ))
 
             # Update Usuario (Representante)
@@ -663,9 +648,12 @@ class AdminComponent:
                 SELECT i.institucion_id, i.nombre as nombre_empresa, i.ruc, i.industria,
                        i.descripcion, i.sitio_web, i.direccion, i.ciudad,
                        i.correo_contacto, i.telefono, i.estado, i.facultad_id,
+                       i.codigo_convenio, i.tipo_convenio,
+                       TO_CHAR(i.fecha_inicio_convenio, 'YYYY-MM-DD') as fecha_inicio_convenio,
                        TO_CHAR(i.fecha_limite_convenio, 'YYYY-MM-DD') as fecha_limite_convenio,
                        f.nombre as facultad,
                        u.nombre || ' ' || u.apellido as representante,
+                       u.cedula as cedula_representante,
                        u.correo as correo_representante,
                        u.telefono as telefono_representante,
                        TO_CHAR(i.creado_en, 'YYYY-MM-DD') as fecha_registro

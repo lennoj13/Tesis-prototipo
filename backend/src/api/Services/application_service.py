@@ -83,7 +83,7 @@ class ApplicationStatusService(Resource):
 
             rq_json = request.get_json()
             new_status = rq_json.get('status') or rq_json.get('estado')
-            valid_states = ['pendiente', 'aceptada_empresa', 'aprobada', 'rechazada']
+            valid_states = ['pendiente', 'aceptada_empresa', 'aprobada', 'rechazada', 'rechazada_gestor', 'cancelada', 'completada', 'anulada']
             if new_status not in valid_states:
                 return response_error(f"Estado no válido. Use: {', '.join(valid_states)}")
 

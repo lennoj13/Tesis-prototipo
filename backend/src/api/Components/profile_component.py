@@ -54,7 +54,7 @@ class ProfileComponent:
                 extra = DataBaseHandle.getRecords(sql_profile, 1, (user_id,))
                 
                 if extra['result'] and extra['data']:
-                    sql_supervisors = "SELECT supervisor_id, nombre, cargo, departamento, correo FROM public.supervisores WHERE institucion_id = %s AND activo = true"
+                    sql_supervisors = "SELECT supervisor_id, numero_identificacion, nombre, apellido, cargo, departamento, correo, telefono FROM public.supervisores WHERE institucion_id = %s AND activo = true"
                     sups = DataBaseHandle.getRecords(sql_supervisors, 0, (extra['data']['institucion_id'],))
                     extra['data']['supervisores'] = sups['data'] if sups['result'] else []
             else:

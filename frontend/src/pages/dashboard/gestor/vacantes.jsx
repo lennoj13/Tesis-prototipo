@@ -1,7 +1,7 @@
 
 /**
  * Admin Vacantes — Lista real de vacantes del sistema.
- * Módulo 3: Gestión de Vacantes (vista admin)
+ * Módulo 3: Gestión de Vacantes (vista gestor)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,19 +10,16 @@ import PageHeader from 'components/PageHeader';
 import DataTable from 'components/DataTable';
 import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
-import ConfirmDialog from 'components/ConfirmDialog';
 import InfoField from 'components/InfoField';
-import { FiEye, FiTrash2, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft, FiUsers } from 'react-icons/fi';
+import { FiEye, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft, FiUsers } from 'react-icons/fi';
 
-export default function AdminVacantes() {
+export default function GestorVacantes() {
   const [vacantes, setVacantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const [modalidadFilter, setModalidadFilter] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('');
-  const [facultadFilter, setFacultadFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
@@ -46,9 +43,6 @@ export default function AdminVacantes() {
       const isActive = estadoFilter === 'abierta';
       result = result.filter(v => v.activo === isActive);
     }
-    if (facultadFilter) {
-      result = result.filter(v => String(v.facultad_id) === facultadFilter);
-    }
 
     switch (sortBy) {
       case 'oldest': result.sort((a,b) => new Date(a.creado_en) - new Date(b.creado_en)); break;
@@ -58,7 +52,7 @@ export default function AdminVacantes() {
     }
     
     return result;
-  }, [vacantes, modalidadFilter, estadoFilter, facultadFilter, sortBy]);
+  }, [vacantes, modalidadFilter, estadoFilter, sortBy]);
 
   const columns = [
     {
@@ -86,17 +80,10 @@ export default function AdminVacantes() {
     { key: 'creado_en', label: 'Publicación', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
-  const handleDelete = async (id) => {
-    try {
-      await vacancyService.delete(id);
-      setVacantes(prev => prev.filter(v => v.vacancy_id !== id));
-    } catch (err) { console.error(err); }
-  };
-
   return (
     <div className="animate-fade-in">
       <PageHeader
-        title="Gestión de Vacantes"
+        title="Vacantes de la Carrera"
         subtitle={loading ? 'Cargando...' : `${vacantes.length} vacantes · ${vacantes.filter(v => v.is_active).length} abiertas`}
       />
 
@@ -106,15 +93,6 @@ export default function AdminVacantes() {
         searchKeys={['titulo', 'nombre_empresa', 'area']}
         filters={
           <>
-            <select
-              value={facultadFilter}
-              onChange={(e) => setFacultadFilter(e.target.value)}
-              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
-            >
-              <option value="">Todas las Facultades</option>
-              <option value="1">Ciencias Matemáticas y Físicas</option>
-              <option value="2">Ingeniería Química</option>
-            </select>
             <select
               value={modalidadFilter}
               onChange={(e) => setModalidadFilter(e.target.value)}
@@ -154,13 +132,6 @@ export default function AdminVacantes() {
               title="Ver detalle"
             >
               <FiEye size={16} />
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(row)}
-              className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-danger-light hover:text-danger"
-              title="Eliminar"
-            >
-              <FiTrash2 size={16} />
             </button>
           </>
         )}
@@ -216,14 +187,6 @@ export default function AdminVacantes() {
           </div>
         )}
       </Modal>
-
-      <ConfirmDialog
-        isOpen={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm?.vacante_id)}
-        title="Eliminar Vacante"
-        message={`¿Eliminar "${deleteConfirm?.titulo}"?`}
-      />
     </div>
   );
 }

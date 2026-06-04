@@ -44,6 +44,7 @@ const menuConfig = {
     { label: 'Postulaciones Pendientes', href: '/dashboard/gestor/postulaciones', icon: FiCheckSquare },
     { label: 'Historial de Postulaciones', href: '/dashboard/gestor/historial', icon: FiFileText },
     { label: 'Empresas', href: '/dashboard/gestor/empresas', icon: FiBriefcase },
+    { label: 'Vacantes', href: '/dashboard/gestor/vacantes', icon: FiInbox },
     { label: 'Consulta Estudiante', href: '/dashboard/gestor/estudiantes', icon: FiUsers },
   ],
   admin: [

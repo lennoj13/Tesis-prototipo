@@ -47,10 +47,13 @@ export default function EmpresaPostulantes() {
       const appRes = await applicationService.getByCompany(companyId);
       const allApplicants = appRes.data || [];
 
+      // Filtrar las canceladas por el estudiante (basura para la empresa)
+      const activeApplicants = allApplicants.filter(p => p.estado !== 'cancelada');
+
       // Ordenar por afinidad descendente
-      allApplicants.sort((a, b) => (b.porcentaje_afinidad || b.match_percentage || 0) - (a.porcentaje_afinidad || a.match_percentage || 0));
+      activeApplicants.sort((a, b) => (b.porcentaje_afinidad || b.match_percentage || 0) - (a.porcentaje_afinidad || a.match_percentage || 0));
       
-      setPostulantes(allApplicants.map(p => ({
+      setPostulantes(activeApplicants.map(p => ({
         ...p,
         id: p.postulacion_id || p.application_id,
         candidato: p.nombre_estudiante || p.student_name,

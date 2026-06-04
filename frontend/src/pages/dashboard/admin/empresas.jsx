@@ -4,7 +4,7 @@
  * Módulo 2: Gestión de Empresas
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import api from 'services/api';
 import adminService from 'services/adminService';
 import PageHeader from 'components/PageHeader';
@@ -13,6 +13,7 @@ import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import Input from 'components/Input';
 import ConfirmDialog from 'components/ConfirmDialog';
+import InfoField from 'components/InfoField';
 import { FiEye, FiCheckCircle, FiXCircle, FiEdit2, FiLoader, FiPlusCircle, FiUsers, FiBriefcase, FiMapPin, FiGlobe, FiMail, FiPhone, FiTrash2 } from 'react-icons/fi';
 
 export default function AdminEmpresas() {
@@ -45,12 +46,20 @@ export default function AdminEmpresas() {
   
   // UI states
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'supervisores', 'vacantes'
+  const modalContentRef = useRef(null);
 
   const [statusFilter, setStatusFilter] = useState('');
   const [facultadFilter, setFacultadFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (modalContentRef.current) {
+      const scrollParent = modalContentRef.current.closest('.overflow-y-auto');
+      if (scrollParent) scrollParent.scrollTo(0, 0);
+    }
+  }, [activeTab]);
 
   const sortedAndFilteredEmpresas = useMemo(() => {
     let result = [...empresas];
@@ -282,20 +291,26 @@ export default function AdminEmpresas() {
   }
 
   const columns = [
-    { key: 'codigo_convenio', label: 'Código', render: (val) => val || '-' },
     {
       key: 'nombre_empresa', label: 'Empresa',
       render: (val, row) => (
         <div>
           <p className="font-medium text-slate-800 m-0">{val}</p>
-          <p className="text-xs text-slate-500 m-0">{row.ruc || 'Sin RUC'}</p>
+          <p className="text-[10px] text-slate-500 m-0">RUC: {row.ruc || 'N/A'} • {row.industria || 'Sin sector'}</p>
         </div>
       ),
     },
-    { key: 'tipo_convenio', label: 'Tipo Convenio', render: (val) => val || '-' },
-    { key: 'industria', label: 'Sector', render: (val) => val || '-' },
+    {
+      key: 'codigo_convenio', label: 'Convenio',
+      render: (val, row) => (
+        <div>
+          <p className="font-medium text-slate-700 m-0">{val || 'Sin código'}</p>
+          <p className="text-[10px] text-slate-400 m-0">{row.tipo_convenio || '-'}</p>
+        </div>
+      )
+    },
     { key: 'activo', label: 'Estado', render: (val) => <StatusBadge status={val ? 'activo' : 'inactivo'} /> },
-    { key: 'fecha_limite_convenio', label: 'Expira Convenio', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
+    { key: 'fecha_limite_convenio', label: 'Expira', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
   return (
@@ -331,6 +346,7 @@ export default function AdminEmpresas() {
             >
               <option value="">Todas las Facultades</option>
               <option value="1">Ciencias Matemáticas y Físicas</option>
+              <option value="2">Ingeniería Química</option>
             </select>
             <select
               value={statusFilter}
@@ -372,49 +388,133 @@ export default function AdminEmpresas() {
       {/* Detail Modal with supervisors and vacancies */}
       <Modal isOpen={!!viewModal} onClose={() => { setViewModal(null); setDetailData(null); setShowAddSupervisor(false); setExpandedSup({}); setEditingSupId(null); setActiveTab('general'); }} title="Detalle de Empresa" size="lg">
         {viewModal && (
-          <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center text-xl font-bold">
-                {(viewModal.nombre_empresa || '?').charAt(0)}
+          <div className="flex flex-col" ref={modalContentRef}>
+            <div className="sticky top-[-20px] bg-white z-10 -mx-6 px-6 pt-5 -mt-5 pb-0 shadow-[0_4px_6px_-6px_rgba(0,0,0,0.1)] border-b border-slate-200">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-md bg-primary-50 text-primary-600 flex items-center justify-center text-xl font-bold">
+                  {(viewModal.nombre_empresa || '?').charAt(0)}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-slate-900 m-0">{viewModal.nombre_empresa}</p>
+                  <p className="text-sm text-slate-500 m-0">{viewModal.ruc || 'Sin RUC'}</p>
+                </div>
+                <div className="ml-auto"><StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} /></div>
               </div>
-              <div>
-                <p className="text-lg font-bold text-slate-900 m-0">{viewModal.nombre_empresa}</p>
-                <p className="text-sm text-slate-500 m-0">{viewModal.ruc || 'Sin RUC'}</p>
-              </div>
-              <div className="ml-auto"><StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} /></div>
-            </div>
 
-            {detailLoading ? (
-              <div className="flex items-center justify-center gap-2 py-8 text-slate-400">
-                <FiLoader className="animate-spin" size={18} />
-                <span className="text-sm">Cargando detalle completo...</span>
-              </div>
-            ) : detailData ? (
-              <>
+              {detailData && !detailLoading && (
+                <div className="flex items-center gap-1">
                   {/* Tabs for Navigation */}
-                <div className="flex items-center gap-1 mt-4 border-b border-slate-200">
-                  <button onClick={() => setActiveTab('general')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'general' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer`}>
+                  <button onClick={() => setActiveTab('general')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'general' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer`}>
                     Información
                   </button>
-                  <button onClick={() => setActiveTab('supervisores')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'supervisores' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                  <button onClick={() => setActiveTab('supervisores')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'supervisores' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
                     Supervisores <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{(detailData.supervisores?.filter(s => s.activo) || []).length}</span>
                   </button>
-                  <button onClick={() => setActiveTab('vacantes')} className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'vacantes' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
+                  <button onClick={() => setActiveTab('vacantes')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'vacantes' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'} bg-transparent border-t-0 border-l-0 border-r-0 cursor-pointer flex items-center gap-2`}>
                     Vacantes <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">{detailData.vacantes?.length || 0}</span>
                   </button>
                 </div>
+              )}
+            </div>
 
-                <div className="mt-4 h-[50vh] min-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="min-h-[400px] pt-5">
+              {detailLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-slate-400">
+                  <FiLoader className="animate-spin" size={18} />
+                  <span className="text-sm">Cargando detalle completo...</span>
+                </div>
+              ) : detailData ? (
+                <>
+
                   {/* Info general */}
                   {activeTab === 'general' && (
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md animate-fade-in">
-                      <div className="flex items-center gap-2"><FiBriefcase className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sector</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.industria || '-'}</p></div></div>
-                      <div className="flex items-center gap-2"><FiMapPin className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Ubicación</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p></div></div>
-                      <div className="flex items-center gap-2"><FiMail className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Contacto</p><p className="text-sm text-slate-800 m-0">{detailData.correo_contacto || '-'}</p></div></div>
-                      <div className="flex items-center gap-2"><FiPhone className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Tel. Empresa</p><p className="text-sm text-slate-800 m-0">{detailData.telefono || '-'}</p></div></div>
-                      {detailData.sitio_web && <div className="flex items-center gap-2 col-span-2"><FiGlobe className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sitio Web</p><a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">{detailData.sitio_web}</a></div></div>}
-                      <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Representante</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.representante || '-'} (Tel: {detailData.telefono_representante || '-'})</p></div>
-                      <div className="col-span-2"><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Fecha Límite de Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_limite_convenio || 'Sin fecha'}</p></div>
+                    <div className="flex flex-col gap-6 animate-fade-in pb-4">
+                      {/* Datos de la Empresa */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiBriefcase size={14} /> Información de la Empresa
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.codigo_convenio || 'Sin código'} · {detailData.tipo_convenio || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">SECTOR</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.industria || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">FACULTAD ASOCIADA</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.facultad || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">UBICACIÓN</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.ciudad || '-'}{detailData.direccion ? ` - ${detailData.direccion}` : ''}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CORREO CONTACTO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.correo_contacto || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">TELÉFONO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.telefono || '-'}</p>
+                          </div>
+                          {detailData.sitio_web && (
+                            <div className="col-span-2">
+                              <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">SITIO WEB</p>
+                              <a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline m-0 mt-0.5 truncate block">
+                                {detailData.sitio_web}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Representante */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiUsers size={14} /> Representante Legal
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">NOMBRE COMPLETO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CÉDULA / IDENTIFICACIÓN</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.cedula_representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">CORREO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.correo_representante || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">TELÉFONO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.telefono_representante || '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Fechas de Registro y Convenio */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <FiMapPin size={14} /> Tiempos del Convenio
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-100 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">FECHA DE REGISTRO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_registro ? new Date(detailData.fecha_registro).toLocaleDateString('es-EC') : '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">INICIO CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_inicio_convenio || 'Sin fecha'}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wider">FECHA LÍMITE DE CONVENIO</p>
+                            <p className="text-sm font-medium text-slate-800 m-0 mt-0.5">{detailData.fecha_limite_convenio || 'Sin fecha'}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -609,7 +709,6 @@ export default function AdminEmpresas() {
                       )}
                     </div>
                   )}
-                </div>
               </>
             ) : (
               <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-md">
@@ -622,6 +721,7 @@ export default function AdminEmpresas() {
                 <div><p className="text-xs text-slate-500 mb-1">Inicio Convenio</p><p className="text-sm font-semibold text-slate-800">{viewModal.fecha_inicio_convenio || '-'}</p></div>
               </div>
             )}
+            </div>
           </div>
         )}
       </Modal>
@@ -679,6 +779,7 @@ export default function AdminEmpresas() {
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
               >
                 <option value="1">Ciencias Matemáticas y Físicas</option>
+                <option value="2">Ingeniería Química</option>
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">

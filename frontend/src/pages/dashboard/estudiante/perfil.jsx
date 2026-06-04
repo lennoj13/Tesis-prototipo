@@ -17,7 +17,7 @@ import { FiSave, FiPlus, FiX } from 'react-icons/fi';
 
 export default function EstudiantePerfil() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
+
   const [habilidades, setHabilidades] = useState([]);
   const [allSkills, setAllSkills] = useState([]);
   const [customSkill, setCustomSkill] = useState('');
@@ -58,12 +58,12 @@ export default function EstudiantePerfil() {
         if (profRes.result && profRes.data) {
           const p = profRes.data;
           const d = p.details || {};
-          setProfile(p);
+
           setForm({
             name: p.nombre || '', lastname: p.apellido || '',
             email: p.correo || '', phone: p.telefono || '',
             career: d.carrera_nombre ? (d.carrera_nombre.toLowerCase() === 'software' ? 'Software' : d.carrera_nombre) : 'Software', 
-            semester: d.semestre ? `${d.semestre} semestre` : '7mo semestre',
+            semester: d.semestre ? `${d.semestre}º semestre` : '7mo semestre',
             university: d.universidad || 'Universidad de Guayaquil',
             interests: d.intereses || '', experience_summary: d.resumen_experiencia || '',
           });
@@ -213,7 +213,7 @@ export default function EstudiantePerfil() {
         <section className={sectionClass}>
           <div className={sectionHeaderClass}>Formación Académica</div>
           <div className={`${sectionBodyClass} flex flex-col gap-4`}>
-            <p className="text-xs text-slate-500">Universidad de Guayaquil — Facultad de Ciencias Matemáticas y Físicas</p>
+            <p className="text-xs text-slate-500">Facultad de {user?.facultad_nombre}</p>
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <Input 
                 label="Carrera" 

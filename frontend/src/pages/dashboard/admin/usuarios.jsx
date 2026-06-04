@@ -20,7 +20,17 @@ const rolColors = {
   student: 'bg-slate-100 text-slate-700', estudiante: 'bg-slate-100 text-slate-700',
   company: 'bg-slate-100 text-slate-700', empresa: 'bg-slate-100 text-slate-700',
   gestor: 'bg-slate-100 text-slate-700',
-  admin: 'bg-purple-100 text-purple-700',
+  'admin': 'bg-purple-100 text-purple-700',
+};
+
+const facultadesCarreras = {
+  "1": [
+    { id: "1", nombre: "Software" },
+    { id: "2", nombre: "Ciencias de Datos e Inteligencia Artificial" }
+  ],
+  "2": [
+    { id: "3", nombre: "Ingeniería de la Producción" }
+  ]
 };
 
 export default function AdminUsuarios() {
@@ -56,8 +66,8 @@ export default function AdminUsuarios() {
       if (roleFilter && u.rol_nombre !== roleFilter) return false;
       if (statusFilter === 'activo' && !u.activo) return false;
       if (statusFilter === 'inactivo' && u.activo) return false;
-      if (facultadFilter && u.facultad_id && u.facultad_id.toString() !== facultadFilter) return false;
-      if (carreraFilter && u.carrera_id && u.carrera_id.toString() !== carreraFilter) return false;
+      if (facultadFilter && String(u.facultad_id) !== facultadFilter) return false;
+      if (carreraFilter && String(u.carrera_id) !== carreraFilter) return false;
       return true;
     });
     
@@ -85,7 +95,7 @@ export default function AdminUsuarios() {
     }
     
     return result;
-  }, [usuarios, roleFilter, statusFilter, sortBy]);
+  }, [usuarios, roleFilter, statusFilter, facultadFilter, carreraFilter, sortBy]);
 
   useEffect(() => { loadUsers(); }, []);
 
@@ -339,11 +349,15 @@ export default function AdminUsuarios() {
             </select>
             <select
               value={facultadFilter}
-              onChange={(e) => setFacultadFilter(e.target.value)}
+              onChange={(e) => {
+                setFacultadFilter(e.target.value);
+                setCarreraFilter('');
+              }}
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
             >
               <option value="">Todas las Facultades</option>
               <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+              <option value="2">INGENIERIA QUIMICA</option>
             </select>
             <select
               value={carreraFilter}
@@ -351,7 +365,9 @@ export default function AdminUsuarios() {
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
             >
               <option value="">Todas las Carreras</option>
-              <option value="1">Software</option>
+              {facultadFilter && facultadesCarreras[facultadFilter]?.map(c => (
+                <option key={c.id} value={c.id}>{c.nombre}</option>
+              ))}
             </select>
             <select
               value={sortBy}
@@ -441,7 +457,7 @@ export default function AdminUsuarios() {
                     <InfoField label="Facultad" value={detailData.perfil_estudiante.facultad || 'No especificada'} variant="default" />
                     <InfoField label="Carrera" value={detailData.perfil_estudiante.carrera || 'No especificada'} variant="default" />
                     <InfoField label="Universidad" value={detailData.perfil_estudiante.universidad || 'Universidad de Guayaquil'} variant="default" />
-                    <InfoField label="Semestre" value={detailData.perfil_estudiante.semestre || 'No especificado'} variant="default" />
+                    <InfoField label="Semestre" value={detailData.perfil_estudiante.semestre ? `${detailData.perfil_estudiante.semestre}º Semestre` : 'No especificado'} variant="default" />
                     {detailData.perfil_estudiante.intereses && (
                       <InfoField className="col-span-2" label="Intereses" value={detailData.perfil_estudiante.intereses} variant="default" />
                     )}
@@ -576,10 +592,11 @@ export default function AdminUsuarios() {
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Facultad *</label>
                   <select
                     value={editForm.facultad_id}
-                    onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value}))}
+                    onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                   >
                     <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+                    <option value="2">INGENIERIA QUIMICA</option>
                   </select>
                 </div>
                 <div className={editModal.rol_nombre === 'estudiante' ? '' : 'col-span-2'}>
@@ -590,7 +607,9 @@ export default function AdminUsuarios() {
                     className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                   >
                     <option value="">Seleccione carrera...</option>
-                    <option value="1">Software</option>
+                    {editForm.facultad_id && facultadesCarreras[editForm.facultad_id]?.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
                   </select>
                 </div>
                 {editModal.rol_nombre === 'estudiante' && (
@@ -665,10 +684,11 @@ export default function AdminUsuarios() {
                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Facultad *</label>
                 <select
                   value={createForm.facultad_id || '1'}
-                  onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value}))}
+                  onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                 >
                   <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
+                  <option value="2">INGENIERIA QUIMICA</option>
                 </select>
               </div>
               <div className={createForm.rol === 'estudiante' ? '' : 'col-span-2'}>
@@ -679,7 +699,9 @@ export default function AdminUsuarios() {
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                 >
                   <option value="">Seleccione...</option>
-                  <option value="1">Software</option>
+                  {(createForm.facultad_id || '1') && facultadesCarreras[createForm.facultad_id || '1']?.map(c => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
                 </select>
               </div>
               {createForm.rol === 'estudiante' && (

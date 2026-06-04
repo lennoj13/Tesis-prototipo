@@ -6,7 +6,7 @@ import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
 import adminService from 'services/adminService';
 import applicationService from 'services/applicationService';
-import { FiEye, FiUser, FiBriefcase, FiBookOpen } from 'react-icons/fi';
+import { FiEye, FiUser, FiBriefcase, FiBookOpen, FiLoader } from 'react-icons/fi';
 
 export default function GestorEstudiantes() {
   const [estudiantes, setEstudiantes] = useState([]);
@@ -90,8 +90,8 @@ export default function GestorEstudiantes() {
       {loading ? (
         <Card>
           <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-            Cargando estudiantes...
+            <FiLoader className="animate-spin" size={24} />
+            <span className="text-sm font-medium">Cargando estudiantes...</span>
           </div>
         </Card>
       ) : (
@@ -127,8 +127,9 @@ export default function GestorEstudiantes() {
             </div>
 
             {detailLoading ? (
-              <div className="py-12 flex justify-center text-slate-400">
-                <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+              <div className="flex items-center justify-center gap-2 py-8 text-slate-400">
+                <FiLoader className="animate-spin" size={18} />
+                <span className="text-sm">Cargando información detallada...</span>
               </div>
             ) : studentDetail ? (
               <div className="flex flex-col gap-6 h-[55vh] min-h-[400px] overflow-y-auto pr-1 custom-scrollbar">

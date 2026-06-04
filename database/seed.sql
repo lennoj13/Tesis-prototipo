@@ -7,6 +7,7 @@ TRUNCATE TABLE
     public.habilidades_estudiante,
     public.supervisores,
     public.instituciones,
+    public.perfiles_gestor,
     public.perfiles_estudiante,
     public.usuarios,
     public.habilidades,
@@ -15,174 +16,197 @@ TRUNCATE TABLE
     public.roles
 RESTART IDENTITY CASCADE;
 -- ============================================
-
 -- ROLES
 INSERT INTO public.roles (nombre, descripcion) VALUES 
-    ('estudiante', 'Estudiante de la Carrera de Software'),
+    ('estudiante', 'Estudiante de la Carrera'),
     ('empresa', 'Empresa o Institución con convenio'),
     ('gestor', 'Gestor de practicas preprofesionales'),
     ('admin', 'Administrador tecnico del sistema');
-
 -- FACULTADES
 INSERT INTO public.facultades (nombre) VALUES
-    ('CIENCIAS MATEMATICAS Y FISICAS');
-
+    ('Ciencias Matemáticas y Físicas'),
+    ('Ingeniería Química');
 -- CARRERAS
 INSERT INTO public.carreras (facultad_id, nombre, codigo) VALUES
-    (1, 'SOFTWARE', 'SOF');
-
+    (1, 'SOFTWARE', 'SOF'),
+    (1, 'Ciencias de Datos e Inteligencia Artificial', 'CDIA'),
+    (2, 'Ingeniería de la Producción', 'INP');
 -- HABILIDADES
 INSERT INTO public.habilidades (nombre, categoria) VALUES 
-    ('JavaScript', 'Programacion'),
-    ('Python', 'Programacion'),
-    ('React', 'Frontend'),
-    ('Node.js', 'Backend'),
-    ('SQL', 'Base de Datos'),
-    ('Java', 'Programacion'),
-    ('TypeScript', 'Programacion'),
-    ('Git', 'Herramientas'),
-    ('Excel', 'Herramientas'),
-    ('Power BI', 'Analisis'),
-    ('Figma', 'Diseno'),
-    ('Adobe XD', 'Diseno'),
-    ('Machine Learning', 'IA'),
-    ('Data Analysis', 'Analisis'),
-    ('AWS', 'Cloud'),
-    ('Docker', 'DevOps'),
-    ('Ingles', 'Idiomas'),
-    ('Liderazgo', 'Soft Skills'),
-    ('Trabajo en equipo', 'Soft Skills'),
-    ('Comunicacion', 'Soft Skills'),
-    ('Flask', 'Backend'),
-    ('Django', 'Backend'),
-    ('C#', 'Programacion'),
-    ('.NET', 'Backend'),
-    ('PHP', 'Programacion'),
-    ('Laravel', 'Backend'),
-    ('Angular', 'Frontend'),
-    ('Vue.js', 'Frontend'),
-    ('PostgreSQL', 'Base de Datos'),
-    ('MongoDB', 'Base de Datos');
-
+    ('JavaScript', 'Programacion'), ('Python', 'Programacion'), ('React', 'Frontend'), ('Node.js', 'Backend'),
+    ('SQL', 'Base de Datos'), ('Java', 'Programacion'), ('TypeScript', 'Programacion'), ('Git', 'Herramientas'),
+    ('Excel', 'Herramientas'), ('Power BI', 'Analisis'), ('Figma', 'Diseno'), ('Adobe XD', 'Diseno'),
+    ('Machine Learning', 'IA'), ('Data Analysis', 'Analisis'), ('AWS', 'Cloud'), ('Docker', 'DevOps'),
+    ('Ingles', 'Idiomas'), ('Liderazgo', 'Soft Skills'), ('Trabajo en equipo', 'Soft Skills'), ('Comunicacion', 'Soft Skills'),
+    ('Flask', 'Backend'), ('Django', 'Backend'), ('C#', 'Programacion'), ('.NET', 'Backend'),
+    ('PHP', 'Programacion'), ('Laravel', 'Backend'), ('Angular', 'Frontend'), ('Vue.js', 'Frontend'),
+    ('PostgreSQL', 'Base de Datos'), ('MongoDB', 'Base de Datos'), ('TensorFlow', 'IA'), ('PyTorch', 'IA'),
+    ('Lean Manufacturing', 'Ingenieria'), ('Six Sigma', 'Ingenieria'), ('Logistica', 'Ingenieria');
 -- USUARIOS (password para todos: Prueba123.)
-INSERT INTO public.usuarios (cedula, contrasena, nombre, apellido, correo, telefono, rol_id) VALUES 
-    -- 1 Admin (usuario_id = 1)
-    ('0900000001', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 4),
-    -- 2 Gestores (usuario_id = 2, 3) 
-    ('0900000002', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Marta', 'Diaz', 'marta.diaz@ug.edu.ec', '0997777771', 3),
-    ('0900000003', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Eduardo', 'Ruiz', 'carlos.ruiz@ug.edu.ec', '0997777772', 3),
-    -- 10 Estudiantes (usuario_id = 4 to 13)
-    -- Los estudiantes originales:
-    ('0955236773', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Bryan Guillermo', 'Galarza Indacochea', 'bryan.galarzaind@ug.edu.ec', '0998094515', 1),
-    ('0942646266', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Naldo Jonnel', 'Anchundia Caicedo', 'naldo.anchundiac@ug.edu.ec', '0990020956', 1),
-    ('1312657255', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge David', 'Intriago Loor', 'jorge.intriagoloo@ug.edu.ec', '0991111111', 1),
-    -- Los 7 estudiantes nuevos con nombres reales:
-    ('0911223344', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Maria Fernanda', 'Gomez Silva', 'maria.gomez@ug.edu.ec', '0991122334', 1),
-    ('0922334455', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis Antonio', 'Perez Castro', 'luis.perez@ug.edu.ec', '0992233445', 1),
-    ('0933445566', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana Sofia', 'Martinez Vera', 'ana.martinez@ug.edu.ec', '0993344556', 1),
-    ('0944556677', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro Jose', 'Castro Mendoza', 'pedro.castro@ug.edu.ec', '0994455667', 1),
-    ('0955667788', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Gabriela Elena', 'Vera Loor', 'gabriela.vera@ug.edu.ec', '0995566778', 1),
-    ('0966778899', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Alberto', 'Mora Sanchez', 'carlos.mora@ug.edu.ec', '0996677889', 1),
-    ('0977889900', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Diana Carolina', 'Silva Torres', 'diana.silva@ug.edu.ec', '0997788990', 1),
-    -- 10 Empresas (usuario_id = 14 to 23)
-    ('0990123456', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana', 'Garcia', 'rrhh@techsolutionsgye.com', '0994567890', 2),
-    ('0991234567', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro', 'Sanchez', 'contacto@datamindgye.com', '0995678901', 2),
-    ('0992345678', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis', 'Fernandez', 'rrhh@innovasoft.com', '0996789012', 2),
-    ('0993456789', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carla', 'Ruiz', 'rrhh@nexustech.com', '0997890123', 2),
-    ('0994567890', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge', 'Moreno', 'rrhh@globalsystems.com', '0998901234', 2),
-    ('0995678901', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Elena', 'Vargas', 'rrhh@smartcode.com', '0999012345', 2),
-    ('0996789012', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Andres', 'Rojas', 'rrhh@clouddevs.com', '0990123456', 2),
-    ('0997890123', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Sofia', 'Mendoza', 'rrhh@fintechsolutions.com', '0991234567', 2),
-    ('0998901234', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Mario', 'Castro', 'rrhh@appworks.com', '0992345678', 2),
-    ('0999012345', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Laura', 'Guzman', 'rrhh@cybersecurityec.com', '0993456789', 2);
-
--- PERFILES DE ESTUDIANTE (carrera_id = 1 -> SOFTWARE)
-INSERT INTO public.perfiles_estudiante (usuario_id, carrera_id, semestre, universidad, resumen_experiencia, intereses) VALUES 
-    (4, 1, '8', 'Universidad de Guayaquil', 'Experiencia en desarrollo web con React y Flask.', 'Desarrollo Web, Ciencia de Datos, IA'),
-    (5, 1, '8', 'Universidad de Guayaquil', 'Conocimiento en desarrollo backend con Python y Django.', 'Backend, Cloud Computing, Arquitectura'),
-    (6, 1, '6', 'Universidad de Guayaquil', 'Estudiante de Ciencia de Datos e IA.', 'Data Science, Machine Learning'),
-    (7, 1, '7', 'Universidad de Guayaquil', 'Apasionada por frontend y diseño de interfaces.', 'Frontend, UX/UI'),
-    (8, 1, '8', 'Universidad de Guayaquil', 'Experiencia en bases de datos relacionales y NoSQL.', 'Bases de Datos, SQL'),
-    (9, 1, '9', 'Universidad de Guayaquil', 'Desarrolladora fullstack junior con Node.js.', 'Fullstack, DevOps'),
-    (10, 1, '7', 'Universidad de Guayaquil', 'Conocimientos de cloud computing y arquitecturas serverless.', 'AWS, Cloud'),
-    (11, 1, '8', 'Universidad de Guayaquil', 'Interés en ciberseguridad y pentesting.', 'Seguridad, Redes'),
-    (12, 1, '9', 'Universidad de Guayaquil', 'Experiencia en aplicaciones móviles con React Native.', 'Mobile, Frontend'),
-    (13, 1, '6', 'Universidad de Guayaquil', 'Aprendiendo inteligencia artificial y análisis de datos.', 'Machine Learning, Analítica');
-
--- INSTITUCIONES (IDs: 1 to 10 for usuarios 14 to 23)
-INSERT INTO public.instituciones (usuario_id, nombre, ruc, industria, descripcion, direccion, ciudad, correo_contacto, telefono, estado) VALUES 
-    (14, 'TechSolutions GYE', '0990123456001', 'Tecnologia', 'Empresa de desarrollo de software y soluciones tecnologicas.', 'Av. Francisco de Orellana', 'Guayaquil', 'rrhh@techsolutionsgye.com', '042567890', 'aprobado'),
-    (15, 'DataMind Ecuador', '0991234567001', 'Data Science', 'Consultoria en ciencia de datos e inteligencia artificial.', 'Kennedy Norte', 'Guayaquil', 'contacto@datamindgye.com', '042890123', 'aprobado'),
-    (16, 'InnovaSoft SA', '0992345678001', 'Desarrollo Web', 'Agencia digital especializada en e-commerce.', 'Urdesa Central', 'Guayaquil', 'contacto@innovasoft.com', '042345678', 'aprobado'),
-    (17, 'NexusTech', '0993456789001', 'Telecomunicaciones', 'Servicios de infraestructura IT y redes.', 'Centro de Guayaquil', 'Guayaquil', 'info@nexustech.com', '042456789', 'aprobado'),
-    (18, 'Global Systems', '0994567890001', 'Sistemas Empresariales', 'Implementación de ERPs y CRMs.', 'Samanes', 'Guayaquil', 'rrhh@globalsystems.com', '042567891', 'aprobado'),
-    (19, 'SmartCode', '0995678901001', 'Software a Medida', 'Desarrollo de software a medida para pymes.', 'Los Ceibos', 'Guayaquil', 'hola@smartcode.com', '042678902', 'aprobado'),
-    (20, 'CloudDevs', '0996789012001', 'Cloud Computing', 'Consultoría y migraciones a AWS y Azure.', 'Alborada', 'Guayaquil', 'talento@clouddevs.com', '042789013', 'aprobado'),
-    (21, 'FinTech Solutions', '0997890123001', 'Finanzas', 'Desarrollo de plataformas financieras y pasarelas de pago.', 'Samborondón', 'Guayaquil', 'empleos@fintechsolutions.com', '042890124', 'aprobado'),
-    (22, 'AppWorks', '0998901234001', 'Mobile', 'Fábrica de aplicaciones móviles iOS y Android.', 'Urdesa Norte', 'Guayaquil', 'jobs@appworks.com', '042901235', 'aprobado'),
-    (23, 'CyberSecurity Ec', '0999012345001', 'Ciberseguridad', 'Auditorías de seguridad e implementación de ISO 27001.', 'Vía a la Costa', 'Guayaquil', 'contacto@cybersecurityec.com', '042012346', 'aprobado');
-
--- SUPERVISORES (institucion_id 1 to 10)
-INSERT INTO public.supervisores (institucion_id, tipo_identificacion, numero_identificacion, nombre, correo, departamento, cargo, telefono, observacion) VALUES
-    (1, 'Cedula', '0993456789', 'Maria Fernanda Lopez', 'maria.lopez@techsolutions.com', 'Desarrollo', 'Lider Tecnico', '0994561234', 'Encargada del equipo web'),
-    (2, 'Cedula', '0994567890', 'Roberto Carlos Mendoza', 'roberto.mendoza@datamind.com', 'Ciencia de Datos', 'Data Science Lead', '0995672345', 'Lidera proyectos de ML'),
-    (3, 'Cedula', '0995678901', 'Andrea Paulina Vera', 'andrea.vera@innovasoft.com', 'Proyectos', 'Project Manager', '0996783456', 'Supervisa desarrollos'),
-    (4, 'Cedula', '0996789012', 'Juan Perez', 'juan.perez@nexustech.com', 'Sistemas', 'Jefe de Infraestructura', '0997894567', 'Asigna tareas a pasantes'),
-    (5, 'Cedula', '0997890123', 'Diana Morales', 'diana.morales@globalsystems.com', 'Consultoría', 'Senior Consultant', '0998905678', 'Encargada de ERPs'),
-    (6, 'Cedula', '0998901234', 'Luis Torres', 'luis.torres@smartcode.com', 'Desarrollo', 'Tech Lead', '0999016789', 'Revisa PRs y código'),
-    (7, 'Cedula', '0999012345', 'Camila Ortiz', 'camila.ortiz@clouddevs.com', 'Cloud', 'Cloud Architect', '0990127890', 'Guía en AWS'),
-    (8, 'Cedula', '0990123456', 'Victor Hugo Ruiz', 'victor.ruiz@fintechsolutions.com', 'Ingeniería', 'Engineering Manager', '0991238901', 'Supervisa área técnica'),
-    (9, 'Cedula', '0991234567', 'Patricia Silva', 'patricia.silva@appworks.com', 'Mobile', 'Lead Android Dev', '0992349012', 'Supervisa apps móviles'),
-    (10, 'Cedula', '0992345678', 'Esteban Alvarado', 'esteban.alvarado@cybersecurityec.com', 'Seguridad', 'CISO', '0993450123', 'Dirige área de seguridad');
-
--- HABILIDADES DE ESTUDIANTES (estudiante_id = perfiles_estudiante.id = 1 to 10)
-INSERT INTO public.habilidades_estudiante (estudiante_id, habilidad_id, nivel) VALUES 
-    (1, 3, 4), (1, 1, 4),
-    (2, 2, 4), (2, 4, 3),
-    (3, 2, 4), (3, 13, 3),
-    (4, 25, 4), (4, 1, 3),
-    (5, 5, 4), (5, 29, 3),
-    (6, 26, 4), (6, 4, 3),
-    (7, 15, 3), (7, 3, 4),
-    (8, 17, 3), (8, 20, 4),
-    (9, 6, 3), (9, 23, 3),
-    (10, 13, 4), (10, 14, 4);
-
--- VACANTES (10 vacantes, 1 por empresa)
-INSERT INTO public.vacantes (institucion_id, supervisor_id, titulo, area, descripcion, requisitos, modalidad, ubicacion, total_horas, horas_diarias, horario, cupos, activo, fecha_expiracion) VALUES 
-    (1, 1, 'Practicante Desarrollo Frontend', 'Desarrollo Web', 'Buscamos estudiante para practicas en desarrollo frontend con React y TypeScript.', 'Estudiante de Ing. en Software (7mo semestre o superior). Conocimiento en React.', 'Hibrido', 'Guayaquil', 240, 6, 'Lunes a Viernes', 2, true, '2026-08-01'),
-    (2, 2, 'Practicante Analisis de Datos', 'Data Science', 'Practicas en analisis de datos con Python y herramientas de BI.', 'Conocimiento en Python, SQL. Interes en machine learning.', 'Presencial', 'Guayaquil', 144, 4, 'Lunes a Viernes 09:00-13:00', 3, true, '2026-07-28'),
-    (3, 3, 'Practicante Fullstack', 'Desarrollo Web', 'Apoyo en desarrollo de módulos de e-commerce.', 'React, Node.js y bases de datos.', 'Remoto', 'Remoto', 240, 6, 'Lunes a Viernes', 1, true, '2026-08-15'),
-    (4, 4, 'Practicante de Redes', 'Infraestructura', 'Configuración de equipos de red y soporte N1.', 'Conocimientos de redes y sistemas operativos.', 'Presencial', 'Guayaquil', 240, 8, 'Lunes a Viernes', 2, true, '2026-09-01'),
-    (5, 5, 'Pasante Consultoría ERP', 'Sistemas', 'Apoyo en levantamiento de requerimientos e implementación.', 'Habilidades analíticas y SQL básico.', 'Hibrido', 'Guayaquil', 240, 6, 'Lunes a Viernes', 1, true, '2026-08-30'),
-    (6, 6, 'Practicante Backend .NET', 'Desarrollo Backend', 'Desarrollo de microservicios con C# y .NET.', 'Conocimientos de C# y SQL Server.', 'Remoto', 'Remoto', 240, 6, 'Lunes a Viernes', 2, true, '2026-08-10'),
-    (7, 7, 'Practicante DevOps Jr.', 'Cloud', 'Apoyo en automatización y despliegues en AWS.', 'Conocimientos básicos de AWS, Linux y scripting.', 'Hibrido', 'Guayaquil', 240, 6, 'Lunes a Viernes', 1, true, '2026-09-15'),
-    (8, 8, 'Desarrollador Junior FinTech', 'Ingeniería', 'Mantenimiento de pasarelas de pago.', 'Python o Java, conocimiento de APIs REST.', 'Remoto', 'Remoto', 240, 6, 'Lunes a Viernes', 2, true, '2026-08-20'),
-    (9, 9, 'Practicante Android', 'Mobile', 'Desarrollo de nuevas features en app nativa.', 'Kotlin o Java para Android.', 'Presencial', 'Guayaquil', 240, 6, 'Lunes a Viernes', 1, true, '2026-08-25'),
-    (10, 10, 'Analista de Seguridad Jr.', 'Ciberseguridad', 'Apoyo en pruebas de vulnerabilidad y reportes.', 'Conocimientos en redes, Linux y herramientas de pentesting.', 'Hibrido', 'Guayaquil', 240, 6, 'Lunes a Viernes', 1, true, '2026-09-05');
-
--- HABILIDADES DE VACANTES
-INSERT INTO public.habilidades_vacante (vacante_id, habilidad_id, nivel_requerido, es_opcional) VALUES 
-    (1, 3, 3, false),
-    (2, 4, 3, false),
-    (3, 25, 3, false),
-    (4, 14, 3, false),
-    (5, 13, 3, false),
-    (6, 16, 3, false),
-    (7, 1, 3, false),
-    (8, 2, 3, false),
-    (9, 29, 3, false),
-    (10, 26, 3, false);
-
--- POSTULACIONES
-INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_afinidad) VALUES 
-    (1, 1, 'pendiente', 90.0),
-    (2, 2, 'pendiente', 90.0),
-    (3, 3, 'pendiente', 90.0),
-    (4, 4, 'pendiente', 90.0),
-    (5, 5, 'pendiente', 90.0),
-    (6, 6, 'pendiente', 90.0),
-    (7, 7, 'pendiente', 90.0),
-    (8, 8, 'pendiente', 90.0),
-    (9, 9, 'pendiente', 90.0),
-    (10, 10, 'pendiente', 90.0);
+INSERT INTO public.usuarios (cedula, contrasena, nombre, apellido, correo, telefono, rol_id) VALUES
+('0900000001', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Admin', 'Sistema', 'admin@ug.edu.ec', '0999000000', 4),
+('0900000002', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Marta', 'Díaz', 'marta.diaz@ug.edu.ec', '0997777771', 3),
+('0900000003', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Eduardo', 'Ruiz', 'carlos.ruiz@ug.edu.ec', '0997777772', 3),
+('0900000004', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luisa', 'Méndez', 'luisa.mendez@ug.edu.ec', '0997777773', 3),
+('0955236773', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Bryan Guillermo', 'Galarza Indacochea', 'bryan.galarzaind@ug.edu.ec', '09900005', 1),
+('0942646266', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Naldo Jonnel', 'Anchundia Caicedo', 'naldo.anchundiac@ug.edu.ec', '09900006', 1),
+('1312657255', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge David', 'Intriago Loor', 'jorge.intriagoloo@ug.edu.ec', '09900007', 1),
+('0911223344', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Maria Fernanda', 'Gómez Silva', 'maria.gomez@ug.edu.ec', '09900008', 1),
+('0922334455', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis Antonio', 'Pérez Castro', 'luis.perez@ug.edu.ec', '09900009', 1),
+('0933445566', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana Sofía', 'Martínez Vera', 'ana.martinez@ug.edu.ec', '099000010', 1),
+('0944556677', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro José', 'Castro Mendoza', 'pedro.castro@ug.edu.ec', '099000011', 1),
+('0955667788', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Gabriela Elena', 'Vera Loor', 'gabriela.vera@ug.edu.ec', '099000012', 1),
+('0966778899', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carlos Alberto', 'Mora Sánchez', 'carlos.mora@ug.edu.ec', '099000013', 1),
+('0977889900', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Diana Carolina', 'Silva Torres', 'diana.silva@ug.edu.ec', '099000014', 1),
+('0990151100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Ana', 'Garcia', 'rrhh@techsolutionsgye.com', '099000015', 2),
+('0990161100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Pedro', 'Sanchez', 'contacto@innovasoft.com', '099000016', 2),
+('0990171100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Luis', 'Fernandez', 'rrhh@globalsystems.com', '099000017', 2),
+('0990181100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carla', 'Ruiz', 'rrhh@clouddevs.com', '099000018', 2),
+('0990191100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jorge', 'Moreno', 'rrhh@appworks.com', '099000019', 2),
+('0990201100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Elena', 'Vargas', 'rrhh@fintechsolutions.com', '099000020', 2),
+('0990211100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Andres', 'Rojas', 'rrhh@cybersecurityec.com', '099000021', 2),
+('0990221100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Sofia', 'Mendoza', 'rrhh@smartcode.com', '099000022', 2),
+('0990231100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Mario', 'Castro', 'rrhh@nexustech.com', '099000023', 2),
+('0990241100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Laura', 'Guzman', 'rrhh@devmasters.com', '099000024', 2),
+('0990251100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Roberto', 'Luna', 'rrhh@datamindgye.com', '099000025', 2),
+('0990261100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Valeria', 'Pinto', 'contacto@aivision.com', '099000026', 2),
+('0990271100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Jose', 'Mieles', 'rrhh@metricasec.com', '099000027', 2),
+('0990281100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Carmen', 'Salas', 'rrhh@induproduccion.com', '099000028', 2),
+('0990291100', '$2b$12$N1z3kpDufIcmwp7xTnt.u.ufRsPGZ7cJDBU1VXpZR/N1nsTpSIK.e', 'Victor', 'Lino', 'contacto@logisticaavanzada.com', '099000029', 2);
+-- PERFILES DE GESTOR
+INSERT INTO public.perfiles_gestor (usuario_id, facultad_id, carrera_id) VALUES
+(2, 1, 1), (3, 1, 2), (4, 2, 3);
+-- PERFILES DE ESTUDIANTE
+INSERT INTO public.perfiles_estudiante (usuario_id, carrera_id, facultad_id, semestre, resumen_experiencia, intereses) VALUES
+(5, 1, 1, '8', 'Desarrollador web con experiencia en proyectos académicos usando MERN stack. Creador de sistema de inventario para pyme local.', 'Me interesa el desarrollo Backend y la arquitectura de software.'),
+(6, 1, 1, '8', 'Desarrollador web con experiencia en proyectos académicos usando MERN stack. Creador de sistema de inventario para pyme local.', 'Me interesa el desarrollo Backend y la arquitectura de software.'),
+(7, 1, 1, '8', 'Desarrollador web con experiencia en proyectos académicos usando MERN stack. Creador de sistema de inventario para pyme local.', 'Me interesa el desarrollo Backend y la arquitectura de software.'),
+(8, 1, 1, '8', 'Desarrollador web con experiencia en proyectos académicos usando MERN stack. Creador de sistema de inventario para pyme local.', 'Me interesa el desarrollo Backend y la arquitectura de software.'),
+(9, 1, 1, '8', 'Desarrollador web con experiencia en proyectos académicos usando MERN stack. Creador de sistema de inventario para pyme local.', 'Me interesa el desarrollo Backend y la arquitectura de software.'),
+(10, 2, 1, '7', 'Entusiasta de los datos. He participado en hackathons de análisis predictivo. Manejo de Python, Pandas y Scikit-Learn.', 'Inteligencia Artificial, Machine Learning, Análisis predictivo.'),
+(11, 2, 1, '7', 'Entusiasta de los datos. He participado en hackathons de análisis predictivo. Manejo de Python, Pandas y Scikit-Learn.', 'Inteligencia Artificial, Machine Learning, Análisis predictivo.'),
+(12, 3, 2, '8', 'Experiencia teórica y práctica en optimización de procesos mediante simuladores. Conocimiento en Lean Manufacturing.', 'Gestión de calidad, Mejora continua, Logística.'),
+(13, 3, 2, '8', 'Experiencia teórica y práctica en optimización de procesos mediante simuladores. Conocimiento en Lean Manufacturing.', 'Gestión de calidad, Mejora continua, Logística.'),
+(14, 3, 2, '8', 'Experiencia teórica y práctica en optimización de procesos mediante simuladores. Conocimiento en Lean Manufacturing.', 'Gestión de calidad, Mejora continua, Logística.');
+-- HABILIDADES ESTUDIANTE
+INSERT INTO public.habilidades_estudiante (estudiante_id, habilidad_id, nivel) VALUES
+(1, 1, 4), (1, 3, 4), (1, 4, 3),
+(2, 1, 4), (2, 3, 4), (2, 4, 3),
+(3, 1, 4), (3, 3, 4), (3, 4, 3),
+(4, 1, 4), (4, 3, 4), (4, 4, 3),
+(5, 1, 4), (5, 3, 4), (5, 4, 3),
+(6, 2, 5), (6, 13, 4), (6, 14, 4),
+(7, 2, 5), (7, 13, 4), (7, 14, 4),
+(8, 33, 4), (8, 34, 3), (8, 35, 4),
+(9, 33, 4), (9, 34, 3), (9, 35, 4),
+(10, 33, 4), (10, 34, 3), (10, 35, 4);
+-- INSTITUCIONES
+INSERT INTO public.instituciones (usuario_id, facultad_id, nombre, nombre_abreviado, ruc, industria, descripcion, estado, codigo_convenio, fecha_inicio_convenio, fecha_limite_convenio, telefono, correo_contacto) VALUES
+(15, 1, 'Tech Solutions GYE', 'Empresa de Desarrollo Web', '1234567890001', 'Desarrollo Web', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0001-PPP', '2023-01-01', '2028-12-31', '0990000001', 'contacto@techsolutionsgye.com'),
+(16, 1, 'InnovaSoft Ecuador', 'Empresa de Software Factory', '1234567890002', 'Software Factory', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0002-PPP', '2023-01-01', '2028-12-31', '0990000002', 'contacto@innovasoftecuador.com'),
+(17, 1, 'Global Systems', 'Empresa de Consultoría IT', '1234567890003', 'Consultoría IT', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0003-PPP', '2023-01-01', '2028-12-31', '0990000003', 'contacto@globalsystems.com'),
+(18, 1, 'Cloud Devs', 'Empresa de Cloud Computing', '1234567890004', 'Cloud Computing', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0004-PPP', '2023-01-01', '2028-12-31', '0990000004', 'contacto@clouddevs.com'),
+(19, 1, 'App Works', 'Empresa de Desarrollo Móvil', '1234567890005', 'Desarrollo Móvil', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0005-PPP', '2023-01-01', '2028-12-31', '0990000005', 'contacto@appworks.com'),
+(20, 1, 'Fintech Solutions', 'Empresa de Fintech', '1234567890006', 'Fintech', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0006-PPP', '2023-01-01', '2028-12-31', '0990000006', 'contacto@fintechsolutions.com'),
+(21, 1, 'CyberSec EC', 'Empresa de Ciberseguridad', '1234567890007', 'Ciberseguridad', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0007-PPP', '2023-01-01', '2028-12-31', '0990000007', 'contacto@cybersecec.com'),
+(22, 1, 'Smart Code', 'Empresa de Desarrollo Web', '1234567890008', 'Desarrollo Web', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0008-PPP', '2023-01-01', '2028-12-31', '0990000008', 'contacto@smartcode.com'),
+(23, 1, 'Nexus Tech', 'Empresa de Sistemas Empresariales', '1234567890009', 'Sistemas Empresariales', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0009-PPP', '2023-01-01', '2028-12-31', '0990000009', 'contacto@nexustech.com'),
+(24, 1, 'Dev Masters', 'Empresa de Desarrollo Backend', '12345678900010', 'Desarrollo Backend', 'Desarrollamos soluciones integrales para el sector tecnológico.', 'aprobado', 'UG-DFAP-0010-PPP', '2023-01-01', '2028-12-31', '0990000010', 'contacto@devmasters.com'),
+(25, 1, 'DataMind GYE', 'Empresa de Data Science', '12345678900011', 'Data Science', 'Especialistas en análisis de grandes volúmenes de datos.', 'aprobado', 'UG-DFAP-0011-PPP', '2023-05-15', '2028-05-15', '0990000011', 'contacto@datamindgye.com'),
+(26, 1, 'AI Vision', 'Empresa de Inteligencia Artificial', '12345678900012', 'Inteligencia Artificial', 'Especialistas en análisis de grandes volúmenes de datos.', 'aprobado', 'UG-DFAP-0012-PPP', '2023-05-15', '2028-05-15', '0990000012', 'contacto@aivision.com'),
+(27, 1, 'Metricas EC', 'Empresa de Big Data', '12345678900013', 'Big Data', 'Especialistas en análisis de grandes volúmenes de datos.', 'aprobado', 'UG-DFAP-0013-PPP', '2023-05-15', '2028-05-15', '0990000013', 'contacto@metricasec.com'),
+(28, 2, 'InduProducción S.A.', 'Empresa de Manufactura', '12345678900014', 'Manufactura', 'Líderes en procesos industriales y logística a nivel nacional.', 'aprobado', 'UG-DFAP-0014-PPP', '2024-02-10', '2029-02-10', '0990000014', 'contacto@induproduccións.a..com'),
+(29, 2, 'Logística Avanzada', 'Empresa de Logística Industrial', '12345678900015', 'Logística Industrial', 'Líderes en procesos industriales y logística a nivel nacional.', 'aprobado', 'UG-DFAP-0015-PPP', '2024-02-10', '2029-02-10', '0990000015', 'contacto@logísticaavanzada.com');
+-- SUPERVISORES
+INSERT INTO public.supervisores (institucion_id, numero_identificacion, nombre, apellido, correo, departamento, cargo, telefono) VALUES
+(1, '0999999901', 'Supervisor 1', 'Apellido 1', 'sup1@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001101'),
+(2, '0999999902', 'Supervisor 2', 'Apellido 2', 'sup2@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001102'),
+(3, '0999999903', 'Supervisor 3', 'Apellido 3', 'sup3@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001103'),
+(4, '0999999904', 'Supervisor 4', 'Apellido 4', 'sup4@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001104'),
+(5, '0999999905', 'Supervisor 5', 'Apellido 5', 'sup5@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001105'),
+(6, '0999999906', 'Supervisor 6', 'Apellido 6', 'sup6@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001106'),
+(7, '0999999907', 'Supervisor 7', 'Apellido 7', 'sup7@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001107'),
+(8, '0999999908', 'Supervisor 8', 'Apellido 8', 'sup8@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001108'),
+(9, '0999999909', 'Supervisor 9', 'Apellido 9', 'sup9@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001109'),
+(10, '0999999910', 'Supervisor 10', 'Apellido 10', 'sup10@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001110'),
+(11, '0999999911', 'Supervisor 11', 'Apellido 11', 'sup11@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001111'),
+(12, '0999999912', 'Supervisor 12', 'Apellido 12', 'sup12@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001112'),
+(13, '0999999913', 'Supervisor 13', 'Apellido 13', 'sup13@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001113'),
+(14, '0999999914', 'Supervisor 14', 'Apellido 14', 'sup14@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001114'),
+(15, '0999999915', 'Supervisor 15', 'Apellido 15', 'sup15@empresa.com', 'Recursos Humanos', 'Gerente de RRHH', '0990001115');
+-- VACANTES
+INSERT INTO public.vacantes (institucion_id, supervisor_id, titulo, area, descripcion, requisitos, modalidad, ubicacion, total_horas, horas_diarias, horario, cupos, fecha_expiracion) VALUES
+(1, 1, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(2, 2, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(3, 3, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(4, 4, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(5, 5, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(6, 6, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(7, 7, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(8, 8, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(9, 9, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(10, 10, 'Desarrollador Backend Junior', 'Tecnología', 'Buscamos un estudiante apasionado por el desarrollo backend para unirse a nuestro equipo. Trabajarás en proyectos reales aplicando metodologías ágiles.', '- Estudiante de 7mo semestre en adelante.
+- Sólidos conocimientos en algoritmos y POO.
+- Experiencia básica con bases de datos relacionales.
+- Capacidad analítica y resolución de problemas.', 'Híbrido', 'Guayaquil', 240, 6, '08:00 a 14:00', 2, '2027-12-31'),
+(11, 11, 'Analista de Datos Junior', 'Data', 'Únete a nuestro equipo de análisis. Participarás en la limpieza, transformación y visualización de datos para la toma de decisiones estratégicas.', '- Conocimientos en Python (Pandas, Numpy).
+- Entendimiento de estadística descriptiva.
+- Manejo básico de herramientas de BI.', 'Remoto', 'Guayaquil', 240, 6, '09:00 a 15:00', 1, '2027-12-31'),
+(12, 12, 'Analista de Datos Junior', 'Data', 'Únete a nuestro equipo de análisis. Participarás en la limpieza, transformación y visualización de datos para la toma de decisiones estratégicas.', '- Conocimientos en Python (Pandas, Numpy).
+- Entendimiento de estadística descriptiva.
+- Manejo básico de herramientas de BI.', 'Remoto', 'Guayaquil', 240, 6, '09:00 a 15:00', 1, '2027-12-31'),
+(13, 13, 'Analista de Datos Junior', 'Data', 'Únete a nuestro equipo de análisis. Participarás en la limpieza, transformación y visualización de datos para la toma de decisiones estratégicas.', '- Conocimientos en Python (Pandas, Numpy).
+- Entendimiento de estadística descriptiva.
+- Manejo básico de herramientas de BI.', 'Remoto', 'Guayaquil', 240, 6, '09:00 a 15:00', 1, '2027-12-31'),
+(14, 14, 'Pasante de Optimización de Procesos', 'Producción', 'Buscamos talento para nuestra área de mejora continua. Colaborarás en la identificación de cuellos de botella y aplicación de metodologías Lean.', '- Estudiante de últimos semestres de Ing. en Producción.
+- Conocimientos teóricos de Lean Manufacturing.
+- Manejo de Excel avanzado.
+- Proactividad.', 'Presencial', 'Durán', 240, 6, '07:00 a 13:00', 2, '2027-12-31'),
+(15, 15, 'Pasante de Optimización de Procesos', 'Producción', 'Buscamos talento para nuestra área de mejora continua. Colaborarás en la identificación de cuellos de botella y aplicación de metodologías Lean.', '- Estudiante de últimos semestres de Ing. en Producción.
+- Conocimientos teóricos de Lean Manufacturing.
+- Manejo de Excel avanzado.
+- Proactividad.', 'Presencial', 'Durán', 240, 6, '07:00 a 13:00', 2, '2027-12-31');
+-- HABILIDADES VACANTES
+INSERT INTO public.habilidades_vacante (vacante_id, habilidad_id) VALUES
+(1, 4), (1, 5), (1, 8),
+(2, 4), (2, 5), (2, 8),
+(3, 4), (3, 5), (3, 8),
+(4, 4), (4, 5), (4, 8),
+(5, 4), (5, 5), (5, 8),
+(6, 4), (6, 5), (6, 8),
+(7, 4), (7, 5), (7, 8),
+(8, 4), (8, 5), (8, 8),
+(9, 4), (9, 5), (9, 8),
+(10, 4), (10, 5), (10, 8),
+(11, 2), (11, 14), (11, 10),
+(12, 2), (12, 14), (12, 10),
+(13, 2), (13, 14), (13, 10),
+(14, 9), (14, 33), (14, 19),
+(15, 9), (15, 33), (15, 19);

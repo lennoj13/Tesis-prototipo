@@ -92,8 +92,8 @@ class AdminCompanyStatusService(Resource):
             if not auth['result']:
                 return response_error("No autorizado")
             
-            if auth['data'].get('role') not in ('admin',):
-                return response_error("Acceso denegado")
+            if auth['data'].get('role') not in ('admin', 'gestor'):
+                return response_error("Acceso denegado: se requiere rol admin o gestor")
 
             rq_json = request.get_json()
             new_status = rq_json.get('status') or rq_json.get('estado')

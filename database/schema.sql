@@ -53,6 +53,7 @@ CREATE TABLE public.perfiles_estudiante (
     perfil_id SERIAL PRIMARY KEY,
     usuario_id INTEGER NOT NULL UNIQUE REFERENCES public.usuarios(usuario_id) ON DELETE CASCADE,
     carrera_id INTEGER REFERENCES public.carreras(carrera_id),
+    facultad_id INTEGER REFERENCES public.facultades(facultad_id),
     semestre VARCHAR(30),
     universidad VARCHAR(200) DEFAULT 'Universidad de Guayaquil',
     resumen_experiencia TEXT,
@@ -77,7 +78,9 @@ CREATE TABLE public.perfiles_gestor (
 CREATE TABLE public.instituciones (
     institucion_id SERIAL PRIMARY KEY,
     usuario_id INTEGER REFERENCES public.usuarios(usuario_id),
+    facultad_id INTEGER REFERENCES public.facultades(facultad_id),
     nombre VARCHAR(200) NOT NULL,
+    nombre_abreviado VARCHAR(100),
     ruc VARCHAR(20) UNIQUE,
     industria VARCHAR(100),
     descripcion TEXT,
@@ -87,6 +90,10 @@ CREATE TABLE public.instituciones (
     correo_contacto VARCHAR(150),
     telefono VARCHAR(20),
     estado VARCHAR(20) DEFAULT 'pendiente',
+    codigo_convenio VARCHAR(100),
+    tipo_convenio VARCHAR(100) DEFAULT 'PRACTICAS PREPROFESIONALES',
+    fecha_inicio_convenio DATE,
+    fecha_limite_convenio DATE,
     creado_en TIMESTAMP DEFAULT NOW(),
     actualizado_en TIMESTAMP DEFAULT NOW()
 );
@@ -98,6 +105,7 @@ CREATE TABLE public.supervisores (
     tipo_identificacion VARCHAR(20) DEFAULT 'Cedula',
     numero_identificacion VARCHAR(20) NOT NULL,
     nombre VARCHAR(200) NOT NULL,
+    apellido VARCHAR(200),
     correo VARCHAR(150),
     departamento VARCHAR(200),
     cargo VARCHAR(100),

@@ -12,14 +12,6 @@ import Button from 'components/Button';
 import { FiArrowLeft, FiSave, FiAlertTriangle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
-const areas = [
-  'Desarrollo Web', 'Desarrollo Backend', 'Desarrollo Móvil',
-  'Data Science', 'Diseño UX/UI', 'Marketing Digital',
-  'Contabilidad', 'Finanzas', 'Recursos Humanos',
-  'IT Support', 'Redes y Telecomunicaciones',
-  'Cloud Computing', 'Ciberseguridad', 'Otro',
-];
-
 const modalidades = ['Presencial', 'Remoto', 'Híbrido'];
 
 export default function NuevaVacante() {
@@ -34,7 +26,7 @@ export default function NuevaVacante() {
     slots: 1, expires_at: '', supervisor_id: ''
   });
   const [newSupervisor, setNewSupervisor] = useState({
-    numero_identificacion: '', nombre: '', correo: '', cargo: '', telefono: ''
+    numero_identificacion: '', nombre: '', apellido: '', correo: '', cargo: '', telefono: '', departamento: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -159,11 +151,8 @@ export default function NuevaVacante() {
 
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Área <span className="text-danger">*</span></label>
-              <select name="area" value={form.area} onChange={handleChange} className={`${fieldBase} ${errors.area ? fieldErr : fieldOk}`}>
-                <option value="">Seleccionar...</option>
-                {areas.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
+              <label className="text-sm font-semibold text-slate-700">Área o Departamento <span className="text-danger">*</span></label>
+              <input name="area" value={form.area} onChange={handleChange} placeholder="Ej: Tecnología, Contabilidad..." className={`${fieldBase} ${errors.area ? fieldErr : fieldOk}`} />
               {errors.area && <p className="text-[0.8125rem] text-danger">{errors.area}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
@@ -189,9 +178,13 @@ export default function NuevaVacante() {
                 <h4 className="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">Datos del Nuevo Supervisor</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Nombre Completo <span className="text-danger">*</span></label>
-                    <input value={newSupervisor.nombre} onChange={e => {setNewSupervisor(p => ({...p, nombre: e.target.value})); if(errors.sup_nombre) setErrors(p => ({...p, sup_nombre: ''}));}} className={`${fieldBase} ${errors.sup_nombre ? fieldErr : fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Nombre <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.nombre} onChange={e => {setNewSupervisor(p => ({...p, nombre: e.target.value})); if(errors.sup_nombre) setErrors(p => ({...p, sup_nombre: ''}));}} placeholder="Juan" className={`${fieldBase} ${errors.sup_nombre ? fieldErr : fieldOk}`} />
                     {errors.sup_nombre && <p className="text-[0.8125rem] text-danger">{errors.sup_nombre}</p>}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Apellido</label>
+                    <input value={newSupervisor.apellido} onChange={e => setNewSupervisor(p => ({...p, apellido: e.target.value}))} placeholder="Pérez" className={`${fieldBase} ${fieldOk}`} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-slate-700">Correo <span className="text-danger">*</span></label>
@@ -205,6 +198,10 @@ export default function NuevaVacante() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-slate-700">Cargo</label>
                     <input value={newSupervisor.cargo} onChange={e => setNewSupervisor(p => ({...p, cargo: e.target.value}))} placeholder="Ej: Gerente de TI" className={`${fieldBase} ${fieldOk}`} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Departamento</label>
+                    <input value={newSupervisor.departamento} onChange={e => setNewSupervisor(p => ({...p, departamento: e.target.value}))} placeholder="Ej: Tecnología" className={`${fieldBase} ${fieldOk}`} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-slate-700">Teléfono</label>

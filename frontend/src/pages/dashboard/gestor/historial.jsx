@@ -4,9 +4,10 @@ import StatusBadge from 'components/StatusBadge';
 import Button from 'components/Button';
 import Card from 'components/Card';
 import EmptyState from 'components/EmptyState';
-import SolicitudDetalleModal from 'components/SolicitudDetalleModal';
+import DataTable from 'components/DataTable';
+import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
-import { FiEye } from 'react-icons/fi';
+import { FiEye, FiLoader } from 'react-icons/fi';
 
 export default function GestorHistorial() {
   const [applications, setApplications] = useState([]);
@@ -55,13 +56,88 @@ export default function GestorHistorial() {
     setSolicitudData(null);
   }
 
+  async function handleUpdateStatus(newStatus) {
+    if (!detailModal) return;
+    try {
+      const response = await applicationService.updateStatus(detailModal.postulacion_id, {
+        estado: newStatus,
+        notas: newStatus === 'completada' ? 'Práctica completada exitosamente' : 'Práctica anulada',
+      });
+      if (response.result) {
+        closeDetail();
+        loadApplications();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const historyApps = applications.filter(
-    (app) => app.estado === 'aprobada' || app.estado === 'rechazada'
+    (app) => ['aprobada', 'rechazada_gestor', 'completada', 'anulada'].includes(app.estado)
   );
 
   const filteredApps = filter === 'todas'
     ? historyApps
     : historyApps.filter((app) => app.estado === filter);
+
+  const columns = [
+    {
+      key: 'estudiante',
+      label: 'Estudiante / Carrera',
+      render: (_, app) => (
+        <div>
+          <p className="font-semibold text-slate-800 m-0">{app.nombre_estudiante || 'Estudiante'}</p>
+          <p className="text-xs text-slate-500 m-0">Carrera: {app.carrera || '-'} • Semestre: {app.semestre ? `${app.semestre}º` : '-'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'vacante',
+      label: 'Vacante / Empresa',
+      render: (_, app) => (
+        <div>
+          <p className="font-medium text-slate-700 m-0">{app.titulo_vacante || app.titulo || '-'}</p>
+          <p className="text-xs text-slate-500 m-0">{app.nombre_empresa || '-'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'nro_solicitud',
+      label: 'Nro. Sol.',
+      render: (_, app) => app.nro_solicitud ? <span className="text-xs text-green-600 font-medium">{app.nro_solicitud}</span> : <span className="text-xs text-slate-400">-</span>,
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      render: (_, app) => <StatusBadge status={app.estado} />,
+    },
+  ];
+
+  if (detailModal) {
+    return (
+      <div className="animate-fade-in">
+        <SolicitudDetalleView
+          isOpen={true}
+          onClose={closeDetail}
+          solicitud={solicitudData}
+          loading={detailLoading}
+          showActions={false}
+          extraActions={
+            detailModal.estado === 'aprobada' && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('completada')}>
+                  Marcar como Completada
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => handleUpdateStatus('anulada')}>
+                  Anular Práctica
+                </Button>
+              </>
+            )
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -74,7 +150,9 @@ export default function GestorHistorial() {
         {[
           { key: 'todas', label: 'Todas' },
           { key: 'aprobada', label: 'Aprobadas' },
-          { key: 'rechazada', label: 'Rechazadas' },
+          { key: 'completada', label: 'Completadas' },
+          { key: 'anulada', label: 'Anuladas' },
+          { key: 'rechazada_gestor', label: 'Rechazadas' },
         ].map((item) => (
           <Button
             key={item.key}
@@ -90,8 +168,8 @@ export default function GestorHistorial() {
       {loading ? (
         <Card>
           <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-            Cargando historial...
+            <FiLoader className="animate-spin" size={24} />
+            <span className="text-sm font-medium">Cargando historial...</span>
           </div>
         </Card>
       ) : filteredApps.length === 0 ? (
@@ -100,53 +178,22 @@ export default function GestorHistorial() {
           message="No hay postulaciones en el historial"
         />
       ) : (
-        <div className="grid gap-4">
-          {filteredApps.map((app) => (
-            <Card key={app.postulacion_id} padding="md" hover>
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-slate-800 mb-1">
-                    {app.nombre_estudiante || 'Estudiante'}
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-1">
-                    Vacante: <span className="font-medium text-slate-700">{app.titulo_vacante || app.titulo || '-'}</span>
-                  </p>
-                  <p className="text-sm text-slate-500 mb-1">
-                    Empresa: <span className="font-medium text-slate-700">{app.nombre_empresa || '-'}</span>
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    Carrera: {app.carrera || '-'} | Semestre: {app.semestre || '-'} | Afinidad: <span className="font-bold text-primary-600">{app.porcentaje_afinidad}%</span>
-                  </p>
-                  {app.nro_solicitud && (
-                    <p className="text-sm text-green-600 font-medium mt-1">
-                      Nro. Solicitud: {app.nro_solicitud}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={app.estado} />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<FiEye />}
-                    onClick={() => openDetail(app)}
-                  >
-                    Ver detalle
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredApps}
+          searchKeys={['nombre_estudiante', 'titulo_vacante', 'titulo', 'nombre_empresa', 'nro_solicitud']}
+          actions={(row) => (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<FiEye />}
+              onClick={() => openDetail(row)}
+            >
+              Detalles
+            </Button>
+          )}
+        />
       )}
-
-      <SolicitudDetalleModal
-        isOpen={!!detailModal}
-        onClose={closeDetail}
-        solicitud={solicitudData}
-        loading={detailLoading}
-        showActions={false}
-      />
     </div>
   );
 }

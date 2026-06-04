@@ -62,3 +62,29 @@ class CurrentUserService(Resource):
         except Exception as err:
             HandleLogs.write_error(err)
             return response_error("Error en current-user -> " + str(err))
+
+class ChangePasswordService(Resource):
+    @staticmethod
+    def post():
+        try:
+            auth = AuthComponent.verify(request)
+            if not auth['result']:
+                return response_error(auth['message'])
+
+            user_id = auth['data']['user_id']
+            rq_json = request.get_json()
+
+            old_password = rq_json.get('old_password')
+            new_password = rq_json.get('new_password')
+
+            if not old_password or not new_password:
+                return response_error("Faltan campos de contraseña")
+
+            result = UserComponent.change_password(user_id, old_password, new_password)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))

@@ -4,11 +4,12 @@ import StatusBadge from 'components/StatusBadge';
 import Button from 'components/Button';
 import Card from 'components/Card';
 import EmptyState from 'components/EmptyState';
-import SolicitudDetalleModal from 'components/SolicitudDetalleModal';
+import DataTable from 'components/DataTable';
+import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
 import profileService from 'services/profileService';
 import adminService from 'services/adminService';
-import { FiEye, FiLoader } from 'react-icons/fi';
+import { FiEye, FiLoader, FiFileText } from 'react-icons/fi';
 
 export default function GestorPostulaciones() {
   const [applications, setApplications] = useState([]);
@@ -96,7 +97,7 @@ export default function GestorPostulaciones() {
     setActionLoading(prev => ({ ...prev, reject: true }));
     try {
       const response = await applicationService.updateStatus(detailModal.postulacion_id, {
-        estado: 'rechazada',
+        estado: 'rechazada_gestor',
         notas: 'Rechazado por el gestor de PPP',
       });
       if (response.result) {
@@ -130,7 +131,81 @@ export default function GestorPostulaciones() {
     return false;
   }
 
+  async function handleUpdateSupervisor(id, formData) {
+    setCreatingSupervisor(true);
+    try {
+      const res = await adminService.updateSupervisor(id, formData);
+      if (res.result) {
+        setSupervisores(prev => prev.map(s => String(s.supervisor_id) === String(id) ? { ...s, ...formData } : s));
+        return true;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreatingSupervisor(false);
+    }
+    return false;
+  }
+
   const pendingApps = applications.filter(a => a.estado === 'aceptada_empresa');
+
+  const columns = [
+    {
+      key: 'estudiante',
+      label: 'Estudiante / Carrera',
+      render: (_, app) => (
+        <div>
+          <p className="font-semibold text-slate-800 m-0">{app.nombre_estudiante || 'Estudiante'}</p>
+          <p className="text-xs text-slate-500 m-0">Carrera: {app.carrera || '-'} • Semestre: {app.semestre ? `${app.semestre}º` : '-'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'vacante',
+      label: 'Vacante / Empresa',
+      render: (_, app) => (
+        <div>
+          <p className="font-medium text-slate-700 m-0">{app.titulo_vacante || app.titulo || '-'}</p>
+          <p className="text-xs text-slate-500 m-0">{app.nombre_empresa || '-'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'afinidad',
+      label: 'Afinidad',
+      render: (_, app) => <span className="font-bold text-primary-600">{app.porcentaje_afinidad}%</span>,
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      render: (_, app) => <StatusBadge status={app.estado} />,
+    },
+  ];
+
+  if (detailModal) {
+    return (
+      <div className="animate-fade-in">
+        <SolicitudDetalleView
+          isOpen={true}
+          onClose={closeDetail}
+          solicitud={solicitudData}
+          loading={detailLoading}
+          supervisors={supervisores}
+          selectedSupervisor={selectedSupervisor}
+          onSupervisorChange={setSelectedSupervisor}
+          onCreateSupervisor={handleCreateSupervisor}
+          onUpdateSupervisor={handleUpdateSupervisor}
+          creatingSupervisor={creatingSupervisor}
+          showActions={true}
+          onApprove={confirmApprove}
+          onReject={handleReject}
+          approveLoading={actionLoading.approve}
+          rejectLoading={actionLoading.reject}
+          approveDisabled={!selectedSupervisor}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -143,7 +218,7 @@ export default function GestorPostulaciones() {
         <Card>
           <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
             <FiLoader className="animate-spin" size={24} />
-            Cargando postulaciones...
+            <span className="text-sm font-medium">Cargando postulaciones...</span>
           </div>
         </Card>
       ) : pendingApps.length === 0 ? (
@@ -152,62 +227,22 @@ export default function GestorPostulaciones() {
           message="No hay postulaciones pendientes de aprobación"
         />
       ) : (
-        <div className="grid gap-4">
-          {pendingApps.map((app) => (
-            <Card key={app.postulacion_id} padding="md" hover>
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-slate-800 mb-1">
-                    {app.nombre_estudiante || 'Estudiante'}
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-1">
-                    Vacante: <span className="font-medium text-slate-700">{app.titulo_vacante || app.titulo || '-'}</span>
-                  </p>
-                  <p className="text-sm text-slate-500 mb-1">
-                    Empresa: <span className="font-medium text-slate-700">{app.nombre_empresa || '-'}</span>
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    Carrera: {app.carrera || '-'} | Semestre: {app.semestre || '-'} | Afinidad: <span className="font-bold text-primary-600">{app.porcentaje_afinidad}%</span>
-                  </p>
-                  {app.nro_solicitud && (
-                    <p className="text-sm text-green-600 font-medium mt-1">
-                      Nro. Solicitud: {app.nro_solicitud}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={app.estado} />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<FiEye />}
-                    onClick={() => openDetail(app)}
-                  >
-                    Ver detalle
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <DataTable
+          columns={columns}
+          data={pendingApps}
+          searchKeys={['nombre_estudiante', 'titulo_vacante', 'titulo', 'nombre_empresa']}
+          actions={(row) => (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<FiFileText />}
+              onClick={() => openDetail(row)}
+            >
+              Procesar Solicitud
+            </Button>
+          )}
+        />
       )}
-      <SolicitudDetalleModal
-        isOpen={!!detailModal}
-        onClose={closeDetail}
-        solicitud={solicitudData}
-        loading={detailLoading}
-        supervisors={supervisores}
-        selectedSupervisor={selectedSupervisor}
-        onSupervisorChange={setSelectedSupervisor}
-        onCreateSupervisor={handleCreateSupervisor}
-        creatingSupervisor={creatingSupervisor}
-        showActions
-        onApprove={confirmApprove}
-        onReject={handleReject}
-        approveLoading={actionLoading.approve}
-        rejectLoading={actionLoading.reject}
-        approveDisabled={!selectedSupervisor}
-      />
     </div>
   );
 }

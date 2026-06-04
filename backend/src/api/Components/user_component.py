@@ -104,3 +104,29 @@ class UserComponent:
             else:
                 cleaned_user[key] = value
         return cleaned_user
+
+    @staticmethod
+    def change_password(user_id, old_password, new_password):
+        import bcrypt
+        try:
+            sql_get = "SELECT contrasena FROM public.usuarios WHERE usuario_id = %s"
+            db_res = DataBaseHandle.getRecords(sql_get, 1, (user_id,))
+            
+            if not db_res['result'] or not db_res['data']:
+                return {"result": False, "message": "Usuario no encontrado"}
+                
+            hashed_pass = db_res['data']['contrasena'].encode('utf-8')
+            if not bcrypt.checkpw(old_password.encode('utf-8'), hashed_pass):
+                return {"result": False, "message": "Contraseña actual incorrecta"}
+                
+            new_hashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            sql_update = "UPDATE public.usuarios SET contrasena = %s WHERE usuario_id = %s"
+            upd_res = DataBaseHandle.ExecuteNonQuery(sql_update, (new_hashed, user_id))
+            
+            if upd_res['result']:
+                return {"result": True, "data": "Contraseña actualizada exitosamente"}
+            return {"result": False, "message": "Error al actualizar la contraseña"}
+            
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return {"result": False, "message": "Error interno: " + str(err)}

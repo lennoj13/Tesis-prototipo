@@ -131,6 +131,10 @@ class ApplicationComponent:
                 if notas:
                     set_parts.append("notas_empresa = %s")
                     params.append(notas)
+            elif nuevo_estado == 'rechazada_gestor':
+                if notas:
+                    set_parts.append("notas_gestor = %s")
+                    params.append(notas)
 
             params.append(postulacion_id)
 
@@ -303,6 +307,8 @@ class ApplicationComponent:
                     u_est.correo as est_correo,
                     pe.perfil_id as est_id,
                     pe.semestre as est_nivel,
+                    pe.intereses as est_intereses,
+                    pe.resumen_experiencia as est_experiencia,
                     c.nombre as est_carrera,
                     f.nombre as est_facultad,
                     i.nombre as inst_nombre,
@@ -355,7 +361,9 @@ class ApplicationComponent:
                         'carrera': d['est_carrera'],
                         'facultad': d['est_facultad'],
                         'nivel': d['est_nivel'],
-                        'correo': d['est_correo']
+                        'correo': d['est_correo'],
+                        'intereses': d['est_intereses'],
+                        'experiencia': d['est_experiencia']
                     },
                     'institucion': {
                         'nombre': d['inst_nombre'],

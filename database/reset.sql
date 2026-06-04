@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS public.habilidades CASCADE;
 DROP TABLE IF EXISTS public.supervisores CASCADE;
 DROP TABLE IF EXISTS public.instituciones CASCADE;
 DROP TABLE IF EXISTS public.perfiles_estudiante CASCADE;
+DROP TABLE IF EXISTS public.perfiles_gestor CASCADE;
 DROP TABLE IF EXISTS public.carreras CASCADE;
 DROP TABLE IF EXISTS public.facultades CASCADE;
 DROP TABLE IF EXISTS public.usuarios CASCADE;
