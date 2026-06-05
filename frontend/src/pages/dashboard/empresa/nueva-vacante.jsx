@@ -4,13 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import vacancyService from 'services/vacancyService';
 import profileService from 'services/profileService';
+import adminService from 'services/adminService';
 import PageHeader from 'components/PageHeader';
 import Button from 'components/Button';
+import SkillSelector from 'components/SkillSelector';
 import { FiArrowLeft, FiSave, FiAlertTriangle } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
 
 const modalidades = ['Presencial', 'Remoto', 'Híbrido'];
 
@@ -31,11 +32,23 @@ export default function NuevaVacante() {
   const [errors, setErrors] = useState({});
 
   const [supervisores, setSupervisores] = useState([]);
+  const [allSkills, setAllSkills] = useState([]);
+  const [habilidades, setHabilidades] = useState([]);
 
   useEffect(() => {
     profileService.getMyProfile().then(res => {
       if (res.result && res.data?.details?.supervisores) {
         setSupervisores(res.data.details.supervisores);
+      }
+    });
+    adminService.getSkills().then(res => {
+      if (res.result && res.data) {
+        const normalizedSkills = res.data.map(s => ({
+          skill_id: s.habilidad_id || s.id || null,
+          name: s.nombre || s.name || '',
+          category: s.categoria || s.category || null,
+        })).filter(s => s.name);
+        setAllSkills(normalizedSkills);
       }
     });
   }, []);
@@ -84,14 +97,16 @@ export default function NuevaVacante() {
         schedule: form.schedule || null,
         slots: parseInt(form.slots) || 1,
         expires_at: form.expires_at,
-        skills: [],
+        supervisor_id: form.supervisor_id === 'new' ? 'new' : parseInt(form.supervisor_id, 10) || null,
+        new_supervisor: form.supervisor_id === 'new' ? newSupervisor : null,
+        skills: habilidades.map(skill => ({
+          skill_id: skill.skill_id || null,
+          name: skill.name,
+          required_level: skill.level || 1,
+          category: skill.category || null,
+          is_optional: skill.is_optional || false
+        })),
       };
-
-      if (form.supervisor_id === 'new') {
-        payload.new_supervisor = newSupervisor;
-      } else {
-        payload.supervisor_id = parseInt(form.supervisor_id, 10);
-      }
 
       const res = await vacancyService.create(payload);
       if (res.result) {
@@ -145,8 +160,19 @@ export default function NuevaVacante() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">Requisitos</label>
+            <label className="text-sm font-semibold text-slate-700">Requisitos en texto</label>
             <textarea name="requirements" value={form.requirements} onChange={handleChange} rows={3} placeholder="- Estudiante de Ing. en Software (7mo semestre o superior)&#10;- Conocimiento en React" className={`${fieldBase} resize-y min-h-[80px] ${fieldOk}`} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-slate-700">Habilidades Específicas Solicitadas</label>
+            <p className="text-xs text-slate-500 mb-2">Selecciona las habilidades, el nivel mínimo requerido y si son opcionales para esta vacante.</p>
+            <SkillSelector 
+              selectedSkills={habilidades} 
+              allSkills={allSkills} 
+              onChange={setHabilidades} 
+              isVacancy={true} 
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">

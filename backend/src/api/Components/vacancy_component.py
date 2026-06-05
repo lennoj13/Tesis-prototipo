@@ -49,10 +49,35 @@ class VacancyComponent:
     @staticmethod
     def _add_vacancy_skills(vacante_id, skills):
         try:
+            seen_ids = set()
             for skill_data in skills:
                 habilidad_id = skill_data.get('skill_id') or skill_data.get('habilidad_id')
+                name = skill_data.get('name') or skill_data.get('nombre')
+                
+                if not habilidad_id and name:
+                    cleaned_name = name.strip()
+                    if not cleaned_name:
+                        continue
+                        
+                    sql_find = "SELECT habilidad_id FROM public.habilidades WHERE LOWER(nombre) = LOWER(%s) LIMIT 1"
+                    res_skill = DataBaseHandle.getRecords(sql_find, 1, (cleaned_name,))
+                    
+                    if res_skill['result'] and res_skill['data']:
+                        habilidad_id = res_skill['data']['habilidad_id']
+                    else:
+                        category = skill_data.get('category') or skill_data.get('categoria') or 'Manual'
+                        sql_insert = "INSERT INTO public.habilidades (nombre, categoria) VALUES (%s, %s) RETURNING habilidad_id"
+                        insert_res = DataBaseHandle.ExecuteNonQuery(sql_insert, (cleaned_name, category))
+                        if insert_res['result'] and insert_res['data']:
+                            habilidad_id = insert_res['data']
+                            
+                if not habilidad_id or habilidad_id in seen_ids:
+                    continue
+                    
+                seen_ids.add(habilidad_id)
                 nivel_requerido = skill_data.get('required_level') or skill_data.get('nivel_requerido', 1)
                 es_opcional = skill_data.get('is_optional') or skill_data.get('es_opcional', False)
+                
                 sql = '''
                 INSERT INTO public.habilidades_vacante (vacante_id, habilidad_id, nivel_requerido, es_opcional)
                 VALUES (%s, %s, %s, %s)
@@ -242,6 +267,11 @@ class VacancyComponent:
                 p_data.get('supervisor_id'),
                 vacante_id
             ))
+            
+            if 'skills' in p_data:
+                DataBaseHandle.ExecuteNonQuery("DELETE FROM public.habilidades_vacante WHERE vacante_id = %s", (vacante_id,))
+                VacancyComponent._add_vacancy_skills(vacante_id, p_data['skills'])
+                
             return internal_response(True, None, "Vacante actualizada")
         except Exception as err:
             HandleLogs.write_error(err)

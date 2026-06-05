@@ -11,6 +11,7 @@ import Input from 'components/Input';
 import { useAuth } from 'context/AuthContext';
 import profileService from 'services/profileService';
 import adminService from 'services/adminService';
+import SkillSelector from 'components/SkillSelector';
 import { FiSave, FiPlus, FiX } from 'react-icons/fi';
 
 // Eliminamos las listas de carreras y semestres porque vienen precargadas del SIUG.
@@ -18,33 +19,11 @@ import { FiSave, FiPlus, FiX } from 'react-icons/fi';
 export default function EstudiantePerfil() {
   const { user } = useAuth();
 
-  const [habilidades, setHabilidades] = useState([]);
-  const [allSkills, setAllSkills] = useState([]);
-  const [customSkill, setCustomSkill] = useState('');
-  const [guardando, setGuardando] = useState(false);
-  const [guardado, setGuardado] = useState(false);
-  const [loading, setLoading] = useState(true);
-
   const [form, setForm] = useState({
     name: '', lastname: '', email: '', phone: '',
     career: '', semester: '', university: 'Universidad de Guayaquil',
     interests: '', experience_summary: '',
   });
-
-  const normalizeSkill = (skill, defaultLevel = 3) => {
-    const rawName = skill?.name || skill?.nombre || skill?.habilidad_nombre || skill || '';
-    const name = typeof rawName === 'string' ? rawName.trim() : '';
-    if (!name) return null;
-    const rawLevel = skill?.nivel ?? skill?.level ?? defaultLevel;
-    const parsedLevel = Number(rawLevel);
-    const level = Number.isFinite(parsedLevel) ? parsedLevel : defaultLevel;
-    return {
-      skill_id: skill?.habilidad_id || skill?.skill_id || skill?.id || null,
-      name,
-      level: Math.min(Math.max(level, 1), 5),
-      category: skill?.categoria || skill?.category || null,
-    };
-  };
 
   const skillKey = (value) => (value || '').toString().trim().toLowerCase();
 
@@ -67,11 +46,15 @@ export default function EstudiantePerfil() {
             university: d.universidad || 'Universidad de Guayaquil',
             interests: d.intereses || '', experience_summary: d.resumen_experiencia || '',
           });
-          setHabilidades(
-            (d.skills || [])
-              .map((s) => normalizeSkill(s))
-              .filter(Boolean)
-          );
+          
+          if (d.skills) {
+            setHabilidades(d.skills.map(s => ({
+              skill_id: s.habilidad_id || s.id || null,
+              name: s.nombre || s.name || s.habilidad_nombre || '',
+              level: s.nivel || s.level || 3,
+              category: s.categoria || s.category || null,
+            })).filter(s => s.name));
+          }
         }
         if (skillsRes.result) {
           const normalizedSkills = (skillsRes.data || [])
@@ -92,43 +75,11 @@ export default function EstudiantePerfil() {
     loadProfile();
   }, []);
 
-  const toggleHabilidad = (skill) => {
-    const normalized = normalizeSkill(skill);
-    if (!normalized) return;
-    const key = skillKey(normalized.name);
-    setHabilidades((prev) =>
-      prev.some((h) => skillKey(h.name) === key)
-        ? prev.filter((h) => skillKey(h.name) !== key)
-        : [...prev, normalized]
-    );
-  };
-
-  const updateSkillLevel = (name, level) => {
-    const key = skillKey(name);
-    const parsedLevel = Math.min(Math.max(parseInt(level, 10) || 1, 1), 5);
-    setHabilidades((prev) =>
-      prev.map((h) => (skillKey(h.name) === key ? { ...h, level: parsedLevel } : h))
-    );
-  };
-
-  const handleAddCustomSkill = () => {
-    const trimmed = customSkill.trim();
-    if (!trimmed) return;
-    const key = skillKey(trimmed);
-    const existingCatalog = allSkills.find((s) => skillKey(s.name) === key);
-    if (existingCatalog) {
-      toggleHabilidad(existingCatalog);
-      setCustomSkill('');
-      return;
-    }
-    setHabilidades((prev) => {
-      if (prev.some((h) => skillKey(h.name) === key)) {
-        return prev;
-      }
-      return [...prev, { skill_id: null, name: trimmed, level: 3, category: null, is_custom: true }];
-    });
-    setCustomSkill('');
-  };
+  const [habilidades, setHabilidades] = useState([]);
+  const [allSkills, setAllSkills] = useState([]);
+  const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const handleGuardar = async () => {
     setGuardando(true);
@@ -238,79 +189,13 @@ export default function EstudiantePerfil() {
         <section className={sectionClass}>
           <div className={sectionHeaderClass}>Habilidades y Competencias</div>
           <div className={`${sectionBodyClass} flex flex-col gap-4`}>
-            <p className="text-xs text-slate-500">Selecciona las habilidades que coincidan con tu perfil.</p>
-          {habilidades.length > 0 && (
-            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-md">
-              {habilidades.map((hab) => (
-                <div key={hab.skill_id || hab.name} className="inline-flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 text-xs rounded-md">
-                  <span className="font-semibold text-primary-700">{hab.name}</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-slate-500">Nivel</span>
-                    <select
-                      value={hab.level}
-                      onChange={(e) => updateSkillLevel(hab.name, e.target.value)}
-                      className="text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-md px-1.5 py-0.5"
-                      aria-label={`Nivel de ${hab.name}`}
-                    >
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    onClick={() => toggleHabilidad(hab)}
-                    className="flex items-center justify-center w-4 h-4 rounded-md bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer hover:bg-slate-300 transition-colors"
-                    aria-label={`Quitar ${hab.name}`}
-                  >
-                    <FiX size={10} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-end gap-2 max-sm:flex-col max-sm:items-stretch">
-              <Input
-                label="Agregar habilidad manual"
-                placeholder="Ej: Docker, Scrum, UX"
-                value={customSkill}
-                onChange={(e) => setCustomSkill(e.target.value)}
-                className="flex-1"
-                inputClassName={profileInputClass}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddCustomSkill();
-                  }
-                }}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                icon={<FiPlus />}
-                onClick={handleAddCustomSkill}
-                className="mb-0.5"
-              >
-                Agregar
-              </Button>
-            </div>
-            <p className="text-[11px] text-slate-500">Si no encuentras la habilidad en la lista, agrégala manualmente.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {displaySkills.map((hab) => (
-              <button
-                key={hab.skill_id || hab.name}
-                onClick={() => toggleHabilidad(hab)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all
-                  ${habilidades.some((h) => skillKey(h.name) === skillKey(hab.name))
-                    ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600'
-                  }`}
-              >
-                {hab.name}
-              </button>
-            ))}
-          </div>
+            <p className="text-xs text-slate-500">Selecciona las habilidades que coincidan con tu perfil y tu nivel de dominio (1 a 5).</p>
+            <SkillSelector 
+              selectedSkills={habilidades} 
+              allSkills={allSkills} 
+              onChange={setHabilidades} 
+              isVacancy={false} 
+            />
           </div>
         </section>
 

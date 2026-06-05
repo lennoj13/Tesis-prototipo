@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from 'context/AuthContext';
 import vacancyService from 'services/vacancyService';
 import profileService from 'services/profileService';
+import adminService from 'services/adminService';
 import PageHeader from 'components/PageHeader';
 import DataTable from 'components/DataTable';
 import StatusBadge from 'components/StatusBadge';
@@ -16,6 +17,7 @@ import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Button from 'components/Button';
 import InfoField from 'components/InfoField';
+import SkillSelector from 'components/SkillSelector';
 import { FiEdit2, FiTrash2, FiEye, FiUsers, FiPlusCircle, FiSave, FiCheckCircle, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft } from 'react-icons/fi';
 
 const areas = [
@@ -60,6 +62,8 @@ export default function EmpresaVacantes() {
   const [editSaving, setEditSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
+  const [allSkills, setAllSkills] = useState([]);
+  const [editSkills, setEditSkills] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -72,6 +76,14 @@ export default function EmpresaVacantes() {
         if (companyId) {
           const res = await vacancyService.getByCompany(companyId);
           if (res.result) setVacantes((res.data || []).map(normalizeVacancy));
+        }
+        const skillsRes = await adminService.getSkills();
+        if (skillsRes.result && skillsRes.data) {
+          setAllSkills(skillsRes.data.map(s => ({
+            skill_id: s.habilidad_id || s.id || null,
+            name: s.nombre || s.name || '',
+            category: s.categoria || s.category || null,
+          })).filter(s => s.name));
         }
       } catch (err) {
         console.error(err);
@@ -107,6 +119,15 @@ export default function EmpresaVacantes() {
       supervisor_id: row.supervisor_id ?? '',
       is_active: row.is_active ?? true,
     });
+    setEditSkills(
+      (row.skills || []).map(s => ({
+        skill_id: s.habilidad_id || s.id || null,
+        name: s.nombre || s.habilidad_nombre || s.name || '',
+        level: s.nivel_requerido || s.level || 1,
+        category: s.categoria || s.category || null,
+        is_optional: s.es_opcional || s.is_optional || false
+      }))
+    );
     setEditErrors({});
     setEditModal(row);
   }
@@ -150,6 +171,13 @@ export default function EmpresaVacantes() {
         expires_at: editForm.expires_at || null,
         supervisor_id: editForm.supervisor_id ? parseInt(editForm.supervisor_id) : null,
         is_active: editForm.is_active,
+        skills: editSkills.map(skill => ({
+          skill_id: skill.skill_id || null,
+          name: skill.name,
+          required_level: skill.level || 1,
+          category: skill.category || null,
+          is_optional: skill.is_optional || false
+        })),
       });
       if (res.result) {
         setToast({ type: 'success', message: `Vacante "${editForm.title}" actualizada correctamente` });
@@ -164,6 +192,7 @@ export default function EmpresaVacantes() {
               schedule,
               slots: parseInt(editForm.slots) || 1,
               supervisor_id: editForm.supervisor_id ? parseInt(editForm.supervisor_id) : null,
+              skills: editSkills,
             }
             : v
         ));
@@ -324,6 +353,26 @@ export default function EmpresaVacantes() {
                 </div>
               </div>
             )}
+            
+            {viewModal.skills && viewModal.skills.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FiBriefcase className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Habilidades Solicitadas</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {viewModal.skills.map((skill, index) => (
+                    <div key={index} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
+                      <span className="font-semibold text-primary-700">{skill.habilidad_nombre || skill.name}</span>
+                      <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Nivel Req: {skill.nivel_requerido || skill.level}</span>
+                      {(skill.es_opcional || skill.is_optional) && (
+                        <span className="text-[10px] text-slate-400 italic">Opcional</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end pt-2">
               <Button variant="secondary" onClick={() => { setViewModal(null); openEdit(viewModal); }} icon={<FiEdit2 />}>
@@ -364,6 +413,16 @@ export default function EmpresaVacantes() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-slate-700">Requisitos</label>
               <textarea name="requirements" value={editForm.requirements} onChange={handleEditChange} rows={2} className={`${fieldBase} resize-y min-h-[60px] ${fieldOk}`} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Habilidades Específicas Solicitadas</label>
+              <SkillSelector 
+                selectedSkills={editSkills} 
+                allSkills={allSkills} 
+                onChange={setEditSkills} 
+                isVacancy={true} 
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
