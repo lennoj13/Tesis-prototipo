@@ -73,7 +73,7 @@ class ProfileComponent:
             sql_user = """
                 UPDATE public.usuarios 
                 SET nombre = %s, apellido = %s, correo = %s, telefono = %s, 
-                    cedula = %s, actualizado_en = NOW()
+                    cedula = COALESCE(%s, cedula), actualizado_en = NOW()
                 WHERE usuario_id = %s
             """
             DataBaseHandle.ExecuteNonQuery(sql_user, (
@@ -82,16 +82,18 @@ class ProfileComponent:
             ))
 
             if role == 'estudiante':
+                raw_semester = p_data.get('semester') or ''
+                # Strip everything except digits so '8º semestre' → '8'
+                semester_clean = ''.join(c for c in str(raw_semester) if c.isdigit()) or None
+
                 sql_stud = """
                     UPDATE public.perfiles_estudiante 
-                    SET carrera_id = %s, semestre = %s, universidad = %s, 
-                        resumen_experiencia = %s, intereses = %s, 
+                    SET semestre = %s, resumen_experiencia = %s, intereses = %s, 
                         curriculum_url = %s, actualizado_en = NOW()
                     WHERE usuario_id = %s
                 """
                 DataBaseHandle.ExecuteNonQuery(sql_stud, (
-                    p_data.get('carrera_id'), p_data.get('semester'), p_data.get('university'),
-                    p_data.get('experience_summary'), p_data.get('interests'),
+                    semester_clean, p_data.get('experience_summary'), p_data.get('interests'),
                     p_data.get('curriculum_url'), user_id
                 ))
                 

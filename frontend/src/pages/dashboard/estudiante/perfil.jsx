@@ -63,7 +63,7 @@ export default function EstudiantePerfil() {
             name: p.nombre || '', lastname: p.apellido || '',
             email: p.correo || '', phone: p.telefono || '',
             career: d.carrera_nombre ? (d.carrera_nombre.toLowerCase() === 'software' ? 'Software' : d.carrera_nombre) : 'Software', 
-            semester: d.semestre ? `${d.semestre}º semestre` : '7mo semestre',
+            semester: d.semestre ? String(d.semestre).replace(/\D/g, '') : '',
             university: d.universidad || 'Universidad de Guayaquil',
             interests: d.intereses || '', experience_summary: d.resumen_experiencia || '',
           });
@@ -224,9 +224,9 @@ export default function EstudiantePerfil() {
               />
               <Input 
                 label="Semestre actual" 
-                value={form.semester} 
+                value={form.semester ? `${form.semester}º Semestre` : 'No especificado'} 
                 disabled 
-                placeholder="7mo semestre" 
+                placeholder="8º Semestre" 
                 inputClassName={profileInputClass}
               />
             </div>

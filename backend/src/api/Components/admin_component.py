@@ -428,8 +428,12 @@ class AdminComponent:
                 WHERE usuario_id = %s
             """
             DataBaseHandle.ExecuteNonQuery(sql_user, (
-                data.get('cedula'), data.get('nombre'), data.get('apellido'),
-                data.get('correo'), data.get('telefono'), data.get('activo'),
+                data.get('cedula') if data.get('cedula') != '' else None, 
+                data.get('nombre') if data.get('nombre') != '' else None, 
+                data.get('apellido') if data.get('apellido') != '' else None,
+                data.get('correo') if data.get('correo') != '' else None, 
+                data.get('telefono') if data.get('telefono') != '' else None, 
+                data.get('activo'),
                 user_id
             ))
 

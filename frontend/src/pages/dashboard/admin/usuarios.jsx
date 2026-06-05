@@ -151,20 +151,28 @@ export default function AdminUsuarios() {
       semestre: '',
     });
     
-    // Fetch profile details if student
-    if (row.rol_nombre === 'estudiante') {
+    // Fetch profile details if student or gestor
+    if (row.rol_nombre === 'estudiante' || row.rol_nombre === 'gestor') {
       try {
         const res = await adminService.getUserDetail(row.usuario_id);
-        if (res.result && res.data?.perfil_estudiante) {
-          setEditForm(prev => ({
-            ...prev,
-            facultad_id: res.data.perfil_estudiante.facultad_id || '1',
-            carrera_id: res.data.perfil_estudiante.carrera_id || '',
-            semestre: res.data.perfil_estudiante.semestre || ''
-          }));
+        if (res.result) {
+          if (row.rol_nombre === 'estudiante' && res.data?.perfil_estudiante) {
+            setEditForm(prev => ({
+              ...prev,
+              facultad_id: res.data.perfil_estudiante.facultad_id || '1',
+              carrera_id: res.data.perfil_estudiante.carrera_id || '',
+              semestre: res.data.perfil_estudiante.semestre || ''
+            }));
+          } else if (row.rol_nombre === 'gestor' && res.data?.perfil_gestor) {
+            setEditForm(prev => ({
+              ...prev,
+              facultad_id: res.data.perfil_gestor.facultad_id || '1',
+              carrera_id: res.data.perfil_gestor.carrera_id || ''
+            }));
+          }
         }
       } catch (e) {
-        console.error("Error loading student profile details for edit", e);
+        console.error("Error loading profile details for edit", e);
       }
     }
   }
