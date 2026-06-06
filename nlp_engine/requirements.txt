@@ -1,7 +1,12 @@
 # Motor NLP - Dependencias
-sentence-transformers
-spacy>=3.7
-scikit-learn
-numpy
 pandas
+numpy
+scikit-learn
 nltk
+spacy
+sentence-transformers
+xgboost
+matplotlib
+seaborn
+joblib
+stopwords

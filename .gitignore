@@ -36,3 +36,6 @@ backend/src/utils/general/LOGS/
 
 # NLP models cache
 nlp_engine/models_cache/
+nlp_engine/data/profiles.csv
+nlp_engine/data/compatibility_pairs.csv
+frontend/.next/
