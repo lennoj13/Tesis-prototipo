@@ -10,8 +10,9 @@ import StatusBadge from 'components/StatusBadge';
 import Card from 'components/Card';
 import Modal from 'components/Modal';
 import DataTable from 'components/DataTable';
+import ConfirmDialog from 'components/ConfirmDialog';
 import adminService from 'services/adminService';
-import { FiEye, FiUsers, FiBriefcase, FiMapPin, FiMail, FiPhone, FiLoader, FiPlusCircle, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiEye, FiUsers, FiBriefcase, FiMapPin, FiMail, FiPhone, FiLoader, FiPlusCircle, FiEdit2, FiTrash2, FiCreditCard } from 'react-icons/fi';
 
 export default function GestorEmpresas() {
   const [companies, setCompanies] = useState([]);
@@ -30,6 +31,7 @@ export default function GestorEmpresas() {
   const [editSupForm, setEditSupForm] = useState({});
   const [expandedSup, setExpandedSup] = useState({});
   const [activeTab, setActiveTab] = useState('general');
+  const [deleteSupTarget, setDeleteSupTarget] = useState(null);
   const modalContentRef = useRef(null);
 
   useEffect(() => { loadCompanies(); }, []);
@@ -118,21 +120,23 @@ export default function GestorEmpresas() {
     } finally { setSupLoading(false); }
   }
 
-  async function handleDeleteSupervisor(supervisor_id) {
-    if (!window.confirm("¿Seguro que deseas eliminar a este supervisor?")) return;
+  async function handleDeleteSupervisor() {
+    if (!deleteSupTarget) return;
     try {
-      const res = await adminService.deleteSupervisor(supervisor_id);
+      const res = await adminService.deleteSupervisor(deleteSupTarget.supervisor_id);
       if (res.result) {
         setToast({ type: 'success', message: 'Supervisor eliminado correctamente' });
         setDetailData(prev => ({
           ...prev,
-          supervisores: prev.supervisores.filter(s => s.supervisor_id !== supervisor_id)
+          supervisores: prev.supervisores.filter(s => s.supervisor_id !== deleteSupTarget.supervisor_id)
         }));
       } else {
         setToast({ type: 'error', message: res.message || 'Error al eliminar supervisor' });
       }
     } catch (err) {
       setToast({ type: 'error', message: 'Error de conexión' });
+    } finally {
+      setDeleteSupTarget(null);
     }
   }
 
@@ -458,11 +462,20 @@ export default function GestorEmpresas() {
                                           <p className="text-xs font-medium text-slate-700 m-0">{sup.telefono || '-'}</p>
                                         </div>
                                       </div>
+                                      <div className="flex items-start gap-2.5">
+                                        <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                                          <FiCreditCard className="text-slate-400" size={12} />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] text-slate-400 uppercase font-bold m-0">Cédula</p>
+                                          <p className="text-xs font-medium text-slate-700 m-0">{sup.numero_identificacion || '-'}</p>
+                                        </div>
+                                      </div>
                                       <div className="col-span-2 flex items-center justify-end gap-2 mt-2">
                                         <button onClick={() => openEditSup(sup)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 cursor-pointer transition-colors text-xs font-semibold">
                                           <FiEdit2 size={12} /> Editar
                                         </button>
-                                        <button onClick={() => handleDeleteSupervisor(sup.supervisor_id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 cursor-pointer transition-colors text-xs font-semibold">
+                                        <button onClick={() => setDeleteSupTarget(sup)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 cursor-pointer transition-colors text-xs font-semibold">
                                           <FiTrash2 size={12} /> Eliminar
                                         </button>
                                       </div>
@@ -521,6 +534,16 @@ export default function GestorEmpresas() {
           </div>
         )}
       </Modal>
+
+      {/* Delete Confirmation Dialog for Supervisor */}
+      <ConfirmDialog
+        isOpen={!!deleteSupTarget}
+        onClose={() => setDeleteSupTarget(null)}
+        onConfirm={handleDeleteSupervisor}
+        title="Eliminar Supervisor"
+        message={deleteSupTarget ? `¿Estás seguro de que deseas eliminar permanentemente al supervisor "${deleteSupTarget.nombre} ${deleteSupTarget.apellido}"? Esta acción no se puede deshacer.` : ''}
+        confirmText="Eliminar"
+      />
 
       {/* Modals have been integrated inline */}
     </div>

@@ -9,10 +9,12 @@ const statusStyles = {
   pendiente:         'bg-warning-light text-amber-700',
   aprobado:          'bg-success-light text-green-700',
   aprobada:          'bg-success-light text-green-700',
+  aceptada:          'bg-primary-50 text-primary-700',
   aceptada_empresa:  'bg-info-light text-blue-700',
   rechazado:         'bg-danger-light text-red-700',
   rechazada:         'bg-danger-light text-red-700',
   rechazada_gestor:  'bg-danger-light text-red-700',
+  reprobada:         'bg-danger-light text-red-700',
   cancelada:         'bg-slate-100 text-slate-600',
   anulada:           'bg-slate-100 text-slate-600',
   completada:        'bg-success-light text-green-700',
@@ -27,10 +29,12 @@ const statusLabels = {
   pendiente: 'Pendiente',
   aprobado: 'Aprobado',
   aprobada: 'Aprobada',
+  aceptada: 'Aceptada',
   aceptada_empresa: 'Aceptada por Empresa',
   rechazado: 'Rechazado',
   rechazada: 'Rechazada',
   rechazada_gestor: 'Rechazada por Gestor',
+  reprobada: 'Reprobada',
   cancelada: 'Cancelada',
   anulada: 'Anulada',
   completada: 'Completada',
@@ -48,8 +52,8 @@ export default function StatusBadge({ status, label }) {
       <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
         status === 'activo' || status === 'aprobado' || status === 'aprobada' || status === 'completada' ? 'bg-green-500' :
         status === 'pendiente' ? 'bg-amber-500' :
-        status === 'rechazado' || status === 'rechazada' || status === 'rechazada_gestor' ? 'bg-red-500' :
-        status === 'abierta' || status === 'nuevo' || status === 'aceptada_empresa' ? 'bg-blue-500' :
+        status === 'rechazado' || status === 'rechazada' || status === 'rechazada_gestor' || status === 'reprobada' ? 'bg-red-500' :
+        status === 'abierta' || status === 'nuevo' || status === 'aceptada_empresa' || status === 'aceptada' ? 'bg-blue-500' :
         'bg-slate-400'
       }`} />
       {displayLabel}

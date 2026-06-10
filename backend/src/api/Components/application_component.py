@@ -25,13 +25,13 @@ class ApplicationComponent:
                 FROM public.postulaciones p
                 JOIN public.vacantes v ON p.vacante_id = v.vacante_id
                 WHERE p.estudiante_id = %s 
-                  AND p.estado IN ('pendiente', 'aceptada_empresa')
+                  AND p.estado IN ('pendiente', 'aceptada_empresa', 'aceptada')
                 LIMIT 1
             """
             check_result = DataBaseHandle.getRecords(sql_check, 1, (estudiante_id,))
             if check_result['result'] and check_result['data']:
                 active = check_result['data']
-                estado_label = 'pendiente' if active['estado'] == 'pendiente' else 'aceptada por empresa'
+                estado_label = 'pendiente' if active['estado'] == 'pendiente' else ('aceptada por empresa' if active['estado'] == 'aceptada_empresa' else 'en curso')
                 return internal_response(
                     False, None,
                     f"Ya tienes una postulacion {estado_label} en la vacante \"{active['vacante_titulo']}\". "
@@ -116,7 +116,7 @@ class ApplicationComponent:
                 if supervisor_id:
                     set_parts.append("supervisor_id = %s")
                     params.append(supervisor_id)
-            elif nuevo_estado == 'aprobada':
+            elif nuevo_estado == 'aceptada':
                 set_parts.append("fecha_respuesta_gestor = NOW()")
                 if notas:
                     set_parts.append("notas_gestor = %s")
@@ -127,6 +127,11 @@ class ApplicationComponent:
                 nro = ApplicationComponent._generate_nro_solicitud(postulacion_id)
                 set_parts.append("nro_solicitud = %s")
                 params.append(nro)
+            elif nuevo_estado in ['aprobada', 'reprobada', 'anulada']:
+                set_parts.append("fecha_respuesta_gestor = NOW()")
+                if notas:
+                    set_parts.append("notas_gestor = %s")
+                    params.append(notas)
             elif nuevo_estado == 'rechazada':
                 if notas:
                     set_parts.append("notas_empresa = %s")
@@ -146,7 +151,7 @@ class ApplicationComponent:
             result = DataBaseHandle.ExecuteNonQuery(sql, tuple(params))
             if result['result']:
                 response_data = None
-                if nuevo_estado == 'aprobada':
+                if nuevo_estado == 'aceptada':
                     response_data = {'nro_solicitud': nro}
                 return internal_response(True, response_data, "Estado actualizado")
             return internal_response(False, None, result.get('message', 'Error'))
@@ -320,6 +325,7 @@ class ApplicationComponent:
                     sv.departamento as sup_departamento,
                     sv.correo as sup_correo,
                     sv.telefono as sup_telefono,
+                    v.vacante_id as vac_id,
                     v.titulo as vac_titulo,
                     v.area as vac_area,
                     v.descripcion as vac_descripcion,
@@ -353,6 +359,16 @@ class ApplicationComponent:
                 skills_result = DataBaseHandle.getRecords(skills_sql, 0, (d['est_id'],))
                 habilidades = skills_result['data'] if skills_result['result'] and skills_result['data'] else []
 
+                vac_skills_sql = """
+                    SELECT h.nombre as nombre, h.categoria, hv.nivel_requerido as nivel, hv.es_opcional
+                    FROM public.habilidades_vacante hv
+                    JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                    WHERE hv.vacante_id = %s
+                    ORDER BY hv.es_opcional, h.categoria, h.nombre
+                """
+                vac_skills_result = DataBaseHandle.getRecords(vac_skills_sql, 0, (d['vac_id'],))
+                habilidades_vacante = vac_skills_result['data'] if vac_skills_result['result'] and vac_skills_result['data'] else []
+
                 solicitud = {
                     'nro_solicitud': d['nro_solicitud'],
                     'estudiante': {
@@ -385,7 +401,8 @@ class ApplicationComponent:
                         'ubicacion': d['vac_ubicacion'],
                         'descripcion': d['vac_descripcion'],
                         'requisitos': d['vac_requisitos'],
-                        'cupos': d['vac_cupos']
+                        'cupos': d['vac_cupos'],
+                        'habilidades': habilidades_vacante
                     },
                     'habilidades_estudiante': habilidades,
                     'practica': {

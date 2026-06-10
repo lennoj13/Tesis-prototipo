@@ -5,7 +5,7 @@ import Card from 'components/Card';
 import InfoField from 'components/InfoField';
 import EmptyState from 'components/EmptyState';
 import Input from 'components/Input';
-import { FiCheckCircle, FiXCircle, FiLoader, FiInbox, FiPlusCircle, FiArrowLeft } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiLoader, FiInbox, FiPlusCircle, FiArrowLeft, FiBriefcase } from 'react-icons/fi';
 
 export default function SolicitudDetalleView({
   isOpen,
@@ -270,6 +270,25 @@ export default function SolicitudDetalleView({
                   <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3">
                     {vacante.requisitos}
                   </p>
+                </div>
+              )}
+              {vacante.habilidades && vacante.habilidades.length > 0 && (
+                <div className="mt-4 pt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FiBriefcase className="text-slate-400" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Habilidades Solicitadas</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {vacante.habilidades.map((hab, i) => (
+                      <div key={i} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
+                        <span className="font-semibold text-primary-700">{hab.nombre}</span>
+                        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Nivel Req: {hab.nivel}</span>
+                        {hab.es_opcional && (
+                          <span className="text-[10px] text-slate-400 italic">Opcional</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </Card>

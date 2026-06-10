@@ -151,29 +151,36 @@ export default function AdminUsuarios() {
       semestre: '',
     });
     
-    // Fetch profile details if student or gestor
-    if (row.rol_nombre === 'estudiante' || row.rol_nombre === 'gestor') {
-      try {
-        const res = await adminService.getUserDetail(row.usuario_id);
-        if (res.result) {
-          if (row.rol_nombre === 'estudiante' && res.data?.perfil_estudiante) {
-            setEditForm(prev => ({
-              ...prev,
-              facultad_id: res.data.perfil_estudiante.facultad_id || '1',
-              carrera_id: res.data.perfil_estudiante.carrera_id || '',
-              semestre: res.data.perfil_estudiante.semestre || ''
-            }));
-          } else if (row.rol_nombre === 'gestor' && res.data?.perfil_gestor) {
-            setEditForm(prev => ({
-              ...prev,
-              facultad_id: res.data.perfil_gestor.facultad_id || '1',
-              carrera_id: res.data.perfil_gestor.carrera_id || ''
-            }));
-          }
+    try {
+      const res = await adminService.getUserDetail(row.usuario_id);
+      if (res.result && res.data) {
+        setEditForm(prev => ({
+          ...prev,
+          name: res.data.nombre || prev.name,
+          lastname: res.data.apellido || prev.lastname,
+          email: res.data.correo || prev.email,
+          phone: res.data.telefono || prev.phone,
+          cedula: res.data.cedula || prev.cedula,
+          activo: res.data.activo !== false,
+        }));
+        
+        if (row.rol_nombre === 'estudiante' && res.data?.perfil_estudiante) {
+          setEditForm(prev => ({
+            ...prev,
+            facultad_id: res.data.perfil_estudiante.facultad_id || '1',
+            carrera_id: res.data.perfil_estudiante.carrera_id || '',
+            semestre: res.data.perfil_estudiante.semestre || ''
+          }));
+        } else if (row.rol_nombre === 'gestor' && res.data?.perfil_gestor) {
+          setEditForm(prev => ({
+            ...prev,
+            facultad_id: res.data.perfil_gestor.facultad_id || '1',
+            carrera_id: res.data.perfil_gestor.carrera_id || ''
+          }));
         }
-      } catch (e) {
-        console.error("Error loading profile details for edit", e);
       }
+    } catch (e) {
+      console.error("Error loading profile details for edit", e);
     }
   }
 
@@ -190,6 +197,12 @@ export default function AdminUsuarios() {
       setToast({ type: 'error', message: `Faltan campos obligatorios: ${missingFields.join(', ')}` });
       return;
     }
+    
+    if (['estudiante', 'gestor', 'admin'].includes(editModal.rol_nombre) && editForm.email && !editForm.email.toLowerCase().endsWith('@ug.edu.ec')) {
+      setToast({ type: 'error', message: 'El correo para este rol debe terminar en @ug.edu.ec' });
+      return;
+    }
+
     if (editModal.rol_nombre === 'estudiante') {
       if (!editForm.facultad_id || !editForm.carrera_id || !editForm.semestre) {
         setToast({ type: 'error', message: 'Facultad, Carrera y Semestre son obligatorios para Estudiantes' });
@@ -203,7 +216,18 @@ export default function AdminUsuarios() {
     }
     setActionLoading(true);
     try {
-      const res = await adminService.updateUser(editModal.usuario_id, editForm);
+      const payload = {
+        cedula: editForm.cedula,
+        nombre: editForm.name,
+        apellido: editForm.lastname,
+        correo: editForm.email,
+        telefono: editForm.phone,
+        activo: editForm.activo,
+        facultad_id: editForm.facultad_id,
+        carrera_id: editForm.carrera_id,
+        semestre: editForm.semestre
+      };
+      const res = await adminService.updateUser(editModal.usuario_id, payload);
       if (res.result) {
         setToast({ type: 'success', message: 'Usuario actualizado correctamente' });
         loadUsers();
@@ -232,6 +256,12 @@ export default function AdminUsuarios() {
       setToast({ type: 'error', message: `Faltan campos obligatorios: ${missingFields.join(', ')}` });
       return;
     }
+    
+    if (['estudiante', 'gestor', 'admin'].includes(createForm.rol) && createForm.correo && !createForm.correo.toLowerCase().endsWith('@ug.edu.ec')) {
+      setToast({ type: 'error', message: 'El correo para este rol debe terminar en @ug.edu.ec' });
+      return;
+    }
+
     if (createForm.rol === 'estudiante') {
       if (!createForm.facultad_id || !createForm.carrera_id || !createForm.semestre) {
         setToast({ type: 'error', message: 'Facultad, Carrera y Semestre son obligatorios para Estudiantes' });
@@ -439,9 +469,9 @@ export default function AdminUsuarios() {
 
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-3">
-              <InfoField label="Correo" value={viewModal.correo} icon={FiMail} variant="default" />
-              <InfoField label="Teléfono" value={viewModal.telefono || 'No registrado'} icon={FiPhone} variant="default" />
-              <InfoField label="Cédula / RUC" value={viewModal.cedula || 'No registrada'} icon={FiCreditCard} variant="default" />
+              <InfoField label="Correo" value={detailData?.correo || viewModal.correo} icon={FiMail} variant="default" />
+              <InfoField label="Teléfono" value={detailData?.telefono || viewModal.telefono || 'No registrado'} icon={FiPhone} variant="default" />
+              <InfoField label="Cédula / RUC" value={detailData?.cedula || viewModal.cedula || 'No registrada'} icon={FiCreditCard} variant="default" />
               <InfoField label="Estado" value={<StatusBadge status={viewModal.activo ? 'activo' : 'inactivo'} />} icon={FiActivity} variant="default" />
               <InfoField label="Registro" value={viewModal.creado_en ? new Date(viewModal.creado_en).toLocaleDateString('es-EC') : '-'} icon={FiCalendar} variant="default" />
             </div>

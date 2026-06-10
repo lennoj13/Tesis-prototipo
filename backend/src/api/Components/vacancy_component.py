@@ -124,6 +124,25 @@ class VacancyComponent:
             if db_result['result']:
                 result = True
                 data = db_result['data'] or []
+                if data:
+                    vacante_ids = [v['vacante_id'] for v in data]
+                    sql_skills = '''
+                        SELECT hv.vacante_id, h.habilidad_id, h.nombre as habilidad_nombre, h.categoria,
+                               hv.nivel_requerido, hv.es_opcional
+                        FROM public.habilidades_vacante hv
+                        JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                        WHERE hv.vacante_id = ANY(%s)
+                    '''
+                    skills_res = DataBaseHandle.getRecords(sql_skills, 0, (vacante_ids,))
+                    skills_by_vacante = {}
+                    if skills_res['result'] and skills_res['data']:
+                        for s in skills_res['data']:
+                            vid = s['vacante_id']
+                            if vid not in skills_by_vacante:
+                                skills_by_vacante[vid] = []
+                            skills_by_vacante[vid].append(s)
+                    for v in data:
+                        v['skills'] = skills_by_vacante.get(v['vacante_id'], [])
             else:
                 message = db_result.get('message', "No hay vacantes disponibles")
 
@@ -161,6 +180,25 @@ class VacancyComponent:
             if db_result['result']:
                 result = True
                 data = db_result['data'] or []
+                if data:
+                    vacante_ids = [v['vacante_id'] for v in data]
+                    sql_skills = '''
+                        SELECT hv.vacante_id, h.habilidad_id, h.nombre as habilidad_nombre, h.categoria,
+                               hv.nivel_requerido, hv.es_opcional
+                        FROM public.habilidades_vacante hv
+                        JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                        WHERE hv.vacante_id = ANY(%s)
+                    '''
+                    skills_res = DataBaseHandle.getRecords(sql_skills, 0, (vacante_ids,))
+                    skills_by_vacante = {}
+                    if skills_res['result'] and skills_res['data']:
+                        for s in skills_res['data']:
+                            vid = s['vacante_id']
+                            if vid not in skills_by_vacante:
+                                skills_by_vacante[vid] = []
+                            skills_by_vacante[vid].append(s)
+                    for v in data:
+                        v['skills'] = skills_by_vacante.get(v['vacante_id'], [])
             else:
                 message = db_result.get('message', "No hay vacantes")
 
@@ -280,6 +318,13 @@ class VacancyComponent:
     @staticmethod
     def delete_vacancy(vacante_id):
         try:
+            sql_check = "SELECT COUNT(*) as pendientes FROM public.postulaciones WHERE vacante_id = %s AND estado = 'pendiente'"
+            res_check = DataBaseHandle.getRecords(sql_check, 1, (vacante_id,))
+            
+            if res_check['result'] and res_check['data'] and res_check['data']['pendientes'] > 0:
+                pendientes = res_check['data']['pendientes']
+                return internal_response(False, None, f"No puedes cerrar la vacante. Tienes {pendientes} postulante(s) en estado pendiente. Debes rechazarlos o procesarlos antes de cerrar.")
+
             sql = "UPDATE public.vacantes SET activo = false WHERE vacante_id = %s"
             DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
             return internal_response(True, None, "Vacante cerrada exitosamente")

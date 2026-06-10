@@ -77,8 +77,8 @@ export default function GestorPostulaciones() {
     setActionLoading(prev => ({ ...prev, approve: true }));
     try {
       const response = await applicationService.updateStatus(detailModal.postulacion_id, {
-        estado: 'aprobada',
-        notas: 'Aprobado por el gestor de PPP',
+        estado: 'aceptada',
+        notas: 'Aceptado formalmente por el gestor de PPP',
         supervisor_id: parseInt(selectedSupervisor) || null,
       });
       if (response.result) {

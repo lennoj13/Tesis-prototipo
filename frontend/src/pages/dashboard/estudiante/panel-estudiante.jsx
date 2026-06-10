@@ -71,15 +71,15 @@ export default function EstudianteDashboard() {
     loadData();
   }, [user]);
 
-  // Verificar si ya se postuló a una vacante
+  const activeStates = ['pendiente', 'aceptada_empresa', 'aceptada'];
+
+  // Verificar si ya se postuló a esta vacante (y la postulación sigue activa)
   function hasApplied(vacancyId) {
-    return myApplications.some(a => a.vacante_id === vacancyId);
+    return myApplications.some(a => a.vacante_id === vacancyId && activeStates.includes(a.estado));
   }
 
-  // Verificar si tiene una postulación activa
-  const activeApplication = myApplications.find(a => 
-    ['pendiente', 'aceptada_empresa', 'aceptada_gestor', 'aprobada', 'APROBADO_PARA_FORMALIZACION', 'generada'].includes(a.estado)
-  );
+  // Verificar si tiene una postulación activa en cualquier vacante
+  const activeApplication = myApplications.find(a => activeStates.includes(a.estado));
   const hasActiveApplication = !!activeApplication;
 
   // Postularse a una vacante
@@ -91,8 +91,8 @@ export default function EstudianteDashboard() {
       const res = await applicationService.apply(selectedVacancy.vacante_id, affinity);
       if (res.result) {
         setToast({ type: 'success', message: `¡Te postulaste exitosamente a "${selectedVacancy.titulo}"!` });
-        // Agregar a la lista local de postulaciones
-        setMyApplications(prev => [...prev, { vacante_id: selectedVacancy.vacante_id }]);
+        // Agregar a la lista local de postulaciones con estado pendiente
+        setMyApplications(prev => [...prev, { vacante_id: selectedVacancy.vacante_id, estado: 'pendiente' }]);
         setStats(prev => ({ ...prev, postulaciones: prev.postulaciones + 1 }));
         setSelectedVacancy(null);
       } else {
@@ -326,6 +326,27 @@ export default function EstudianteDashboard() {
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Requisitos</h4>
                   <p className="text-sm text-slate-700 leading-relaxed m-0">{selectedVacancy.requisitos}</p>
+                </div>
+              )}
+
+              {/* Skills */}
+              {selectedVacancy.skills && selectedVacancy.skills.length > 0 && (
+                <div className="pt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FiBriefcase className="text-slate-400" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Habilidades Solicitadas</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedVacancy.skills.map((skill, index) => (
+                      <div key={index} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
+                        <span className="font-semibold text-primary-700">{skill.habilidad_nombre || skill.name}</span>
+                        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Nivel Req: {skill.nivel_requerido || skill.level || 1}</span>
+                        {(skill.es_opcional || skill.is_optional) && (
+                          <span className="text-[10px] text-slate-400 italic">Opcional</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

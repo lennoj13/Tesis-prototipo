@@ -143,9 +143,20 @@ export default function EmpresaVacantes() {
 
   function validateEdit() {
     const errs = {};
-    if (!editForm.title.trim()) errs.title = 'El título es obligatorio';
-    if (!editForm.description.trim() || editForm.description.length < 20) errs.description = 'Mínimo 20 caracteres';
+    if (!editForm.title?.trim()) errs.title = 'El título es obligatorio';
+    if (!editForm.description?.trim() || editForm.description.length < 20) errs.description = 'Mínimo 20 caracteres';
+    if (!editForm.requirements?.trim()) errs.requirements = 'Los requisitos son obligatorios';
     if (!editForm.area) errs.area = 'Selecciona un área';
+    if (!editForm.location?.trim()) errs.location = 'La ubicación es obligatoria';
+    if (!editForm.total_hours) errs.total_hours = 'Obligatorio';
+    else if (parseInt(editForm.total_hours) > 244) errs.total_hours = 'Máx 244h';
+    if (!editForm.daily_hours) errs.daily_hours = 'Obligatorio';
+    else if (parseInt(editForm.daily_hours) > 6) errs.daily_hours = 'Máx 6h/día';
+    if (!editForm.schedule?.trim()) errs.schedule = 'Obligatorio';
+    if (!editForm.slots || editForm.slots < 1) errs.slots = 'Obligatorio';
+    if (!editForm.expires_at) errs.expires_at = 'Obligatorio';
+    if (!editForm.supervisor_id) errs.supervisor_id = 'Obligatorio';
+
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -211,12 +222,14 @@ export default function EmpresaVacantes() {
   const handleDelete = async (id) => {
     try {
       const res = await vacancyService.delete(id);
-      if (res.result !== false) {
-        setToast({ type: 'success', message: 'Vacante cerrada' });
+      if (res.result) {
+        setToast({ type: 'success', message: 'Vacante cerrada exitosamente' });
         setVacantes(prev => prev.map(v => v.vacancy_id === id ? { ...v, is_active: false } : v));
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al cerrar vacante' });
       }
     } catch (err) {
-      setToast({ type: 'error', message: 'Error al cerrar vacante' });
+      setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar con el servidor' });
     }
   };
 
@@ -411,8 +424,9 @@ export default function EmpresaVacantes() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Requisitos</label>
-              <textarea name="requirements" value={editForm.requirements} onChange={handleEditChange} rows={2} className={`${fieldBase} resize-y min-h-[60px] ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Requisitos <span className="text-danger">*</span></label>
+              <textarea name="requirements" value={editForm.requirements} onChange={handleEditChange} rows={2} className={`${fieldBase} resize-y min-h-[60px] ${editErrors.requirements ? fieldErr : fieldOk}`} />
+              {editErrors.requirements && <p className="text-[0.8125rem] text-danger m-0">{editErrors.requirements}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -443,42 +457,49 @@ export default function EmpresaVacantes() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Supervisor Responsable</label>
-              <select name="supervisor_id" value={editForm.supervisor_id} onChange={handleEditChange} className={`${fieldBase} ${fieldOk}`}>
+              <label className="text-sm font-semibold text-slate-700">Supervisor Responsable <span className="text-danger">*</span></label>
+              <select name="supervisor_id" value={editForm.supervisor_id} onChange={handleEditChange} className={`${fieldBase} ${editErrors.supervisor_id ? fieldErr : fieldOk}`}>
                 <option value="">Seleccionar supervisor...</option>
                 {supervisores.map((sup) => (
                   <option key={sup.supervisor_id} value={sup.supervisor_id}>{sup.nombre} ({sup.cargo})</option>
                 ))}
               </select>
+              {editErrors.supervisor_id && <p className="text-[0.8125rem] text-danger m-0">{editErrors.supervisor_id}</p>}
             </div>
 
             <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Ubicación</label>
-                <input name="location" value={editForm.location} onChange={handleEditChange} className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Ubicación <span className="text-danger">*</span></label>
+                <input name="location" value={editForm.location} onChange={handleEditChange} className={`${fieldBase} ${editErrors.location ? fieldErr : fieldOk}`} />
+                {editErrors.location && <p className="text-[0.8125rem] text-danger m-0">{editErrors.location}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Plazas</label>
-                <input name="slots" type="number" value={editForm.slots} onChange={handleEditChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Plazas <span className="text-danger">*</span></label>
+                <input name="slots" type="number" value={editForm.slots} onChange={handleEditChange} min="1" className={`${fieldBase} ${editErrors.slots ? fieldErr : fieldOk}`} />
+                {editErrors.slots && <p className="text-[0.8125rem] text-danger m-0">{editErrors.slots}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Fecha límite</label>
-                <input name="expires_at" type="date" value={editForm.expires_at} onChange={handleEditChange} className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Fecha límite <span className="text-danger">*</span></label>
+                <input name="expires_at" type="date" value={editForm.expires_at} onChange={handleEditChange} className={`${fieldBase} ${editErrors.expires_at ? fieldErr : fieldOk}`} />
+                {editErrors.expires_at && <p className="text-[0.8125rem] text-danger m-0">{editErrors.expires_at}</p>}
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Total de horas</label>
-                <input name="total_hours" type="number" value={editForm.total_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Total de horas <span className="text-danger">*</span></label>
+                <input name="total_hours" type="number" value={editForm.total_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${editErrors.total_hours ? fieldErr : fieldOk}`} />
+                {editErrors.total_hours && <p className="text-[0.8125rem] text-danger m-0">{editErrors.total_hours}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Horas al día</label>
-                <input name="daily_hours" type="number" value={editForm.daily_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Horas al día <span className="text-danger">*</span></label>
+                <input name="daily_hours" type="number" value={editForm.daily_hours} onChange={handleEditChange} min="1" className={`${fieldBase} ${editErrors.daily_hours ? fieldErr : fieldOk}`} />
+                {editErrors.daily_hours && <p className="text-[0.8125rem] text-danger m-0">{editErrors.daily_hours}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Horario</label>
-                <input name="schedule" value={editForm.schedule} onChange={handleEditChange} placeholder="Ej: Lunes a Viernes" className={`${fieldBase} ${fieldOk}`} />
+                <label className="text-sm font-semibold text-slate-700">Horario <span className="text-danger">*</span></label>
+                <input name="schedule" value={editForm.schedule} onChange={handleEditChange} placeholder="Ej: Lunes a Viernes" className={`${fieldBase} ${editErrors.schedule ? fieldErr : fieldOk}`} />
+                {editErrors.schedule && <p className="text-[0.8125rem] text-danger m-0">{editErrors.schedule}</p>}
               </div>
             </div>
 

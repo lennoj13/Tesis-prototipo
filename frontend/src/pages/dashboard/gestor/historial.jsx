@@ -7,7 +7,7 @@ import EmptyState from 'components/EmptyState';
 import DataTable from 'components/DataTable';
 import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
-import { FiEye, FiLoader } from 'react-icons/fi';
+import { FiEye, FiLoader, FiCheckCircle, FiXCircle, FiMinusCircle } from 'react-icons/fi';
 
 export default function GestorHistorial() {
   const [applications, setApplications] = useState([]);
@@ -59,9 +59,14 @@ export default function GestorHistorial() {
   async function handleUpdateStatus(newStatus) {
     if (!detailModal) return;
     try {
+      let msg = 'Estado actualizado';
+      if (newStatus === 'aprobada') msg = 'Práctica aprobada exitosamente';
+      if (newStatus === 'reprobada') msg = 'Práctica reprobada';
+      if (newStatus === 'anulada') msg = 'Práctica anulada';
+      
       const response = await applicationService.updateStatus(detailModal.postulacion_id, {
         estado: newStatus,
-        notas: newStatus === 'completada' ? 'Práctica completada exitosamente' : 'Práctica anulada',
+        notas: msg,
       });
       if (response.result) {
         closeDetail();
@@ -73,7 +78,7 @@ export default function GestorHistorial() {
   }
 
   const historyApps = applications.filter(
-    (app) => ['aprobada', 'rechazada_gestor', 'completada', 'anulada'].includes(app.estado)
+    (app) => ['aceptada', 'aprobada', 'reprobada', 'rechazada_gestor', 'completada', 'anulada'].includes(app.estado)
   );
 
   const filteredApps = filter === 'todas'
@@ -123,12 +128,15 @@ export default function GestorHistorial() {
           loading={detailLoading}
           showActions={false}
           extraActions={
-            detailModal.estado === 'aprobada' && (
+            detailModal.estado === 'aceptada' && (
               <>
-                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('completada')}>
-                  Marcar como Completada
+                <Button variant="primary" size="sm" icon={<FiCheckCircle />} onClick={() => handleUpdateStatus('aprobada')}>
+                  Aprobar Prácticas
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => handleUpdateStatus('anulada')}>
+                <Button variant="danger" size="sm" icon={<FiXCircle />} onClick={() => handleUpdateStatus('reprobada')}>
+                  Reprobar Prácticas
+                </Button>
+                <Button variant="secondary" size="sm" icon={<FiMinusCircle />} onClick={() => handleUpdateStatus('anulada')}>
                   Anular Práctica
                 </Button>
               </>
@@ -149,8 +157,9 @@ export default function GestorHistorial() {
       <div className="flex gap-2 mt-4 mb-6 flex-wrap">
         {[
           { key: 'todas', label: 'Todas' },
+          { key: 'aceptada', label: 'Aceptadas (En curso)' },
           { key: 'aprobada', label: 'Aprobadas' },
-          { key: 'completada', label: 'Completadas' },
+          { key: 'reprobada', label: 'Reprobadas' },
           { key: 'anulada', label: 'Anuladas' },
           { key: 'rechazada_gestor', label: 'Rechazadas' },
         ].map((item) => (

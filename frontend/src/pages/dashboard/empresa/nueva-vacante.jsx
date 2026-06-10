@@ -57,14 +57,27 @@ export default function NuevaVacante() {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = 'El título es obligatorio';
     if (!form.description.trim() || form.description.length < 20) newErrors.description = 'Mínimo 20 caracteres';
+    if (!form.requirements.trim()) newErrors.requirements = 'Los requisitos son obligatorios';
     if (!form.area) newErrors.area = 'Selecciona un área';
+    if (!form.location.trim()) newErrors.location = 'La ubicación es obligatoria';
+    if (!form.total_hours) newErrors.total_hours = 'Total de horas es obligatorio';
+    else if (parseInt(form.total_hours) > 244) newErrors.total_hours = 'Máximo 244 horas en total';
+    if (!form.daily_hours) newErrors.daily_hours = 'Horas diarias es obligatorio';
+    else if (parseInt(form.daily_hours) > 6) newErrors.daily_hours = 'Máximo 6 horas por día';
+    if (!form.schedule.trim()) newErrors.schedule = 'El horario es obligatorio';
+    if (!form.slots || form.slots < 1) newErrors.slots = 'Obligatorio';
     if (!form.expires_at) newErrors.expires_at = 'La fecha límite es obligatoria';
     
     if (!form.supervisor_id) {
       newErrors.supervisor_id = 'Selecciona un supervisor';
     } else if (form.supervisor_id === 'new') {
       if (!newSupervisor.nombre.trim()) newErrors.sup_nombre = 'El nombre es obligatorio';
+      if (!newSupervisor.apellido.trim()) newErrors.sup_apellido = 'El apellido es obligatorio';
       if (!newSupervisor.correo.trim()) newErrors.sup_correo = 'El correo es obligatorio';
+      if (!newSupervisor.numero_identificacion.trim()) newErrors.sup_identificacion = 'La cédula es obligatoria';
+      if (!newSupervisor.cargo.trim()) newErrors.sup_cargo = 'El cargo es obligatorio';
+      if (!newSupervisor.departamento.trim()) newErrors.sup_departamento = 'El departamento es obligatorio';
+      if (!newSupervisor.telefono.trim()) newErrors.sup_telefono = 'El teléfono es obligatorio';
     }
     
     setErrors(newErrors);
@@ -160,8 +173,9 @@ export default function NuevaVacante() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">Requisitos en texto</label>
-            <textarea name="requirements" value={form.requirements} onChange={handleChange} rows={3} placeholder="- Estudiante de Ing. en Software (7mo semestre o superior)&#10;- Conocimiento en React" className={`${fieldBase} resize-y min-h-[80px] ${fieldOk}`} />
+            <label className="text-sm font-semibold text-slate-700">Requisitos en texto <span className="text-danger">*</span></label>
+            <textarea name="requirements" value={form.requirements} onChange={handleChange} rows={3} placeholder="- Estudiante de Ing. en Software (7mo semestre o superior)&#10;- Conocimiento en React" className={`${fieldBase} resize-y min-h-[80px] ${errors.requirements ? fieldErr : fieldOk}`} />
+            {errors.requirements && <p className="text-[0.8125rem] text-danger">{errors.requirements}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -209,8 +223,9 @@ export default function NuevaVacante() {
                     {errors.sup_nombre && <p className="text-[0.8125rem] text-danger">{errors.sup_nombre}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Apellido</label>
-                    <input value={newSupervisor.apellido} onChange={e => setNewSupervisor(p => ({...p, apellido: e.target.value}))} placeholder="Pérez" className={`${fieldBase} ${fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Apellido <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.apellido} onChange={e => {setNewSupervisor(p => ({...p, apellido: e.target.value})); if(errors.sup_apellido) setErrors(p => ({...p, sup_apellido: ''}));}} placeholder="Pérez" className={`${fieldBase} ${errors.sup_apellido ? fieldErr : fieldOk}`} />
+                    {errors.sup_apellido && <p className="text-[0.8125rem] text-danger">{errors.sup_apellido}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-slate-700">Correo <span className="text-danger">*</span></label>
@@ -218,20 +233,24 @@ export default function NuevaVacante() {
                     {errors.sup_correo && <p className="text-[0.8125rem] text-danger">{errors.sup_correo}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Cédula / Identificación</label>
-                    <input value={newSupervisor.numero_identificacion} onChange={e => setNewSupervisor(p => ({...p, numero_identificacion: e.target.value}))} className={`${fieldBase} ${fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Cédula / Identificación <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.numero_identificacion} onChange={e => {setNewSupervisor(p => ({...p, numero_identificacion: e.target.value})); if(errors.sup_identificacion) setErrors(p => ({...p, sup_identificacion: ''}));}} className={`${fieldBase} ${errors.sup_identificacion ? fieldErr : fieldOk}`} />
+                    {errors.sup_identificacion && <p className="text-[0.8125rem] text-danger">{errors.sup_identificacion}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Cargo</label>
-                    <input value={newSupervisor.cargo} onChange={e => setNewSupervisor(p => ({...p, cargo: e.target.value}))} placeholder="Ej: Gerente de TI" className={`${fieldBase} ${fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Cargo <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.cargo} onChange={e => {setNewSupervisor(p => ({...p, cargo: e.target.value})); if(errors.sup_cargo) setErrors(p => ({...p, sup_cargo: ''}));}} placeholder="Ej: Gerente de TI" className={`${fieldBase} ${errors.sup_cargo ? fieldErr : fieldOk}`} />
+                    {errors.sup_cargo && <p className="text-[0.8125rem] text-danger">{errors.sup_cargo}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Departamento</label>
-                    <input value={newSupervisor.departamento} onChange={e => setNewSupervisor(p => ({...p, departamento: e.target.value}))} placeholder="Ej: Tecnología" className={`${fieldBase} ${fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Departamento <span className="text-danger">*</span></label>
+                    <input value={newSupervisor.departamento} onChange={e => {setNewSupervisor(p => ({...p, departamento: e.target.value})); if(errors.sup_departamento) setErrors(p => ({...p, sup_departamento: ''}));}} placeholder="Ej: Tecnología" className={`${fieldBase} ${errors.sup_departamento ? fieldErr : fieldOk}`} />
+                    {errors.sup_departamento && <p className="text-[0.8125rem] text-danger">{errors.sup_departamento}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Teléfono</label>
-                    <input type="tel" value={newSupervisor.telefono} onChange={e => setNewSupervisor(p => ({...p, telefono: e.target.value}))} className={`${fieldBase} ${fieldOk}`} />
+                    <label className="text-xs font-semibold text-slate-700">Teléfono <span className="text-danger">*</span></label>
+                    <input type="tel" value={newSupervisor.telefono} onChange={e => {setNewSupervisor(p => ({...p, telefono: e.target.value})); if(errors.sup_telefono) setErrors(p => ({...p, sup_telefono: ''}));}} className={`${fieldBase} ${errors.sup_telefono ? fieldErr : fieldOk}`} />
+                    {errors.sup_telefono && <p className="text-[0.8125rem] text-danger">{errors.sup_telefono}</p>}
                   </div>
                 </div>
               </div>
@@ -240,12 +259,14 @@ export default function NuevaVacante() {
 
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Ubicación</label>
-              <input name="location" value={form.location} onChange={handleChange} placeholder="Guayaquil" className={`${fieldBase} ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Ubicación <span className="text-danger">*</span></label>
+              <input name="location" value={form.location} onChange={handleChange} placeholder="Guayaquil" className={`${fieldBase} ${errors.location ? fieldErr : fieldOk}`} />
+              {errors.location && <p className="text-[0.8125rem] text-danger">{errors.location}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Plazas</label>
-              <input name="slots" type="number" value={form.slots} onChange={handleChange} min="1" className={`${fieldBase} ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Plazas <span className="text-danger">*</span></label>
+              <input name="slots" type="number" value={form.slots} onChange={handleChange} min="1" className={`${fieldBase} ${errors.slots ? fieldErr : fieldOk}`} />
+              {errors.slots && <p className="text-[0.8125rem] text-danger">{errors.slots}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-slate-700">Fecha límite <span className="text-danger">*</span></label>
@@ -256,16 +277,19 @@ export default function NuevaVacante() {
 
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Total de horas</label>
-              <input name="total_hours" type="number" value={form.total_hours} onChange={handleChange} min="1" placeholder="240" className={`${fieldBase} ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Total de horas <span className="text-danger">*</span></label>
+              <input name="total_hours" type="number" value={form.total_hours} onChange={handleChange} min="1" placeholder="240" className={`${fieldBase} ${errors.total_hours ? fieldErr : fieldOk}`} />
+              {errors.total_hours && <p className="text-[0.8125rem] text-danger">{errors.total_hours}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Horas al día</label>
-              <input name="daily_hours" type="number" value={form.daily_hours} onChange={handleChange} min="1" placeholder="6" className={`${fieldBase} ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Horas al día <span className="text-danger">*</span></label>
+              <input name="daily_hours" type="number" value={form.daily_hours} onChange={handleChange} min="1" placeholder="6" className={`${fieldBase} ${errors.daily_hours ? fieldErr : fieldOk}`} />
+              {errors.daily_hours && <p className="text-[0.8125rem] text-danger">{errors.daily_hours}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Horario</label>
-              <input name="schedule" value={form.schedule} onChange={handleChange} placeholder="Lunes a Viernes" className={`${fieldBase} ${fieldOk}`} />
+              <label className="text-sm font-semibold text-slate-700">Horario <span className="text-danger">*</span></label>
+              <input name="schedule" value={form.schedule} onChange={handleChange} placeholder="Lunes a Viernes" className={`${fieldBase} ${errors.schedule ? fieldErr : fieldOk}`} />
+              {errors.schedule && <p className="text-[0.8125rem] text-danger">{errors.schedule}</p>}
             </div>
           </div>
 
