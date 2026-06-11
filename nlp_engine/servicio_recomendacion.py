@@ -11,8 +11,8 @@ from nltk.corpus import stopwords
 
 warnings.filterwarnings("ignore")
 nltk.download("stopwords", quiet=True)
-stop_words = set(stopwords.words("english"))
-stop_words = set(stopwords.words("english"))
+# stop_words = set(stopwords.words("english"))
+stop_words = set(stopwords.words("spanish"))
 nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 def limpiar_texto(texto):
@@ -112,118 +112,198 @@ def recomendar_vacantes(perfil_estudiante, habilidades_estudiante, pool_vacantes
     columnas_retorno = ["vacante_id", "nombre_empresa", "titulo", "modalidad", "total_horas", "porcentaje_afinidad"]
     return df_vacantes[columnas_retorno].head(top_n).to_dict(orient="records")
 
-#####################################################
-# PRUEBA CON PERFIL DE USUARIO Y VACANTES SIMULADAS
-#SEGUN LA ESTRUCTURA DE LA BD
-#####################################################
-
 if __name__ == "__main__":
-    # Caso 1: El perfil de un estudiante registrado en el sistema
-    estudiante_sql = {
+    # 1. Datos Base del Estudiante (Bryan Guillermo)
+    estudiante_base = {
         "perfil_id": 1,
         "usuario_id": 4,
-        "nombre": "Bryan Guillermo",          
-        "apellido": "Galarza Indacochea",     
         "carrera_nombre": "SOFTWARE",
         "semestre": "9",
         "resumen_experiencia": "Experiencia en desarrollo web con React y Python, manejo de bases de datos PostgreSQL y control de versiones con Git.",
         "intereses": "Desarrollo Web, Ciencia de Datos, IA, Frontend"
     }
-
-    # Relación de public.habilidades_estudiante vinculadas al perfil_id 1
-    habilidades_estudiante_sql = ["React", "JavaScript", "Python", "Flask", "PostgreSQL", "Git"]
     
-    instituciones_sql = [
-        {"institucion_id": 1, "nombre": "TechSolutions GYE"},
-        {"institucion_id": 2, "nombre": "DataMind Ecuador"},
-        {"institucion_id": 6, "nombre": "SmartCode"},
-        {"institucion_id": 7, "nombre": "Devs & Data Ecuador"}
-    ]
+    instituciones_sql = [{"institucion_id": 7, "nombre": "Devs & Data Ecuador"}]
 
-    # Base de Datos Simulada de Vacantes
-    # Vacantes:
-    vacantes_sql = [
-        {
-            "vacante_id": 1,
-            "institucion_id": 1,
-            "titulo": "Practicante Desarrollo Frontend",
-            "area": "Desarrollo Web y Desktop",
-            "descripcion": "Buscamos estudiante para practicas en desarrollo frontend con React y TypeScript.",
-            "requisitos": "Estudiante de Software o sistemas con conocimiento en React y Python.",
-            "modalidad": "Hibrido",
-            "ubicacion": "Guayaquil",
-            "total_horas": 240
-        },
-        {
-            "vacante_id": 2,
-            "institucion_id": 2,
-            "titulo": "Practicante Analisis de Datos",
-            "area": "Data Science",
-            "descripcion": "Practicas en analisis de datos con Python y herramientas de BI.",
-            "requisitos": "Conocimiento en Python, SQL. Interes en machine learning.",
-            "modalidad": "Presencial",
-            "ubicacion": "Guayaquil",
-            "total_horas": 144
-        },
-        {
-            "vacante_id": 6,
-            "institucion_id": 6,
-            "titulo": "Practicante Backend .NET",
-            "area": "Desarrollo Backend",
-            "descripcion": "Desarrollo de microservicios con C# y .NET.",
-            "requisitos": "Conocimientos de C# y SQL Server.",
-            "modalidad": "Remoto",
-            "ubicacion": "Quito",
-            "total_horas": 240
-        },
-        {
-            "vacante_id": 7,
-            "institucion_id": 7,
-            "titulo": "Practicante Fullstack Python & React",
-            "area": "Desarrollo Web", 
-            "descripcion": "Buscamos estudiante de software apasionado por el desarrollo web usando Flask y React para construir módulos internos y gestionar bases de datos con PostgreSQL.",
-            "requisitos": "Estudiante de Software con sólidos conocimientos en Python, React, Flask, PostgreSQL y control de versiones Git.",
-            "modalidad": "Hibrido",
-            "ubicacion": "Guayaquil", 
-            "total_horas": 240
-        }
-    ]
+    # 2. La vacante ideal (ID 7)
+    vacante_ideal = {
+        "vacante_id": 7,
+        "institucion_id": 7,
+        "titulo": "Practicante Fullstack Python & React",
+        "area": "Desarrollo Web", 
+        "descripcion": "Buscamos estudiante de software apasionado por el desarrollo web usando Flask y React para construir módulos internos y gestionar bases de datos con PostgreSQL.",
+        "requisitos": "Estudiante de Software con sólidos conocimientos en Python, React, Flask, PostgreSQL y control de versiones Git.",
+        "modalidad": "Hibrido",
+        "ubicacion": "Guayaquil", 
+        "total_horas": 240
+    }
 
-    # HABILIDADES REQUERIDAS POR VACANTE:
-    habilidades_vacantes_sql = [
-        {"vacante_id": 1, "habilidad_nombre": "React"},
-        {"vacante_id": 1, "habilidad_nombre": "TypeScript"},
-        {"vacante_id": 2, "habilidad_nombre": "Python"},
-        {"vacante_id": 2, "habilidad_nombre": "SQL"},
-        {"vacante_id": 6, "habilidad_nombre": "C#"},
-        {"vacante_id": 6, "habilidad_nombre": ".NET"},
+    print("\n" + "="*60)
+    print(" INICIANDO LABORATORIO DE PRUEBAS DE AFINIDAD")
+    print("="*60)
+
+    # -----------------------------------------------------------------
+    # ESCENARIO 1: MATCH PERFECTO DE SKILLS (Tu estado actual)
+    # -----------------------------------------------------------------
+    habilidades_estudiante_1 = ["React", "JavaScript", "Python", "Flask", "PostgreSQL", "Git"]
+    habilidades_vacante_1 = [
         {"vacante_id": 7, "habilidad_nombre": "React"},
         {"vacante_id": 7, "habilidad_nombre": "Python"},
         {"vacante_id": 7, "habilidad_nombre": "Flask"},
         {"vacante_id": 7, "habilidad_nombre": "PostgreSQL"},
         {"vacante_id": 7, "habilidad_nombre": "Git"}
     ]
-
-    # Ejecutar la función de recomendación
-    nombre_completo = f"{estudiante_sql['nombre']} {estudiante_sql['apellido']}"
-    print("\n==================================================")
-    print(f"Buscando vacantes ideales para: {nombre_completo}")
-    print("==================================================")
-
-    recom_actuales = recomendar_vacantes(
-        perfil_estudiante=estudiante_sql,
-        habilidades_estudiante=habilidades_estudiante_sql,
-        pool_vacantes=vacantes_sql,
-        pool_habilidades_vacante=habilidades_vacantes_sql,
-        pool_instituciones=instituciones_sql,
-        top_n=3
-    )
     
-    for rec in recom_actuales:
-        print(f"ID Vacante: {rec['vacante_id']} |")
-        print(f"Porcentaje de Afinidad Calculado: {rec['porcentaje_afinidad']:.2f}%")
-        print(f"Empresa: {rec['nombre_empresa']}")
-        print(f"Puesto: {rec['titulo']}")
-        print(f"Modalidad: {rec['modalidad']}")
-        print(f"Horas: {rec['total_horas']} horas")
-        print("-" * 66)
+    res_1 = recomendar_vacantes(estudiante_base, habilidades_estudiante_1, [vacante_ideal], habilidades_vacante_1, instituciones_sql)
+    print(f"\n[Escenario 1] Match Perfecto de Habilidades de Negocio:")
+    print(f"-> Porcentaje de Afinidad: {res_1[0]['porcentaje_afinidad']:.2f}%")
+    print("   (El estudiante tiene el 100% de las tecnologías explícitas de la vacante)")
+
+    # -----------------------------------------------------------------
+    # ESCENARIO 2: TEXTO IDÉNTICO (Forzar similitud coseno al máximo)
+    # -----------------------------------------------------------------
+    # Modificamos el perfil para que use exactamente las mismas palabras que la descripción de la vacante
+    estudiante_copia_textual = estudiante_base.copy()
+    estudiante_copia_textual["resumen_experiencia"] = vacante_ideal["descripcion"]
+    estudiante_copia_textual["intereses"] = vacante_ideal["requisitos"]
+    
+    res_2 = recomendar_vacantes(estudiante_copia_textual, habilidades_estudiante_1, [vacante_ideal], habilidades_vacante_1, instituciones_sql)
+    print(f"\n[Escenario 2] Texto Semántico Idéntico + Match de Habilidades:")
+    print(f"-> Porcentaje de Afinidad: {res_2[0]['porcentaje_afinidad']:.2f}%")
+    print("   (Forzamos a que el vector BERT del usuario y de la vacante sean casi gemelos)")
+
+    # -----------------------------------------------------------------
+    # ESCENARIO 3: PENALIZACIÓN DE SKILLS (Faltan habilidades clave)
+    # -----------------------------------------------------------------
+    # El estudiante NO sabe ni Flask ni PostgreSQL ni Git (se eliminan de su perfil)
+    habilidades_estudiante_3 = ["React", "JavaScript", "Python"]
+    
+    res_3 = recomendar_vacantes(estudiante_base, habilidades_estudiante_3, [vacante_ideal], habilidades_vacante_1, instituciones_sql)
+    print(f"\n[Escenario 3] Buen Texto Semántico pero faltan 3 Skills Clave:")
+    print(f"-> Porcentaje de Afinidad: {res_3[0]['porcentaje_afinidad']:.2f}%")
+    print("   (El texto sigue hablando de Python/React, pero las métricas de negocio caen)")
+    print("="*60 + "\n")
+
+
+
+
+    
+# #####################################################
+# # PRUEBA CON PERFIL DE USUARIO Y VACANTES SIMULADAS
+# #SEGUN LA ESTRUCTURA DE LA BD
+# #####################################################
+
+# if __name__ == "__main__":
+#     # Caso 1: El perfil de un estudiante registrado en el sistema
+#     estudiante_sql = {
+#         "perfil_id": 1,
+#         "usuario_id": 4,
+#         "nombre": "Bryan Guillermo",          
+#         "apellido": "Galarza Indacochea",     
+#         "carrera_nombre": "SOFTWARE",
+#         "semestre": "9",
+#         "resumen_experiencia": "Experiencia en desarrollo web con React y Python, manejo de bases de datos PostgreSQL y control de versiones con Git.",
+#         "intereses": "Desarrollo Web, Ciencia de Datos, IA, Frontend"
+#     }
+
+#     # Relación de public.habilidades_estudiante vinculadas al perfil_id 1
+#     habilidades_estudiante_sql = ["React", "JavaScript", "Python", "Flask", "PostgreSQL", "Git"]
+    
+#     instituciones_sql = [
+#         {"institucion_id": 1, "nombre": "TechSolutions GYE"},
+#         {"institucion_id": 2, "nombre": "DataMind Ecuador"},
+#         {"institucion_id": 6, "nombre": "SmartCode"},
+#         {"institucion_id": 7, "nombre": "Devs & Data Ecuador"}
+#     ]
+
+#     # Base de Datos Simulada de Vacantes
+#     # Vacantes:
+#     vacantes_sql = [
+#         {
+#             "vacante_id": 1,
+#             "institucion_id": 1,
+#             "titulo": "Practicante Desarrollo Frontend",
+#             "area": "Desarrollo Web y Desktop",
+#             "descripcion": "Buscamos estudiante para practicas en desarrollo frontend con React y TypeScript.",
+#             "requisitos": "Estudiante de Software o sistemas con conocimiento en React y Python.",
+#             "modalidad": "Hibrido",
+#             "ubicacion": "Guayaquil",
+#             "total_horas": 240
+#         },
+#         {
+#             "vacante_id": 2,
+#             "institucion_id": 2,
+#             "titulo": "Practicante Analisis de Datos",
+#             "area": "Data Science",
+#             "descripcion": "Practicas en analisis de datos con Python y herramientas de BI.",
+#             "requisitos": "Conocimiento en Python, SQL. Interes en machine learning.",
+#             "modalidad": "Presencial",
+#             "ubicacion": "Guayaquil",
+#             "total_horas": 144
+#         },
+#         {
+#             "vacante_id": 6,
+#             "institucion_id": 6,
+#             "titulo": "Practicante Backend .NET",
+#             "area": "Desarrollo Backend",
+#             "descripcion": "Desarrollo de microservicios con C# y .NET.",
+#             "requisitos": "Conocimientos de C# y SQL Server.",
+#             "modalidad": "Remoto",
+#             "ubicacion": "Quito",
+#             "total_horas": 240
+#         },
+#         {
+#             "vacante_id": 7,
+#             "institucion_id": 7,
+#             "titulo": "Practicante Fullstack Python & React",
+#             "area": "Desarrollo Web", 
+#             "descripcion": "Buscamos estudiante de software apasionado por el desarrollo web usando Flask y React para construir módulos internos y gestionar bases de datos con PostgreSQL.",
+#             "requisitos": "Estudiante de Software con sólidos conocimientos en Python, React, Flask, PostgreSQL y control de versiones Git.",
+#             "modalidad": "Hibrido",
+#             "ubicacion": "Guayaquil", 
+#             "total_horas": 240
+#         }
+#     ]
+
+#     # HABILIDADES REQUERIDAS POR VACANTE:
+#     habilidades_vacantes_sql = [
+#         {"vacante_id": 1, "habilidad_nombre": "React"},
+#         {"vacante_id": 1, "habilidad_nombre": "TypeScript"},
+#         {"vacante_id": 2, "habilidad_nombre": "Python"},
+#         {"vacante_id": 2, "habilidad_nombre": "SQL"},
+#         {"vacante_id": 6, "habilidad_nombre": "C#"},
+#         {"vacante_id": 6, "habilidad_nombre": ".NET"},
+#         {"vacante_id": 7, "habilidad_nombre": "React"},
+#         {"vacante_id": 7, "habilidad_nombre": "Python"},
+#         {"vacante_id": 7, "habilidad_nombre": "Flask"},
+#         {"vacante_id": 7, "habilidad_nombre": "PostgreSQL"},
+#         {"vacante_id": 7, "habilidad_nombre": "Git"}
+#     ]
+
+#     # Ejecutar la función de recomendación
+#     nombre_completo = f"{estudiante_sql['nombre']} {estudiante_sql['apellido']}"
+#     print("\n==================================================")
+#     print(f"Buscando vacantes ideales para: {nombre_completo}")
+#     print("==================================================")
+
+#     recom_actuales = recomendar_vacantes(
+#         perfil_estudiante=estudiante_sql,
+#         habilidades_estudiante=habilidades_estudiante_sql,
+#         pool_vacantes=vacantes_sql,
+#         pool_habilidades_vacante=habilidades_vacantes_sql,
+#         pool_instituciones=instituciones_sql,
+#         top_n=3
+#     )
+    
+#     for rec in recom_actuales:
+#         print(f"ID Vacante: {rec['vacante_id']} |")
+#         print(f"Porcentaje de Afinidad Calculado: {rec['porcentaje_afinidad']:.2f}%")
+#         print(f"Empresa: {rec['nombre_empresa']}")
+#         print(f"Puesto: {rec['titulo']}")
+#         print(f"Modalidad: {rec['modalidad']}")
+#         print(f"Horas: {rec['total_horas']} horas")
+#         print("-" * 66)
+
+#####################################################
+# LABORATORIO DE PRUEBAS - PIVIPP
+#####################################################
