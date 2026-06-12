@@ -253,13 +253,13 @@ DB_CONFIG = {
 print("[INFO] Cargando el motor de Inteligencia Artificial (PIVIPP)...")
 try:
     #MODELO RANDOM FOREST
-    # model = joblib.load("modelos_entrenados/model2_random_forest.pkl")
-    # scaler = joblib.load("modelos_entrenados/model2_scaler.pkl")
+    model = joblib.load("modelos_entrenados/model2_random_forest.pkl")
+    scaler = joblib.load("modelos_entrenados/model2_scaler.pkl")
     #MODELO SVR
     # model = joblib.load("modelos_entrenados/svr/pivipp_svr.pkl")
     # scaler = joblib.load("modelos_entrenados/svr/pivipp_svr_scaler.pkl")
-    model = joblib.load("modelos_entrenados/xgboost/pivipp_xgboost.pkl")
-    scaler = joblib.load("modelos_entrenados/xgboost/pivipp_xgboost_scaler.pkl")
+    # model = joblib.load("modelos_entrenados/xgboost/pivipp_xgboost.pkl")
+    # scaler = joblib.load("modelos_entrenados/xgboost/pivipp_xgboost_scaler.pkl")
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2") 
     print("[OK] Artefactos y modelo multi-métrica (389 features) cargados con éxito.")
 except Exception as e:

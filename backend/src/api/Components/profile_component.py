@@ -104,12 +104,24 @@ class ProfileComponent:
                     perfil_id = res_id['data']['perfil_id']
                     if 'skills' in p_data:
                         ProfileComponent._update_student_skills(perfil_id, p_data['skills'])
-                    # Invalidar caché de afinidad NLP al actualizar perfil/habilidades
+                    # Invalidar caché y pre-calcular afinidad NLP Híbrida en segundo plano
                     try:
                         from ...api.Components.recomendacion_component import RecomendacionComponent
+                        from ...api.Components.recomendacion_hibrida_component import RecomendacionHibridaComponent
+                        import threading
+                        
                         RecomendacionComponent.invalidar_cache_estudiante(perfil_id)
-                    except Exception:
-                        pass  # No bloquear la actualización si el motor NLP no está disponible
+                        
+                        # Pre-calcular en background para ahorrar tiempo al entrar al feed
+                        def precalcular():
+                            try:
+                                RecomendacionHibridaComponent.get_recomendaciones(user_id, None)
+                            except Exception as e:
+                                HandleLogs.write_error(f"Error precalculando NLP: {e}")
+                                
+                        threading.Thread(target=precalcular, daemon=True).start()
+                    except Exception as e:
+                        HandleLogs.write_error(f"Error iniciando precalculo NLP: {e}")
 
             elif role == 'empresa':
                 sql_comp = """

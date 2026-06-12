@@ -86,32 +86,6 @@ export default function SkillSelector({
             <div key={hab.skill_id || hab.name} className="inline-flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 text-xs rounded-md">
               <span className="font-semibold text-primary-700">{hab.name}</span>
               
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-slate-500">{isVacancy ? 'Nivel Req.' : 'Nivel'}</span>
-                <select
-                  value={hab.level}
-                  onChange={(e) => updateSkillProperty(hab.name, 'level', parseInt(e.target.value, 10))}
-                  className="text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-md px-1.5 py-0.5"
-                  aria-label={`Nivel de ${hab.name}`}
-                >
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-              </div>
-
-              {isVacancy && (
-                <div className="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1 cursor-pointer" onClick={() => updateSkillProperty(hab.name, 'is_optional', !hab.is_optional)}>
-                  <input 
-                    type="checkbox" 
-                    checked={hab.is_optional}
-                    onChange={() => {}} // Handled by div click
-                    className="w-3 h-3 text-primary-600 rounded border-slate-300 focus:ring-primary-500 cursor-pointer pointer-events-none"
-                  />
-                  <span className="text-[10px] text-slate-500 select-none">Opcional</span>
-                </div>
-              )}
-
               <button
                 type="button"
                 onClick={() => toggleHabilidad(hab)}

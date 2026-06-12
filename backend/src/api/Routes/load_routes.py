@@ -13,7 +13,7 @@ from ..Services.admin_service import (
     AdminSupervisorService
 )
 from ..Services.matching_service import MatchingCandidatesService
-from ..Services.recomendacion_service import RecomendacionVacantesService
+from ..Services.recomendacion_service import RecomendacionVacantesService, RecomendacionHibridaService
 
 def load_routes(api):
     # === Autenticación ===
@@ -59,8 +59,8 @@ def load_routes(api):
     # === Matching ===
     api.add_resource(MatchingCandidatesService, '/matching/candidates')
 
-    # === Recomendación IA (Motor NLP XGBoost) ===
-    api.add_resource(RecomendacionVacantesService, '/recomendacion/vacantes')
+    # === Recomendación IA (Motor NLP HÍBRIDO: XGBoost + SVR) ===
+    api.add_resource(RecomendacionHibridaService, '/recomendacion/vacantes')
 
     # === Reportes ===
     api.add_resource(AdminReportsService, '/admin/reports')

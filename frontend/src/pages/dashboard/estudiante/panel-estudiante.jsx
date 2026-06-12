@@ -337,10 +337,6 @@ export default function EstudianteDashboard() {
                     {selectedVacancy.skills.map((skill, index) => (
                       <div key={index} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
                         <span className="font-semibold text-primary-700">{skill.habilidad_nombre || skill.name}</span>
-                        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Nivel Req: {skill.nivel_requerido || skill.level || 1}</span>
-                        {(skill.es_opcional || skill.is_optional) && (
-                          <span className="text-[10px] text-slate-400 italic">Opcional</span>
-                        )}
                       </div>
                     ))}
                   </div>
