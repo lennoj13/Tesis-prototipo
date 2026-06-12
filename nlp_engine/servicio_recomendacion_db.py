@@ -240,9 +240,9 @@ import joblib
 
 # CONFIGURACIÓN SIMULADA DE DB (Asegúrate de tener tus credenciales aquí)
 DB_CONFIG = {
-    "dbname": "matchingg_db",
-    "user": "bryan_admin",
-    "password": "admin123",
+    "dbname": "matching_db",
+    "user": "postgres",
+    "password": "jonnel01",
     "host": "localhost",
     "port": "5432"
 }

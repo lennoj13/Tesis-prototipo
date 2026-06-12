@@ -37,6 +37,15 @@ class VacancyComponent:
                 result = True
                 data = vacante_id
                 message = "Vacante creada exitosamente"
+                # Invalidar caché NLP para todos los estudiantes de la facultad
+                try:
+                    from ...api.Components.recomendacion_component import RecomendacionComponent
+                    sql_fac = "SELECT facultad_id FROM public.instituciones WHERE institucion_id = %s"
+                    fac_res = DataBaseHandle.getRecords(sql_fac, 1, (institucion_id,))
+                    if fac_res['result'] and fac_res['data'] and fac_res['data'].get('facultad_id'):
+                        RecomendacionComponent.invalidar_cache_facultad(fac_res['data']['facultad_id'])
+                except Exception:
+                    pass
             else:
                 message = db_result.get('message', "Error al crear la vacante")
 
@@ -309,6 +318,13 @@ class VacancyComponent:
             if 'skills' in p_data:
                 DataBaseHandle.ExecuteNonQuery("DELETE FROM public.habilidades_vacante WHERE vacante_id = %s", (vacante_id,))
                 VacancyComponent._add_vacancy_skills(vacante_id, p_data['skills'])
+
+            # Invalidar caché NLP para esta vacante
+            try:
+                from ...api.Components.recomendacion_component import RecomendacionComponent
+                RecomendacionComponent.invalidar_cache_vacante(vacante_id)
+            except Exception:
+                pass
                 
             return internal_response(True, None, "Vacante actualizada")
         except Exception as err:
@@ -327,6 +343,12 @@ class VacancyComponent:
 
             sql = "UPDATE public.vacantes SET activo = false WHERE vacante_id = %s"
             DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
+            # Invalidar caché NLP para esta vacante
+            try:
+                from ...api.Components.recomendacion_component import RecomendacionComponent
+                RecomendacionComponent.invalidar_cache_vacante(vacante_id)
+            except Exception:
+                pass
             return internal_response(True, None, "Vacante cerrada exitosamente")
         except Exception as err:
             HandleLogs.write_error(err)

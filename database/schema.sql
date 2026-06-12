@@ -195,3 +195,15 @@ CREATE INDEX idx_vacantes_activo ON public.vacantes(activo);
 CREATE INDEX idx_postulaciones_estudiante ON public.postulaciones(estudiante_id);
 CREATE INDEX idx_postulaciones_vacante ON public.postulaciones(vacante_id);
 CREATE INDEX idx_postulaciones_estado ON public.postulaciones(estado);
+
+-- 13. CACHE DE AFINIDAD (Motor NLP)
+CREATE TABLE public.cache_afinidad (
+    id SERIAL PRIMARY KEY,
+    estudiante_id INTEGER NOT NULL REFERENCES public.perfiles_estudiante(perfil_id) ON DELETE CASCADE,
+    vacante_id INTEGER NOT NULL REFERENCES public.vacantes(vacante_id) ON DELETE CASCADE,
+    porcentaje_afinidad DECIMAL(5,2) NOT NULL,
+    calculado_en TIMESTAMP DEFAULT NOW(),
+    UNIQUE(estudiante_id, vacante_id)
+);
+CREATE INDEX idx_cache_afinidad_estudiante ON public.cache_afinidad(estudiante_id);
+CREATE INDEX idx_cache_afinidad_vacante ON public.cache_afinidad(vacante_id);

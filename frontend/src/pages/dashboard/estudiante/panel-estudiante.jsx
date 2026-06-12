@@ -1,12 +1,13 @@
 
 /**
- * Dashboard Estudiante — Feed de vacantes con detalle y postulación.
+ * Dashboard Estudiante — Feed de vacantes con afinidad IA y postulación.
  * Módulo 4 de la tesis: Matching Bidireccional (vista estudiante)
+ * Usa el motor NLP (XGBoost + SentenceTransformer) para calcular afinidad real.
  */
 
 import { useState, useEffect } from 'react';
 import { useAuth } from 'context/AuthContext';
-import vacancyService from 'services/vacancyService';
+import recomendacionService from 'services/recomendacionService';
 import applicationService from 'services/applicationService';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
@@ -15,12 +16,6 @@ import InfoField from 'components/InfoField';
 import Toast from 'components/Toast';
 import EmptyState from 'components/EmptyState';
 import { FiFileText, FiSend, FiTarget, FiMapPin, FiClock, FiUsers, FiCheckCircle, FiCalendar, FiBriefcase, FiLoader, FiAlertCircle } from 'react-icons/fi';
-
-// Función para generar un % de afinidad simulado (basado en vacancy_id para consistencia)
-function getAffinity(vacancyId) {
-  const affinities = [92, 85, 78, 88, 71, 95, 67, 82, 90, 74];
-  return affinities[(vacancyId || 0) % affinities.length];
-}
 
 function getAffinityColor(val) {
   if (val >= 80) return { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', ring: 'ring-green-500' };
@@ -50,11 +45,13 @@ export default function EstudianteDashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [vacRes, appRes] = await Promise.all([
-          vacancyService.getAll(),
+        // Llamar al motor NLP para obtener vacantes con afinidad real
+        const [recRes, appRes] = await Promise.all([
+          recomendacionService.getRecomendaciones(),
           applicationService.getMyApplications(user?.profile_id),
         ]);
-        const vacs = vacRes.result ? (vacRes.data || []) : [];
+        // recRes.data ya contiene las vacantes con porcentaje_afinidad calculado por IA
+        const vacs = recRes.result ? (recRes.data || []) : [];
         const apps = appRes.result ? (appRes.data || []) : [];
         setVacantes(vacs);
         setMyApplications(apps);
@@ -87,7 +84,7 @@ export default function EstudianteDashboard() {
     if (!selectedVacancy) return;
     setApplying(true);
     try {
-      const affinity = getAffinity(selectedVacancy.vacante_id);
+      const affinity = Math.round(selectedVacancy.porcentaje_afinidad ?? 0);
       const res = await applicationService.apply(selectedVacancy.vacante_id, affinity);
       if (res.result) {
         setToast({ type: 'success', message: `¡Te postulaste exitosamente a "${selectedVacancy.titulo}"!` });
@@ -159,7 +156,7 @@ export default function EstudianteDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {vacantes.map((v) => {
-            const affinity = getAffinity(v.vacante_id);
+            const affinity = Math.round(v.porcentaje_afinidad ?? 0);
             const afColor = getAffinityColor(affinity);
             const applied = hasApplied(v.vacante_id);
             const totalHoras = v.total_horas ?? v.total_hours;
@@ -267,7 +264,7 @@ export default function EstudianteDashboard() {
         }
       >
         {selectedVacancy && (() => {
-          const aff = getAffinity(selectedVacancy.vacante_id);
+          const aff = Math.round(selectedVacancy.porcentaje_afinidad ?? 0);
           const afColor = getAffinityColor(aff);
           const totalHoras = selectedVacancy.total_horas ?? selectedVacancy.total_hours;
           const horasDiarias = selectedVacancy.horas_diarias ?? selectedVacancy.daily_hours;

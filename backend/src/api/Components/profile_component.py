@@ -100,8 +100,16 @@ class ProfileComponent:
                 sql_get_id = "SELECT perfil_id FROM public.perfiles_estudiante WHERE usuario_id = %s"
                 res_id = DataBaseHandle.getRecords(sql_get_id, 1, (user_id,))
                 
-                if res_id['result'] and res_id['data'] and 'skills' in p_data:
-                    ProfileComponent._update_student_skills(res_id['data']['perfil_id'], p_data['skills'])
+                if res_id['result'] and res_id['data']:
+                    perfil_id = res_id['data']['perfil_id']
+                    if 'skills' in p_data:
+                        ProfileComponent._update_student_skills(perfil_id, p_data['skills'])
+                    # Invalidar caché de afinidad NLP al actualizar perfil/habilidades
+                    try:
+                        from ...api.Components.recomendacion_component import RecomendacionComponent
+                        RecomendacionComponent.invalidar_cache_estudiante(perfil_id)
+                    except Exception:
+                        pass  # No bloquear la actualización si el motor NLP no está disponible
 
             elif role == 'empresa':
                 sql_comp = """
