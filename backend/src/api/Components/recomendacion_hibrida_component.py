@@ -29,6 +29,9 @@ class RecomendacionHibridaComponent:
     _embedding_model = None
     _models_loaded = False
     _load_error = None
+    
+    import threading
+    _inference_lock = threading.Lock()
 
     # =========================================================
     # CARGA DE MODELOS (Lazy Singleton)
@@ -133,16 +136,27 @@ class RecomendacionHibridaComponent:
                 vacantes_data.sort(key=lambda x: x.get('porcentaje_afinidad', 0), reverse=True)
                 return internal_response(True, vacantes_data, "Recomendaciones desde caché")
 
-            # 5. Si no hay caché completo, calcular con el motor NLP
-            afinidades = RecomendacionHibridaComponent._calcular_afinidad(usuario_id, estudiante_id, facultad_id, vacantes_data)
-            if afinidades is None:
-                # Fallback: retornar vacantes sin afinidad
-                for v in vacantes_data:
-                    v['porcentaje_afinidad'] = 0
-                return internal_response(True, vacantes_data, "Motor NLP no disponible, vacantes sin afinidad")
+            # 5. Si no hay caché completo, USAR EL CANDADO (Double-Checked Locking)
+            with RecomendacionHibridaComponent._inference_lock:
+                # Volvemos a consultar la caché por si otro hilo (ej. background thread) acaba de llenarla
+                cache_result_2 = RecomendacionHibridaComponent._get_cache(estudiante_id, vacante_ids)
+                if cache_result_2 and len(cache_result_2) == len(vacante_ids):
+                    afinidad_map = {c['vacante_id']: float(c['porcentaje_afinidad']) for c in cache_result_2}
+                    for v in vacantes_data:
+                        v['porcentaje_afinidad'] = afinidad_map.get(v['vacante_id'], 0)
+                    vacantes_data.sort(key=lambda x: x.get('porcentaje_afinidad', 0), reverse=True)
+                    return internal_response(True, vacantes_data, "Recomendaciones desde caché (Post-espera)")
 
-            # 6. Guardar en caché
-            RecomendacionHibridaComponent._save_cache(estudiante_id, afinidades)
+                # Si definitivamente sigue vacía, calcular con el motor NLP
+                afinidades = RecomendacionHibridaComponent._calcular_afinidad(usuario_id, estudiante_id, facultad_id, vacantes_data)
+                if afinidades is None:
+                    # Fallback: retornar vacantes sin afinidad
+                    for v in vacantes_data:
+                        v['porcentaje_afinidad'] = 0
+                    return internal_response(True, vacantes_data, "Motor NLP no disponible, vacantes sin afinidad")
+
+                # 6. Guardar en caché
+                RecomendacionHibridaComponent._save_cache(estudiante_id, afinidades)
 
             # 7. Fusionar afinidades con datos de vacantes
             for v in vacantes_data:
@@ -309,19 +323,14 @@ class RecomendacionHibridaComponent:
                         habilidades_por_vacante[v_id] = []
                     habilidades_por_vacante[v_id].append(hv['habilidad_nombre'])
 
-            # 4. Preparar texto del estudiante y generar embedding
+            # 4. Preparar texto del estudiante y vacantes
             texto_usuario = (
                 f"{perfil.get('carrera_nombre', '')} {perfil.get('resumen_experiencia', '')} "
                 f"{perfil.get('intereses', '')} {' '.join(habilidades)}"
             )
             usuario_limpio = RecomendacionHibridaComponent._limpiar_texto(texto_usuario)
-            emb_usuario = embedding_model.encode(
-                [usuario_limpio], convert_to_numpy=True, normalize_embeddings=True
-            )[0]
-
-            # 5. Preparar textos de vacantes y generar embeddings
+            
             df_vacantes = pd.DataFrame(vacantes_data)
-
             textos_vacantes = []
             for _, row in df_vacantes.iterrows():
                 habs = habilidades_por_vacante.get(row['vacante_id'], [])
@@ -337,6 +346,10 @@ class RecomendacionHibridaComponent:
                 RecomendacionHibridaComponent._limpiar_texto
             )
 
+            # 5. Generar embeddings (El Lock principal ahora está en get_recomendaciones)
+            emb_usuario = embedding_model.encode(
+                [usuario_limpio], convert_to_numpy=True, normalize_embeddings=True
+            )[0]
             embs_vacantes = embedding_model.encode(
                 df_vacantes['texto_limpio'].tolist(),
                 convert_to_numpy=True,
