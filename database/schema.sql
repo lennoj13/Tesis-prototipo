@@ -172,13 +172,13 @@ CREATE TABLE public.postulaciones (
     nro_solicitud VARCHAR(30) UNIQUE,
     estado VARCHAR(30) DEFAULT 'pendiente',
     porcentaje_afinidad DECIMAL(5,2) DEFAULT 0,
+    habilidades_snapshot JSONB DEFAULT '[]'::jsonb,
     fecha_respuesta_empresa TIMESTAMP,
     fecha_respuesta_gestor TIMESTAMP,
     notas_empresa TEXT,
     notas_gestor TEXT,
     creado_en TIMESTAMP DEFAULT NOW(),
-    actualizado_en TIMESTAMP DEFAULT NOW(),
-    UNIQUE(estudiante_id, vacante_id)
+    actualizado_en TIMESTAMP DEFAULT NOW()
 );
 
 -- INDICES

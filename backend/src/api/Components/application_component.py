@@ -38,12 +38,28 @@ class ApplicationComponent:
                     "Debes esperar a que sea procesada antes de postularte a otra."
                 )
 
+            import json
+            try:
+                DataBaseHandle.ExecuteNonQuery("ALTER TABLE public.postulaciones ADD COLUMN IF NOT EXISTS habilidades_snapshot JSONB DEFAULT '[]'::jsonb;")
+            except Exception:
+                pass
+
+            # Tomar una "foto" de las habilidades actuales del estudiante
+            sql_skills = """
+                SELECT he.habilidad_id, h.nombre as habilidad_nombre, h.categoria as habilidad_categoria, he.nivel
+                FROM public.habilidades_estudiante he
+                JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
+                WHERE he.estudiante_id = %s
+            """
+            skills_res = DataBaseHandle.getRecords(sql_skills, 0, (estudiante_id,))
+            snapshot = skills_res['data'] if skills_res['result'] and skills_res['data'] else []
+
             sql = """
-                INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_afinidad)
-                VALUES (%s, %s, 'pendiente', %s)
+                INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_afinidad, habilidades_snapshot, creado_en, actualizado_en)
+                VALUES (%s, %s, 'pendiente', %s, %s, NOW(), NOW())
                 RETURNING postulacion_id
             """
-            result = DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id, vacante_id, porcentaje_afinidad))
+            result = DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id, vacante_id, porcentaje_afinidad, json.dumps(snapshot)))
             if result['result']:
                 return internal_response(True, {'application_id': result['data']}, "Postulacion creada exitosamente")
             else:
@@ -60,6 +76,8 @@ class ApplicationComponent:
                        CAST(p.porcentaje_afinidad AS FLOAT) as porcentaje_afinidad,
                        TO_CHAR(p.creado_en, 'YYYY-MM-DD') as creado_en,
                        v.vacante_id, v.titulo, v.area, v.modalidad, v.ubicacion,
+                       v.descripcion, v.requisitos, v.horario, v.cupos,
+                       TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
                        v.total_horas, v.horas_diarias,
                        i.nombre as nombre_empresa
                 FROM public.postulaciones p
@@ -70,7 +88,27 @@ class ApplicationComponent:
             """
             result = DataBaseHandle.getRecords(sql, 0, (estudiante_id,))
             if result['result']:
-                return internal_response(True, result['data'] or [], "Postulaciones encontradas")
+                data = result['data'] or []
+                if data:
+                    vacante_ids = [v['vacante_id'] for v in data]
+                    sql_skills = '''
+                        SELECT hv.vacante_id, h.habilidad_id, h.nombre as habilidad_nombre, h.categoria,
+                               hv.nivel_requerido, hv.es_opcional
+                        FROM public.habilidades_vacante hv
+                        JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
+                        WHERE hv.vacante_id = ANY(%s)
+                    '''
+                    skills_res = DataBaseHandle.getRecords(sql_skills, 0, (vacante_ids,))
+                    skills_by_vacante = {}
+                    if skills_res['result'] and skills_res['data']:
+                        for s in skills_res['data']:
+                            vid = s['vacante_id']
+                            if vid not in skills_by_vacante:
+                                skills_by_vacante[vid] = []
+                            skills_by_vacante[vid].append(s)
+                    for v in data:
+                        v['skills'] = skills_by_vacante.get(v['vacante_id'], [])
+                return internal_response(True, data, "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
             HandleLogs.write_error(err)
@@ -153,6 +191,24 @@ class ApplicationComponent:
                 response_data = None
                 if nuevo_estado == 'aceptada':
                     response_data = {'nro_solicitud': nro}
+                    
+                    # Lógica para auto-cerrar la vacante si se alcanzan los cupos
+                    auto_close_sql = """
+                        UPDATE public.vacantes v
+                        SET activo = false
+                        WHERE v.vacante_id = (SELECT vacante_id FROM public.postulaciones WHERE postulacion_id = %s)
+                        AND (
+                            SELECT COUNT(*) 
+                            FROM public.postulaciones p2 
+                            WHERE p2.vacante_id = v.vacante_id 
+                            AND p2.estado IN ('aceptada', 'aprobada')
+                        ) >= v.cupos;
+                    """
+                    try:
+                        DataBaseHandle.ExecuteNonQuery(auto_close_sql, (postulacion_id,))
+                    except Exception:
+                        pass
+                        
                 return internal_response(True, response_data, "Estado actualizado")
             return internal_response(False, None, result.get('message', 'Error'))
         except Exception as err:
@@ -305,7 +361,7 @@ class ApplicationComponent:
         try:
             sql = """
                 SELECT 
-                    p.postulacion_id, p.nro_solicitud, p.porcentaje_afinidad, p.estado,
+                    p.postulacion_id, p.nro_solicitud, p.porcentaje_afinidad, p.estado, p.habilidades_snapshot,
                     TO_CHAR(p.fecha_respuesta_gestor, 'YYYY-MM-DD') as fecha_aprobacion,
                     u_est.cedula as est_cedula,
                     u_est.nombre || ' ' || u_est.apellido as est_nombres,
@@ -349,15 +405,30 @@ class ApplicationComponent:
             result = DataBaseHandle.getRecords(sql, 1, (postulacion_id,))
             if result['result'] and result['data']:
                 d = result['data']
-                skills_sql = """
-                    SELECT h.nombre as nombre, h.categoria, he.nivel
-                    FROM public.habilidades_estudiante he
-                    JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
-                    WHERE he.estudiante_id = %s
-                    ORDER BY h.categoria, h.nombre
-                """
-                skills_result = DataBaseHandle.getRecords(skills_sql, 0, (d['est_id'],))
-                habilidades = skills_result['data'] if skills_result['result'] and skills_result['data'] else []
+                
+                habilidades = []
+                if d.get('habilidades_snapshot'):
+                    import json
+                    snap = d['habilidades_snapshot']
+                    raw_skills = json.loads(snap) if isinstance(snap, str) else snap
+                    habilidades = [
+                        {
+                            'nombre': h.get('habilidad_nombre', h.get('nombre', '')),
+                            'categoria': h.get('habilidad_categoria', h.get('categoria', '')),
+                            'nivel': h.get('nivel', 1)
+                        } 
+                        for h in raw_skills
+                    ]
+                else:
+                    skills_sql = """
+                        SELECT h.nombre as nombre, h.categoria, he.nivel
+                        FROM public.habilidades_estudiante he
+                        JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
+                        WHERE he.estudiante_id = %s
+                        ORDER BY h.categoria, h.nombre
+                    """
+                    skills_result = DataBaseHandle.getRecords(skills_sql, 0, (d['est_id'],))
+                    habilidades = skills_result['data'] if skills_result['result'] and skills_result['data'] else []
 
                 vac_skills_sql = """
                     SELECT h.nombre as nombre, h.categoria, hv.nivel_requerido as nivel, hv.es_opcional

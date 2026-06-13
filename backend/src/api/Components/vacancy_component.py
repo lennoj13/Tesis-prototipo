@@ -332,14 +332,15 @@ class VacancyComponent:
             return internal_response(False, None, str(err))
 
     @staticmethod
-    def delete_vacancy(vacante_id):
+    def delete_vacancy(vacante_id, is_admin=False):
         try:
-            sql_check = "SELECT COUNT(*) as pendientes FROM public.postulaciones WHERE vacante_id = %s AND estado = 'pendiente'"
-            res_check = DataBaseHandle.getRecords(sql_check, 1, (vacante_id,))
-            
-            if res_check['result'] and res_check['data'] and res_check['data']['pendientes'] > 0:
-                pendientes = res_check['data']['pendientes']
-                return internal_response(False, None, f"No puedes cerrar la vacante. Tienes {pendientes} postulante(s) en estado pendiente. Debes rechazarlos o procesarlos antes de cerrar.")
+            if not is_admin:
+                sql_check = "SELECT COUNT(*) as pendientes FROM public.postulaciones WHERE vacante_id = %s AND estado = 'pendiente'"
+                res_check = DataBaseHandle.getRecords(sql_check, 1, (vacante_id,))
+                
+                if res_check['result'] and res_check['data'] and res_check['data']['pendientes'] > 0:
+                    pendientes = res_check['data']['pendientes']
+                    return internal_response(False, None, f"No puedes cerrar la vacante. Tienes {pendientes} postulante(s) en estado pendiente. Debes rechazarlos o procesarlos antes de cerrar.")
 
             sql = "UPDATE public.vacantes SET activo = false WHERE vacante_id = %s"
             DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))

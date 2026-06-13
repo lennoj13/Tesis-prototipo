@@ -110,7 +110,9 @@ class VacancyCatalogService(Resource):
 class VacancyDetailService(Resource):
     @staticmethod
     def _verify_ownership(auth_data, vacancy_id):
-        if auth_data['role'] not in ('company', 'empresa'):
+        if auth_data.get('role') == 'admin':
+            return True, ""
+        if auth_data.get('role') not in ('company', 'empresa'):
             return False, "No tienes permiso para modificar esta vacante"
         user_id = auth_data['user_id']
         sql = "SELECT i.institucion_id FROM public.instituciones i JOIN public.vacantes v ON i.institucion_id = v.institucion_id WHERE i.usuario_id = %s AND v.vacante_id = %s"
@@ -150,7 +152,8 @@ class VacancyDetailService(Resource):
             owned, err_msg = VacancyDetailService._verify_ownership(auth['data'], vacancy_id)
             if not owned: return response_error(err_msg)
 
-            result = VacancyComponent.delete_vacancy(vacancy_id)
+            is_admin = auth['data'].get('role') == 'admin'
+            result = VacancyComponent.delete_vacancy(vacancy_id, is_admin=is_admin)
             if result['result']:
                 return response_success(None)
             return response_error(result['message'])

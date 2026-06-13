@@ -282,7 +282,6 @@ export default function SolicitudDetalleView({
                     {vacante.habilidades.map((hab, i) => (
                       <div key={i} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
                         <span className="font-semibold text-primary-700">{hab.nombre}</span>
-                        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Nivel Req: {hab.nivel}</span>
                         {hab.es_opcional && (
                           <span className="text-[10px] text-slate-400 italic">Opcional</span>
                         )}
@@ -319,7 +318,6 @@ export default function SolicitudDetalleView({
                     {habilidades.map((skill, i) => (
                       <span key={`${skill.nombre}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-md border border-primary-200">
                         {skill.nombre}
-                        <span className="text-[10px] text-primary-600">Nv.{skill.nivel}</span>
                       </span>
                     ))}
                   </div>

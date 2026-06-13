@@ -45,6 +45,14 @@ export default function EstudiantePostulaciones() {
           area: a.area || '',
           modalidad: a.modalidad || a.modality || '',
           ubicacion: a.ubicacion || a.location || '',
+          descripcion: a.descripcion || '',
+          requisitos: a.requisitos || '',
+          horario: a.horario || '',
+          horas_diarias: a.horas_diarias || '',
+          total_horas: a.total_horas || '',
+          fecha_expiracion: a.fecha_expiracion || '',
+          cupos: a.cupos || 1,
+          skills: a.skills || [],
         })));
       }
     } catch (err) {
@@ -170,6 +178,63 @@ export default function EstudiantePostulaciones() {
                 <StatusBadge status={viewModal.estado} />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4 p-4 max-md:grid-cols-1">
+              {viewModal.cupos && (
+                <div>
+                  <p className="text-xs text-slate-500 m-0">Cupos</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.cupos} disponibles</p>
+                </div>
+              )}
+              {viewModal.total_horas && (
+                <div>
+                  <p className="text-xs text-slate-500 m-0">Horas totales</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.total_horas} horas</p>
+                </div>
+              )}
+              {viewModal.horas_diarias && (
+                <div>
+                  <p className="text-xs text-slate-500 m-0">Horas al día</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horas_diarias} horas</p>
+                </div>
+              )}
+              {viewModal.horario && (
+                <div>
+                  <p className="text-xs text-slate-500 m-0">Horario</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horario}</p>
+                </div>
+              )}
+            </div>
+
+            {viewModal.descripcion && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Descripción</h4>
+                <p className="text-sm text-slate-700 leading-relaxed m-0">{viewModal.descripcion}</p>
+              </div>
+            )}
+
+            {viewModal.requisitos && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Requisitos</h4>
+                <p className="text-sm text-slate-700 leading-relaxed m-0">{viewModal.requisitos}</p>
+              </div>
+            )}
+
+            {viewModal.skills && viewModal.skills.length > 0 && (
+              <div className="pt-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiBriefcase className="text-slate-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">Habilidades Solicitadas</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {viewModal.skills.map((skill, index) => (
+                    <div key={index} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
+                      <span className="font-semibold text-primary-700">{skill.habilidad_nombre || skill.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {viewModal.estado === 'aprobado' && (
               <div className="p-4 bg-success-light border border-green-200 rounded-md">

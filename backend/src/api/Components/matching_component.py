@@ -47,9 +47,15 @@ class MatchingComponent:
                 vskills_result = DataBaseHandle.getRecords(sql_vskills, 0, (vid,))
                 vacancy_skills = vskills_result['data'] if vskills_result['result'] and vskills_result['data'] else []
 
-                # Obtener postulaciones para esta vacante
-                sql_applied_all = "SELECT estudiante_id, postulacion_id, estado FROM public.postulaciones WHERE vacante_id = %s"
-                app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
+                # Obtener postulaciones para esta vacante (incluyendo afinidad NLP congelada y snapshot de habilidades)
+                try:
+                    sql_applied_all = "SELECT estudiante_id, postulacion_id, estado, porcentaje_afinidad, habilidades_snapshot FROM public.postulaciones WHERE vacante_id = %s"
+                    app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
+                except Exception:
+                    # Fallback por si la columna habilidades_snapshot aun no existe en BD
+                    sql_applied_all = "SELECT estudiante_id, postulacion_id, estado, porcentaje_afinidad FROM public.postulaciones WHERE vacante_id = %s"
+                    app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
+                    
                 applied_map = {r['estudiante_id']: r for r in app_all_result['data']} if app_all_result['result'] and app_all_result['data'] else {}
 
                 # 3. Obtener todos los estudiantes con sus skills
@@ -70,35 +76,34 @@ class MatchingComponent:
                     sid = student['estudiante_id']
                     has_applied = sid in applied_map
 
-                    # Obtener skills del estudiante
-                    sql_sskills = """
-                        SELECT he.habilidad_id, h.nombre as habilidad_nombre, h.categoria as habilidad_categoria, he.nivel
-                        FROM public.habilidades_estudiante he
-                        JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
-                        WHERE he.estudiante_id = %s
-                    """
-                    sskills_result = DataBaseHandle.getRecords(sql_sskills, 0, (sid,))
-                    student_skills = sskills_result['data'] if sskills_result['result'] and sskills_result['data'] else []
+                    # Obtener skills del estudiante (De la "Foto" si ya aplicó, o en vivo si es nuevo)
+                    already_applied = applied_map.get(sid)
+                    
+                    if already_applied and already_applied.get('habilidades_snapshot'):
+                        import json
+                        snap = already_applied['habilidades_snapshot']
+                        student_skills = json.loads(snap) if isinstance(snap, str) else snap
+                    else:
+                        sql_sskills = """
+                            SELECT he.habilidad_id, h.nombre as habilidad_nombre, h.categoria as habilidad_categoria, he.nivel
+                            FROM public.habilidades_estudiante he
+                            JOIN public.habilidades h ON he.habilidad_id = h.habilidad_id
+                            WHERE he.estudiante_id = %s
+                        """
+                        sskills_result = DataBaseHandle.getRecords(sql_sskills, 0, (sid,))
+                        student_skills = sskills_result['data'] if sskills_result['result'] and sskills_result['data'] else []
 
                     if not student_skills and not has_applied:
                         continue
 
-                    # 4. Calcular afinidad
+                    # 4. Calcular afinidad o usar la oficial congelada de la postulación
                     student_skill_map = {s['habilidad_id']: s for s in student_skills}
-
-                    max_points = 0
-                    earned_points = 0
                     matched_skills = []
 
                     for vs in vacancy_skills:
-                        weight = 3 if not vs['es_opcional'] else 1
                         max_level = vs['nivel_requerido'] or 1
-                        max_points += weight * max_level
-
                         if vs['habilidad_id'] in student_skill_map:
                             s_skill = student_skill_map[vs['habilidad_id']]
-                            level_ratio = min(s_skill['nivel'] / max_level, 1.5)
-                            earned_points += weight * max_level * level_ratio
                             matched_skills.append({
                                 'name': vs['habilidad_nombre'],
                                 'required_level': max_level,
@@ -106,16 +111,15 @@ class MatchingComponent:
                                 'is_optional': vs['es_opcional'],
                             })
 
-                    if max_points == 0:
-                        affinity = 0
+                    # Si el estudiante ya aplicó, la afinidad es estrictamente la del momento de su aplicación (Motor NLP)
+                    if already_applied and already_applied.get('porcentaje_afinidad') is not None:
+                        affinity = float(already_applied['porcentaje_afinidad'])
                     else:
-                        affinity = round((earned_points / max_points) * 100, 1)
-                        affinity = min(affinity, 100)
+                        # Si no ha aplicado, o es una postulación muy antigua sin porcentaje, usamos 0
+                        affinity = 0
 
-                    # Solo incluir candidatos con afinidad >= 30% O que ya hayan postulado
-                    if affinity >= 30 or has_applied:
-                        already_applied = applied_map.get(sid)
-
+                    # Solo incluir candidatos que ya hayan postulado (vista de empresa)
+                    if has_applied:
                         # Todas las skills del estudiante
                         all_skills = [{'name': s['habilidad_nombre'], 'category': s['habilidad_categoria'], 'level': s['nivel']} for s in student_skills]
 
