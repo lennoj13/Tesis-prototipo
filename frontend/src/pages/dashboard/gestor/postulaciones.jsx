@@ -5,6 +5,7 @@ import Button from 'components/Button';
 import Card from 'components/Card';
 import EmptyState from 'components/EmptyState';
 import DataTable from 'components/DataTable';
+import Toast from 'components/Toast';
 import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
 import profileService from 'services/profileService';
@@ -21,6 +22,14 @@ export default function GestorPostulaciones() {
   const [supervisores, setSupervisores] = useState([]);
   const [selectedSupervisor, setSelectedSupervisor] = useState('');
   const [actionLoading, setActionLoading] = useState({ approve: false, reject: false });
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     loadApplications();
@@ -82,11 +91,14 @@ export default function GestorPostulaciones() {
         supervisor_id: parseInt(selectedSupervisor) || null,
       });
       if (response.result) {
+        setToast({ type: 'success', message: 'La solicitud ha sido aprobada formalmente.' });
         closeDetail();
         loadApplications();
+      } else {
+        setToast({ type: 'error', message: response.message || 'Error al aprobar solicitud' });
       }
     } catch (err) {
-      console.error('Error:', err);
+      setToast({ type: 'error', message: 'Error de conexión con el servidor.' });
     } finally {
       setActionLoading(prev => ({ ...prev, approve: false }));
     }
@@ -101,11 +113,14 @@ export default function GestorPostulaciones() {
         notas: 'Rechazado por el gestor de PPP',
       });
       if (response.result) {
+        setToast({ type: 'success', message: 'La solicitud ha sido rechazada.' });
         closeDetail();
         loadApplications();
+      } else {
+        setToast({ type: 'error', message: response.message || 'Error al rechazar solicitud' });
       }
     } catch (err) {
-      console.error('Error:', err);
+      setToast({ type: 'error', message: 'Error de conexión con el servidor.' });
     } finally {
       setActionLoading(prev => ({ ...prev, reject: false }));
     }
@@ -213,6 +228,8 @@ export default function GestorPostulaciones() {
         title="Postulaciones Pendientes"
         subtitle={loading ? 'Cargando postulaciones...' : `${pendingApps.length} solicitudes pendientes de aprobación`}
       />
+
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {loading ? (
         <Card>

@@ -15,6 +15,7 @@ import StatusBadge from 'components/StatusBadge';
 import Button from 'components/Button';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Modal from 'components/Modal';
+import Toast from 'components/Toast';
 import InfoField from 'components/InfoField';
 import Card from 'components/Card';
 import { FiCheck, FiX, FiUser, FiEye, FiMail, FiBookOpen, FiAward, FiCreditCard, FiFileText, FiTarget, FiCheckCircle } from 'react-icons/fi';
@@ -55,6 +56,14 @@ export default function EmpresaPostulantes() {
   const [loading, setLoading] = useState(true);
   const [actionModal, setActionModal] = useState(null); // { appId, type: 'approved' | 'rejected', name, vacancyTitle }
   const [viewProfileModal, setViewProfileModal] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const loadData = async () => {
     setLoading(true);
@@ -123,13 +132,22 @@ export default function EmpresaPostulantes() {
   const handleUpdateStatus = async () => {
     if (!actionModal) return;
     try {
-      await applicationService.updateStatus(actionModal.appId, actionModal.type);
-      // Actualizamos localmente
-      setPostulantes(prev => prev.map(p => 
-        p.id === actionModal.appId ? { ...p, estado: statusMap[actionModal.type] || actionModal.type } : p
-      ));
+      const res = await applicationService.updateStatus(actionModal.appId, actionModal.type);
+      if (res.result) {
+        setPostulantes(prev => prev.map(p => 
+          p.id === actionModal.appId ? { ...p, estado: statusMap[actionModal.type] || actionModal.type } : p
+        ));
+        setToast({ 
+          type: 'success', 
+          message: actionModal.type === 'aceptada_empresa' 
+            ? 'Candidato aceptado correctamente.' 
+            : 'Candidato rechazado correctamente.' 
+        });
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error actualizando estado' });
+      }
     } catch (err) {
-      console.error('Error actualizando estado:', err);
+      setToast({ type: 'error', message: 'Error de conexión con el servidor.' });
     } finally {
       setActionModal(null);
     }
@@ -183,6 +201,8 @@ export default function EmpresaPostulantes() {
         title="Gestión de Postulantes"
         subtitle={loading ? 'Cargando candidatos...' : `${postulantes.length} postulaciones recibidas`}
       />
+
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <DataTable
         columns={columns}

@@ -12,7 +12,8 @@ import { useAuth } from 'context/AuthContext';
 import profileService from 'services/profileService';
 import adminService from 'services/adminService';
 import SkillSelector from 'components/SkillSelector';
-import { FiSave, FiPlus, FiX } from 'react-icons/fi';
+import Modal from 'components/Modal';
+import { FiSave, FiPlus, FiX, FiCheckCircle } from 'react-icons/fi';
 
 // Eliminamos las listas de carreras y semestres porque vienen precargadas del SIUG.
 
@@ -79,6 +80,7 @@ export default function EstudiantePerfil() {
   const [allSkills, setAllSkills] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const handleGuardar = async () => {
@@ -94,6 +96,7 @@ export default function EstudiantePerfil() {
         })),
       });
       setGuardado(true);
+      setShowSuccessModal(true);
       setTimeout(() => setGuardado(false), 3000);
     } catch (err) {
       console.error('Error guardando perfil:', err);
@@ -189,7 +192,7 @@ export default function EstudiantePerfil() {
         <section className={sectionClass}>
           <div className={sectionHeaderClass}>Habilidades y Competencias</div>
           <div className={`${sectionBodyClass} flex flex-col gap-4`}>
-            <p className="text-xs text-slate-500">Selecciona las habilidades que coincidan con tu perfil y tu nivel de dominio (1 a 5).</p>
+            <p className="text-xs text-slate-500">Selecciona las habilidades que coincidan con tu perfil.</p>
             <SkillSelector 
               selectedSkills={habilidades} 
               allSkills={allSkills} 
@@ -213,7 +216,34 @@ export default function EstudiantePerfil() {
           </div>
         </section>
       </div>
-    </div>
+      </div>
+
+      {/* Modal de Éxito */}
+      <Modal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)}
+        title="Perfil Actualizado"
+        size="sm"
+        footer={
+          <div className="flex justify-end w-full">
+            <Button variant="primary" onClick={() => setShowSuccessModal(false)}>Entendido</Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col items-center text-center p-2 gap-4">
+          <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center text-green-600 mb-1 border border-green-200">
+            <FiCheckCircle size={32} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">¡Cambios Guardados!</h3>
+            <p className="text-sm text-slate-600 leading-relaxed m-0">
+              Tu perfil académico y tus habilidades se han actualizado correctamente. 
+              El motor de Inteligencia Artificial usará esta información para recomendarte las mejores vacantes.
+            </p>
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 }

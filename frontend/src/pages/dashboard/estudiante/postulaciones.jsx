@@ -11,6 +11,7 @@ import PageHeader from 'components/PageHeader';
 import DataTable from 'components/DataTable';
 import StatusBadge from 'components/StatusBadge';
 import Modal from 'components/Modal';
+import Toast from 'components/Toast';
 import { FiEye, FiMapPin, FiCalendar, FiBriefcase } from 'react-icons/fi';
 
 const statusMap = {
@@ -30,6 +31,14 @@ export default function EstudiantePostulaciones() {
   const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const loadData = async () => {
     try {
@@ -72,11 +81,14 @@ export default function EstudiantePostulaciones() {
     try {
       const res = await applicationService.updateStatus(viewModal.id, { estado: 'cancelada' });
       if (res.result) {
+        setToast({ type: 'success', message: 'Has cancelado tu postulación exitosamente.' });
         setViewModal(null);
         await loadData();
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al cancelar la postulación' });
       }
     } catch (e) {
-      console.error('Error al cancelar:', e);
+      setToast({ type: 'error', message: 'Error al conectar con el servidor' });
     } finally {
       setCancelLoading(false);
     }
@@ -118,6 +130,8 @@ export default function EstudiantePostulaciones() {
         title="Mis Postulaciones"
         subtitle={loading ? 'Cargando...' : `${postulaciones.length} postulaciones a prácticas preprofesionales`}
       />
+
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <DataTable
         columns={columns}
