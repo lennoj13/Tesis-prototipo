@@ -258,14 +258,6 @@ export default function EmpresaPostulantes() {
           const selectedStudent = viewProfileModal;
           const afColor = getAffinityColor(selectedStudent.afinidad);
           const semLabel = semestreMap[String(selectedStudent.semestre)] || selectedStudent.semestre || '';
-          
-          // Agrupar todas las habilidades por categoría
-          const skillsByCategory = {};
-          (selectedStudent.all_skills || []).forEach(s => {
-            const cat = s.category || 'Otros';
-            if (!skillsByCategory[cat]) skillsByCategory[cat] = [];
-            skillsByCategory[cat].push(s);
-          });
 
           return (
             <div className="flex flex-col gap-5">
@@ -330,52 +322,27 @@ export default function EmpresaPostulantes() {
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FiAward size={14} /> Skills que coinciden con tu vacante ({selectedStudent.matched_count}/{selectedStudent.total_vacancy_skills})
                   </h4>
-                  <div className="flex flex-col gap-2">
-                    {selectedStudent.matched_skills.map((skill, i) => {
-                      const levelFull = Math.min(skill.student_level / (skill.required_level || 1), 1);
-                      return (
-                        <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-md">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                            {skill.is_optional && <span className="text-[9px] text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded">Opcional</span>}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${levelFull >= 1 ? 'bg-green-500' : levelFull >= 0.7 ? 'bg-amber-500' : 'bg-red-400'}`}
-                                style={{ width: `${Math.min(levelFull * 100, 100)}%` }}
-                              />
-                            </div>
-                            <span className="text-[11px] text-slate-500 font-mono w-10 text-right">
-                              {skill.student_level}/{skill.required_level}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="flex flex-wrap gap-2">
+                    {selectedStudent.matched_skills.map((skill, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 shadow-sm rounded-md text-xs font-bold">
+                        <FiCheckCircle size={12} /> {skill.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* All Skills by category */}
-              {Object.keys(skillsByCategory).length > 0 ? (
+              {/* All Skills - Flat List */}
+              {selectedStudent.all_skills && selectedStudent.all_skills.length > 0 ? (
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FiTarget size={14} /> Todas las habilidades del estudiante
                   </h4>
-                  <div className="flex flex-col gap-3">
-                    {Object.entries(skillsByCategory).map(([category, skills]) => (
-                      <div key={category}>
-                        <p className="text-[11px] font-semibold text-slate-500 uppercase mb-1.5">{category}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {skills.map((skill, i) => (
-                            <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs">
-                              <span className="font-medium text-slate-700">{skill.name}</span>
-                              <span className="text-[10px] text-slate-400">Nv.{skill.level}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedStudent.all_skills.map((skill, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-md text-xs">
+                        <span className="font-medium text-slate-700">{skill.name}</span>
+                      </span>
                     ))}
                   </div>
                 </div>

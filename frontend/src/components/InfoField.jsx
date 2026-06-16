@@ -10,6 +10,7 @@ export default function InfoField({
   icon: Icon,
   variant = 'default',
   className = '',
+  truncate = true,
 }) {
   const variants = {
     default: 'bg-slate-50',
@@ -27,7 +28,7 @@ export default function InfoField({
       )}
       <div className="min-w-0 flex-1">
         <p className="text-[10px] text-slate-400 uppercase font-semibold m-0 tracking-wide">{label}</p>
-        <p className="text-sm text-slate-800 m-0 truncate">{displayValue}</p>
+        <div className={`text-sm text-slate-800 m-0 ${truncate ? 'truncate' : 'whitespace-pre-wrap break-words mt-0.5'}`}>{displayValue}</div>
       </div>
     </div>
   );

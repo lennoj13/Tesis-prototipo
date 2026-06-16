@@ -497,10 +497,10 @@ export default function AdminUsuarios() {
                     <InfoField label="Universidad" value={detailData.perfil_estudiante.universidad || 'Universidad de Guayaquil'} variant="default" />
                     <InfoField label="Semestre" value={detailData.perfil_estudiante.semestre ? `${detailData.perfil_estudiante.semestre}º Semestre` : 'No especificado'} variant="default" />
                     {detailData.perfil_estudiante.intereses && (
-                      <InfoField className="col-span-2" label="Intereses" value={detailData.perfil_estudiante.intereses} variant="default" />
+                      <InfoField className="col-span-2" label="Intereses" value={detailData.perfil_estudiante.intereses} variant="default" truncate={false} />
                     )}
                     {detailData.perfil_estudiante.resumen_experiencia && (
-                      <InfoField className="col-span-2" label="Experiencia" value={detailData.perfil_estudiante.resumen_experiencia} variant="default" />
+                      <InfoField className="col-span-2" label="Experiencia" value={detailData.perfil_estudiante.resumen_experiencia} variant="default" truncate={false} />
                     )}
                   </div>
                 </div>
@@ -518,7 +518,6 @@ export default function AdminUsuarios() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-semibold rounded-md border border-primary-200"
                         >
                           {skill.nombre}
-                          <span className="text-[10px] text-primary-400">Nv.{skill.nivel}</span>
                         </span>
                       ))}
                     </div>

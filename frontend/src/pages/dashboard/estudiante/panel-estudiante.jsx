@@ -41,6 +41,8 @@ export default function EstudianteDashboard() {
   const [selectedVacancy, setSelectedVacancy] = useState(null);
   const [applying, setApplying] = useState(false);
   const [toast, setToast] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     async function loadData() {
@@ -154,9 +156,10 @@ export default function EstudianteDashboard() {
           message="No hay vacantes disponibles en este momento"
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {vacantes.map((v) => {
-            const affinity = Math.round(v.porcentaje_afinidad ?? 0);
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vacantes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((v) => {
+              const affinity = Math.round(v.porcentaje_afinidad ?? 0);
             const afColor = getAffinityColor(affinity);
             const applied = hasApplied(v.vacante_id);
             const totalHoras = v.total_horas ?? v.total_hours;
@@ -233,7 +236,34 @@ export default function EstudianteDashboard() {
               </Card>
             );
           })}
-        </div>
+          </div>
+          {Math.ceil(vacantes.length / itemsPerPage) > 1 && (
+            <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border border-slate-200 rounded-md shadow-sm">
+              <span className="text-sm text-slate-500">
+                Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, vacantes.length)} de {vacantes.length} vacantes
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Anterior
+                </button>
+                <span className="text-sm font-medium text-slate-700 px-2">
+                  Página {currentPage} de {Math.ceil(vacantes.length / itemsPerPage)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(vacantes.length / itemsPerPage), p + 1))}
+                  disabled={currentPage === Math.ceil(vacantes.length / itemsPerPage)}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Vacancy Detail Modal */}

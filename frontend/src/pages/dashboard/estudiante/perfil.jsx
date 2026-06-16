@@ -64,7 +64,7 @@ export default function EstudiantePerfil() {
               name: s.nombre || s.name || '',
               category: s.categoria || s.category || null,
             }))
-            .filter((s) => s.name);
+            .filter((s) => s.name && s.category !== 'Ingenieria');
           setAllSkills(normalizedSkills);
         }
       } catch (err) {

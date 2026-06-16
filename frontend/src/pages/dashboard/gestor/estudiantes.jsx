@@ -169,7 +169,6 @@ export default function GestorEstudiantes() {
                       {studentDetail.habilidades.map((skill, i) => (
                         <span key={`${skill.nombre}-${i}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-semibold rounded-md border border-slate-200 shadow-sm">
                           {skill.nombre}
-                          <span className="text-[10px] text-primary-600 bg-primary-50 px-1.5 rounded-full">Nv.{skill.nivel}</span>
                         </span>
                       ))}
                     </div>

@@ -83,7 +83,7 @@ export default function EmpresaVacantes() {
             skill_id: s.habilidad_id || s.id || null,
             name: s.nombre || s.name || '',
             category: s.categoria || s.category || null,
-          })).filter(s => s.name));
+          })).filter(s => s.name && s.category !== 'Ingenieria'));
         }
       } catch (err) {
         console.error(err);

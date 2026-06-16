@@ -97,17 +97,23 @@ class MatchingComponent:
                         continue
 
                     # 4. Calcular afinidad o usar la oficial congelada de la postulación
-                    student_skill_map = {s['habilidad_id']: s for s in student_skills}
+                    student_skill_map_by_id = {s.get('habilidad_id'): s for s in student_skills if s.get('habilidad_id')}
+                    student_skill_map_by_name = {str(s.get('habilidad_nombre', s.get('nombre', ''))).lower(): s for s in student_skills}
+                    
                     matched_skills = []
 
                     for vs in vacancy_skills:
                         max_level = vs['nivel_requerido'] or 1
-                        if vs['habilidad_id'] in student_skill_map:
-                            s_skill = student_skill_map[vs['habilidad_id']]
+                        # Intentar map por ID, si falla intentar map por nombre
+                        s_skill = student_skill_map_by_id.get(vs['habilidad_id'])
+                        if not s_skill:
+                            s_skill = student_skill_map_by_name.get(str(vs['habilidad_nombre']).lower())
+                            
+                        if s_skill:
                             matched_skills.append({
                                 'name': vs['habilidad_nombre'],
                                 'required_level': max_level,
-                                'student_level': s_skill['nivel'],
+                                'student_level': s_skill.get('nivel', 1),
                                 'is_optional': vs['es_opcional'],
                             })
 
@@ -120,8 +126,12 @@ class MatchingComponent:
 
                     # Solo incluir candidatos que ya hayan postulado (vista de empresa)
                     if has_applied:
-                        # Todas las skills del estudiante
-                        all_skills = [{'name': s['habilidad_nombre'], 'category': s['habilidad_categoria'], 'level': s['nivel']} for s in student_skills]
+                        # Todas las skills del estudiante (soporta llaves antiguas del snapshot)
+                        all_skills = [{
+                            'name': s.get('habilidad_nombre', s.get('nombre', '')), 
+                            'category': s.get('habilidad_categoria', s.get('categoria', '')), 
+                            'level': s.get('nivel', 1)
+                        } for s in student_skills]
 
                         candidates.append({
                             'student_id': sid,

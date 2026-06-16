@@ -282,9 +282,6 @@ export default function SolicitudDetalleView({
                     {vacante.habilidades.map((hab, i) => (
                       <div key={i} className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-white border border-slate-200 text-xs rounded-md shadow-sm">
                         <span className="font-semibold text-primary-700">{hab.nombre}</span>
-                        {hab.es_opcional && (
-                          <span className="text-[10px] text-slate-400 italic">Opcional</span>
-                        )}
                       </div>
                     ))}
                   </div>
