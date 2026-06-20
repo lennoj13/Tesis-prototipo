@@ -19,19 +19,25 @@ class ApplicationComponent:
                         "Solo los estudiantes de octavo semestre o superior pueden postular a vacantes."
                     )
 
-            # Validar que el estudiante no tenga una postulación activa (pendiente o aceptada_empresa)
+            # Validar que el estudiante no tenga una postulacion activa
             sql_check = """
                 SELECT p.postulacion_id, p.estado, v.titulo as vacante_titulo
                 FROM public.postulaciones p
                 JOIN public.vacantes v ON p.vacante_id = v.vacante_id
                 WHERE p.estudiante_id = %s 
-                  AND p.estado IN ('pendiente', 'aceptada_empresa', 'aceptada')
+                  AND p.estado IN ('pendiente', 'entrevista', 'aceptada_empresa', 'aceptada')
                 LIMIT 1
             """
             check_result = DataBaseHandle.getRecords(sql_check, 1, (estudiante_id,))
             if check_result['result'] and check_result['data']:
                 active = check_result['data']
-                estado_label = 'pendiente' if active['estado'] == 'pendiente' else ('aceptada por empresa' if active['estado'] == 'aceptada_empresa' else 'en curso')
+                estado_labels = {
+                    'pendiente': 'pendiente',
+                    'entrevista': 'en fase de entrevista',
+                    'aceptada_empresa': 'aceptada por empresa',
+                    'aceptada': 'en curso'
+                }
+                estado_label = estado_labels.get(active['estado'], 'en curso')
                 return internal_response(
                     False, None,
                     f"Ya tienes una postulacion {estado_label} en la vacante \"{active['vacante_titulo']}\". "
@@ -44,7 +50,7 @@ class ApplicationComponent:
             except Exception:
                 pass
 
-            # Tomar una "foto" de las habilidades actuales del estudiante
+            # Tomar una "foto" completa del perfil del estudiante al momento de postularse
             sql_skills = """
                 SELECT he.habilidad_id, h.nombre as habilidad_nombre, h.categoria as habilidad_categoria, he.nivel
                 FROM public.habilidades_estudiante he
@@ -52,7 +58,22 @@ class ApplicationComponent:
                 WHERE he.estudiante_id = %s
             """
             skills_res = DataBaseHandle.getRecords(sql_skills, 0, (estudiante_id,))
-            snapshot = skills_res['data'] if skills_res['result'] and skills_res['data'] else []
+            skills_list = skills_res['data'] if skills_res['result'] and skills_res['data'] else []
+
+            # Capturar experiencia e intereses del perfil
+            sql_profile = """
+                SELECT resumen_experiencia, intereses
+                FROM public.perfiles_estudiante
+                WHERE perfil_id = %s
+            """
+            profile_res = DataBaseHandle.getRecords(sql_profile, 1, (estudiante_id,))
+            profile_data = profile_res['data'] if profile_res['result'] and profile_res['data'] else {}
+
+            snapshot = {
+                'habilidades': skills_list,
+                'resumen_experiencia': profile_data.get('resumen_experiencia', ''),
+                'intereses': profile_data.get('intereses', ''),
+            }
 
             sql = """
                 INSERT INTO public.postulaciones (estudiante_id, vacante_id, estado, porcentaje_afinidad, habilidades_snapshot, creado_en, actualizado_en)
@@ -75,6 +96,13 @@ class ApplicationComponent:
                 SELECT p.postulacion_id, p.estado, p.nro_solicitud,
                        CAST(p.porcentaje_afinidad AS FLOAT) as porcentaje_afinidad,
                        TO_CHAR(p.creado_en, 'YYYY-MM-DD') as creado_en,
+                       TO_CHAR(p.fecha_entrevista, 'YYYY-MM-DD') as fecha_entrevista,
+                       TO_CHAR(p.hora_entrevista, 'HH24:MI') as hora_entrevista,
+                       p.modalidad_entrevista,
+                       p.direccion_entrevista,
+                       p.link_reunion,
+                       TO_CHAR(p.fecha_respuesta_empresa, 'YYYY-MM-DD') as fecha_respuesta_empresa,
+                       TO_CHAR(p.fecha_respuesta_gestor, 'YYYY-MM-DD') as fecha_respuesta_gestor,
                        v.vacante_id, v.titulo, v.area, v.modalidad, v.ubicacion,
                        v.descripcion, v.requisitos, v.horario, v.cupos,
                        TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
@@ -141,12 +169,33 @@ class ApplicationComponent:
             return internal_response(False, [], str(err))
 
     @staticmethod
-    def update_application_status(postulacion_id, nuevo_estado, notas=None, supervisor_id=None):
+    def update_application_status(postulacion_id, nuevo_estado, notas=None, supervisor_id=None, entrevista_data=None):
         try:
             set_parts = ["estado = %s", "actualizado_en = NOW()"]
             params = [nuevo_estado]
 
-            if nuevo_estado == 'aceptada_empresa':
+            if nuevo_estado == 'entrevista':
+                # Guardar datos de la entrevista programada
+                if entrevista_data:
+                    if entrevista_data.get('fecha_entrevista'):
+                        set_parts.append("fecha_entrevista = %s")
+                        params.append(entrevista_data['fecha_entrevista'])
+                    if entrevista_data.get('hora_entrevista'):
+                        set_parts.append("hora_entrevista = %s")
+                        params.append(entrevista_data['hora_entrevista'])
+                    if entrevista_data.get('modalidad_entrevista'):
+                        set_parts.append("modalidad_entrevista = %s")
+                        params.append(entrevista_data['modalidad_entrevista'])
+                    if entrevista_data.get('direccion_entrevista'):
+                        set_parts.append("direccion_entrevista = %s")
+                        params.append(entrevista_data['direccion_entrevista'])
+                    if entrevista_data.get('link_reunion'):
+                        set_parts.append("link_reunion = %s")
+                        params.append(entrevista_data['link_reunion'])
+                if notas:
+                    set_parts.append("notas_empresa = %s")
+                    params.append(notas)
+            elif nuevo_estado == 'aceptada_empresa':
                 set_parts.append("fecha_respuesta_empresa = NOW()")
                 if notas:
                     set_parts.append("notas_empresa = %s")
@@ -241,6 +290,7 @@ class ApplicationComponent:
                 SELECT p.postulacion_id, p.estado, p.nro_solicitud,
                        CAST(p.porcentaje_afinidad AS FLOAT) as porcentaje_afinidad,
                        TO_CHAR(p.creado_en, 'YYYY-MM-DD') as creado_en,
+                       p.habilidades_snapshot,
                        pe.perfil_id as estudiante_id,
                        u.nombre || ' ' || u.apellido as nombre_estudiante,
                        u.correo, u.cedula, pe.semestre,
@@ -407,10 +457,22 @@ class ApplicationComponent:
                 d = result['data']
                 
                 habilidades = []
+                snap_experiencia = None
+                snap_intereses = None
                 if d.get('habilidades_snapshot'):
                     import json
                     snap = d['habilidades_snapshot']
-                    raw_skills = json.loads(snap) if isinstance(snap, str) else snap
+                    raw = json.loads(snap) if isinstance(snap, str) else snap
+                    
+                    # Formato nuevo: objeto con habilidades, resumen_experiencia, intereses
+                    if isinstance(raw, dict):
+                        raw_skills = raw.get('habilidades', [])
+                        snap_experiencia = raw.get('resumen_experiencia', '')
+                        snap_intereses = raw.get('intereses', '')
+                    else:
+                        # Formato viejo: array directo de habilidades
+                        raw_skills = raw
+                    
                     habilidades = [
                         {
                             'nombre': h.get('habilidad_nombre', h.get('nombre', '')),
@@ -449,8 +511,8 @@ class ApplicationComponent:
                         'facultad': d['est_facultad'],
                         'nivel': d['est_nivel'],
                         'correo': d['est_correo'],
-                        'intereses': d['est_intereses'],
-                        'experiencia': d['est_experiencia']
+                        'intereses': snap_intereses or d['est_intereses'],
+                        'experiencia': snap_experiencia or d['est_experiencia']
                     },
                     'institucion': {
                         'nombre': d['inst_nombre'],

@@ -79,10 +79,20 @@ class MatchingComponent:
                     # Obtener skills del estudiante (De la "Foto" si ya aplicó, o en vivo si es nuevo)
                     already_applied = applied_map.get(sid)
                     
+                    snapshot_exp = None
+                    snapshot_int = None
+
                     if already_applied and already_applied.get('habilidades_snapshot'):
                         import json
                         snap = already_applied['habilidades_snapshot']
-                        student_skills = json.loads(snap) if isinstance(snap, str) else snap
+                        raw_snap = json.loads(snap) if isinstance(snap, str) else snap
+                        
+                        if isinstance(raw_snap, dict):
+                            student_skills = raw_snap.get('habilidades', [])
+                            snapshot_exp = raw_snap.get('resumen_experiencia')
+                            snapshot_int = raw_snap.get('intereses')
+                        else:
+                            student_skills = raw_snap
                     else:
                         sql_sskills = """
                             SELECT he.habilidad_id, h.nombre as habilidad_nombre, h.categoria as habilidad_categoria, he.nivel
@@ -142,8 +152,8 @@ class MatchingComponent:
                             'career': student['carrera'],
                             'semester': student['semestre'],
                             'university': student['universidad'],
-                            'experience_summary': student['resumen_experiencia'],
-                            'interests': student['intereses'],
+                            'experience_summary': snapshot_exp if snapshot_exp is not None else student['resumen_experiencia'],
+                            'interests': snapshot_int if snapshot_int is not None else student['intereses'],
                             'affinity': affinity,
                             'matched_skills': matched_skills,
                             'all_skills': all_skills,

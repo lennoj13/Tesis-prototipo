@@ -70,7 +70,7 @@ export default function EstudianteDashboard() {
     loadData();
   }, [user]);
 
-  const activeStates = ['pendiente', 'aceptada_empresa', 'aceptada'];
+  const activeStates = ['pendiente', 'entrevista', 'aceptada_empresa', 'aceptada'];
 
   // Verificar si ya se postuló a esta vacante (y la postulación sigue activa)
   function hasApplied(vacancyId) {
@@ -128,10 +128,12 @@ export default function EstudianteDashboard() {
           <span>
             <strong>
               {activeApplication.estado === 'pendiente' 
-                ? 'Tienes una postulación pendiente' 
-                : activeApplication.estado === 'aceptada_empresa' 
-                  ? 'Tienes una postulación aceptada por la empresa'
-                  : 'Tienes una postulación formalizada en curso'}
+                ? 'Tienes una postulacion pendiente' 
+                : activeApplication.estado === 'entrevista'
+                  ? 'Tienes una entrevista programada'
+                  : activeApplication.estado === 'aceptada_empresa' 
+                    ? 'Tienes una postulacion aceptada por la empresa'
+                    : 'Tienes una postulacion formalizada en curso'}
             </strong>
             {activeApplication.nombre_empresa && ` en ${activeApplication.nombre_empresa}`}.
             {activeApplication.estado === 'pendiente' 

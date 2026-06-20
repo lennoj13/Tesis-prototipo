@@ -1,7 +1,7 @@
 
 /**
- * Empresa Postulantes — Vista de Gestión de Solicitudes
- * Módulo 4: Evaluación de Postulaciones
+ * Empresa Postulantes — Vista de Gestion de Solicitudes
+ * Modulo 4: Evaluacion de Postulaciones
  */
 
 import { useState, useEffect } from 'react';
@@ -18,7 +18,7 @@ import Modal from 'components/Modal';
 import Toast from 'components/Toast';
 import InfoField from 'components/InfoField';
 import Card from 'components/Card';
-import { FiCheck, FiX, FiUser, FiEye, FiMail, FiBookOpen, FiAward, FiCreditCard, FiFileText, FiTarget, FiCheckCircle } from 'react-icons/fi';
+import { FiCheck, FiX, FiUser, FiEye, FiMail, FiBookOpen, FiAward, FiCreditCard, FiFileText, FiTarget, FiCheckCircle, FiCalendar, FiClock, FiVideo, FiMapPin, FiLink, FiFilter } from 'react-icons/fi';
 
 const statusMap = {
   pending: 'pendiente',
@@ -26,12 +26,14 @@ const statusMap = {
   rejected: 'rechazada',
   accepted: 'aceptada_empresa',
   aceptada_empresa: 'aceptada_empresa',
+  entrevista: 'entrevista',
   aprobada: 'aprobada',
   rechazada: 'rechazada',
 };
 
 const statusLabels = {
   pendiente: 'Pendiente',
+  entrevista: 'En Entrevista',
   aceptada_empresa: 'Aceptada por Empresa',
   aprobada: 'Aprobada',
   rechazada: 'Rechazada',
@@ -46,17 +48,32 @@ function getAffinityColor(val) {
 const semestreMap = {
   '1': 'Primer semestre', '2': 'Segundo semestre', '3': 'Tercer semestre',
   '4': 'Cuarto semestre', '5': 'Quinto semestre', '6': 'Sexto semestre',
-  '7': 'Séptimo semestre', '8': 'Octavo semestre', '9': 'Noveno semestre',
-  '10': 'Décimo semestre'
+  '7': 'Septimo semestre', '8': 'Octavo semestre', '9': 'Noveno semestre',
+  '10': 'Decimo semestre'
 };
 
 export default function EmpresaPostulantes() {
   const { user } = useAuth();
   const [postulantes, setPostulantes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionModal, setActionModal] = useState(null); // { appId, type: 'approved' | 'rejected', name, vacancyTitle }
+  const [actionModal, setActionModal] = useState(null);
   const [viewProfileModal, setViewProfileModal] = useState(null);
   const [toast, setToast] = useState(null);
+
+  // Estado para el formulario de entrevista
+  const [interviewModal, setInterviewModal] = useState(null);
+  const [interviewForm, setInterviewForm] = useState({
+    fecha_entrevista: '',
+    hora_entrevista: '',
+    modalidad_entrevista: 'Presencial',
+    direccion_entrevista: '',
+    link_reunion: '',
+  });
+  const [interviewLoading, setInterviewLoading] = useState(false);
+
+  // Filtros
+  const [filterEstado, setFilterEstado] = useState('todos');
+  const [filterVacante, setFilterVacante] = useState('todas');
 
   useEffect(() => {
     if (toast) {
@@ -103,9 +120,39 @@ export default function EmpresaPostulantes() {
       
       setPostulantes(activeApplicants.map(p => {
         const richData = richCandidatesMap[p.postulacion_id || p.application_id] || {};
+
+        // Parsear snapshot del perfil al momento de la postulacion (auditoria)
+        let snapshotSkills = [];
+        let snapshotExperience = null;
+        let snapshotInterests = null;
+        if (p.habilidades_snapshot) {
+          try {
+            const raw = typeof p.habilidades_snapshot === 'string'
+              ? JSON.parse(p.habilidades_snapshot)
+              : p.habilidades_snapshot;
+            
+            // Formato nuevo: objeto con habilidades, resumen_experiencia, intereses
+            if (raw && !Array.isArray(raw) && typeof raw === 'object') {
+              const skillsList = raw.habilidades || [];
+              snapshotSkills = skillsList.map(s => ({
+                name: s.habilidad_nombre || s.nombre || '',
+                category: s.habilidad_categoria || s.categoria || '',
+              }));
+              snapshotExperience = raw.resumen_experiencia || null;
+              snapshotInterests = raw.intereses || null;
+            } else if (Array.isArray(raw)) {
+              // Formato viejo: array directo de habilidades
+              snapshotSkills = raw.map(s => ({
+                name: s.habilidad_nombre || s.nombre || '',
+                category: s.habilidad_categoria || s.categoria || '',
+              }));
+            }
+          } catch (e) { /* ignore parse errors */ }
+        }
+
         return {
           ...p,
-          ...richData, // Inyectamos experience_summary, interests, matched_skills, all_skills, etc
+          ...richData,
           id: p.postulacion_id || p.application_id,
           candidato: p.nombre_estudiante || richData.name + ' ' + richData.lastname || p.student_name,
           vacante: p.titulo_vacante || richData.vacancy_title || p.vacancy_title,
@@ -115,11 +162,15 @@ export default function EmpresaPostulantes() {
           cedula: p.cedula,
           semestre: p.semestre || richData.semester,
           carrera: p.carrera || richData.career,
-          fecha: p.creado_en || p.created_at
+          fecha: p.creado_en || p.created_at,
+          // Prioridad: matching engine > snapshot (datos congelados al postularse)
+          all_skills: richData.all_skills || (snapshotSkills.length > 0 ? snapshotSkills : null),
+          experience_summary: richData.experience_summary || snapshotExperience,
+          interests: richData.interests || snapshotInterests,
         };
       }));
     } catch (err) {
-      console.error('Error cargando gestión de postulantes:', err);
+      console.error('Error cargando gestion de postulantes:', err);
     } finally {
       setLoading(false);
     }
@@ -137,21 +188,118 @@ export default function EmpresaPostulantes() {
         setPostulantes(prev => prev.map(p => 
           p.id === actionModal.appId ? { ...p, estado: statusMap[actionModal.type] || actionModal.type } : p
         ));
-        setToast({ 
-          type: 'success', 
-          message: actionModal.type === 'aceptada_empresa' 
-            ? 'Candidato aceptado correctamente.' 
-            : 'Candidato rechazado correctamente.' 
-        });
+        const messages = {
+          aceptada_empresa: 'Candidato aceptado correctamente.',
+          rechazada: 'Candidato rechazado correctamente.',
+        };
+        setToast({ type: 'success', message: messages[actionModal.type] || 'Estado actualizado.' });
       } else {
         setToast({ type: 'error', message: res.message || 'Error actualizando estado' });
       }
     } catch (err) {
-      setToast({ type: 'error', message: 'Error de conexión con el servidor.' });
+      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
     } finally {
       setActionModal(null);
     }
   };
+
+  // Abrir modal de agendar entrevista
+  const openInterviewModal = (row) => {
+    setInterviewModal(row);
+    setInterviewForm({
+      fecha_entrevista: '',
+      hora_entrevista: '',
+      modalidad_entrevista: 'Presencial',
+      direccion_entrevista: '',
+      link_reunion: '',
+    });
+  };
+
+  // Enviar formulario de entrevista
+  const handleScheduleInterview = async () => {
+    if (!interviewModal) return;
+
+    // Validaciones
+    if (!interviewForm.fecha_entrevista) {
+      setToast({ type: 'error', message: 'Debe indicar la fecha de la entrevista.' });
+      return;
+    }
+    if (!interviewForm.hora_entrevista) {
+      setToast({ type: 'error', message: 'Debe indicar la hora de la entrevista.' });
+      return;
+    }
+    if (interviewForm.modalidad_entrevista === 'Presencial' && !interviewForm.direccion_entrevista.trim()) {
+      setToast({ type: 'error', message: 'Debe indicar la direccion para la entrevista presencial.' });
+      return;
+    }
+    if (interviewForm.modalidad_entrevista === 'Virtual' && !interviewForm.link_reunion.trim()) {
+      setToast({ type: 'error', message: 'Debe indicar el enlace de reunion para la entrevista virtual.' });
+      return;
+    }
+
+    setInterviewLoading(true);
+    try {
+      const payload = {
+        estado: 'entrevista',
+        ...interviewForm,
+      };
+      const res = await applicationService.updateStatus(interviewModal.id, payload);
+      if (res.result) {
+        setPostulantes(prev => prev.map(p =>
+          p.id === interviewModal.id ? { ...p, estado: 'entrevista' } : p
+        ));
+        setToast({ type: 'success', message: 'Entrevista agendada correctamente.' });
+        setInterviewModal(null);
+      } else {
+        setToast({ type: 'error', message: res.message || 'Error al agendar entrevista.' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
+    } finally {
+      setInterviewLoading(false);
+    }
+  };
+
+  // Textos para el ConfirmDialog segun el tipo de accion
+  const getConfirmTexts = () => {
+    if (!actionModal) return {};
+    if (actionModal.type === 'aceptada_empresa') {
+      return {
+        title: 'Aceptar Candidato',
+        message: `Al aceptar a ${actionModal.name}, su postulacion pasara a revision del gestor de practicas preprofesionales para la vacante "${actionModal.vacancyTitle}".`,
+        confirmText: 'Aceptar candidato',
+        variant: 'primary',
+      };
+    }
+    return {
+      title: 'Rechazar Candidato',
+      message: `Al rechazar a ${actionModal.name}, se cerrara su proceso para la vacante "${actionModal.vacancyTitle}".`,
+      confirmText: 'Rechazar candidato',
+      variant: 'danger',
+    };
+  };
+
+  const confirmTexts = getConfirmTexts();
+
+  // Vacantes unicas para el filtro
+  const uniqueVacantes = [...new Set(postulantes.map(p => p.vacante).filter(Boolean))];
+
+  // Filtrar datos segun filtros activos
+  const filteredPostulantes = postulantes.filter(p => {
+    if (filterEstado !== 'todos' && p.estado !== filterEstado) return false;
+    if (filterVacante !== 'todas' && p.vacante !== filterVacante) return false;
+    return true;
+  });
+
+  // Filtro por estado - opciones
+  const estadoFilterOptions = [
+    { value: 'todos', label: 'Todos los estados' },
+    { value: 'pendiente', label: 'Pendiente' },
+    { value: 'entrevista', label: 'En Entrevista' },
+    { value: 'aceptada_empresa', label: 'Aceptada por Empresa' },
+    { value: 'rechazada', label: 'Rechazada' },
+    { value: 'aprobada', label: 'Aprobada' },
+  ];
 
   const columns = [
     {
@@ -198,16 +346,49 @@ export default function EmpresaPostulantes() {
   return (
     <div className="animate-fade-in">
       <PageHeader
-        title="Gestión de Postulantes"
-        subtitle={loading ? 'Cargando candidatos...' : `${postulantes.length} postulaciones recibidas`}
+        title="Gestion de Postulantes"
+        subtitle={loading ? 'Cargando candidatos...' : `${filteredPostulantes.length} de ${postulantes.length} postulaciones`}
       />
 
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <DataTable
         columns={columns}
-        data={postulantes}
+        data={filteredPostulantes}
         searchKeys={['candidato', 'vacante', 'correo']}
+        filters={
+          <>
+            <select
+              value={filterEstado}
+              onChange={(e) => setFilterEstado(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer transition-colors focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+            >
+              {estadoFilterOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {uniqueVacantes.length > 1 && (
+              <select
+                value={filterVacante}
+                onChange={(e) => setFilterVacante(e.target.value)}
+                className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer transition-colors focus:border-primary-400 focus:ring-2 focus:ring-primary-100 max-w-[220px]"
+              >
+                <option value="todas">Todas las vacantes</option>
+                {uniqueVacantes.map(v => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            )}
+            {(filterEstado !== 'todos' || filterVacante !== 'todas') && (
+              <button
+                onClick={() => { setFilterEstado('todos'); setFilterVacante('todas'); }}
+                className="px-3 py-2 text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200 rounded-md cursor-pointer hover:bg-slate-200 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </>
+        }
         actions={(row) => (
           <div className="flex gap-2">
             <button
@@ -217,12 +398,34 @@ export default function EmpresaPostulantes() {
             >
               <FiEye size={16} />
             </button>
+
+            {/* Estado PENDIENTE: Agendar Entrevista o Rechazar */}
             {(row.estado === 'pendiente' || row.estado === 'pending') && (
+              <>
+                <button
+                  onClick={() => openInterviewModal(row)}
+                  className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-violet-50 hover:text-violet-600"
+                  title="Agendar Entrevista"
+                >
+                  <FiCalendar size={16} />
+                </button>
+                <button
+                  onClick={() => setActionModal({ appId: row.id, type: 'rechazada', name: row.candidato, vacancyTitle: row.vacante })}
+                  className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
+                  title="Rechazar"
+                >
+                  <FiX size={16} />
+                </button>
+              </>
+            )}
+
+            {/* Estado ENTREVISTA: Aceptar o Rechazar */}
+            {row.estado === 'entrevista' && (
               <>
                 <button
                   onClick={() => setActionModal({ appId: row.id, type: 'aceptada_empresa', name: row.candidato, vacancyTitle: row.vacante })}
                   className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-green-50 hover:text-green-600"
-                  title="Aceptar"
+                  title="Aceptar Candidato"
                 >
                   <FiCheck size={16} />
                 </button>
@@ -239,20 +442,141 @@ export default function EmpresaPostulantes() {
         )}
       />
 
+      {/* Confirm Dialog — Aceptar/Rechazar */}
       <ConfirmDialog
         isOpen={!!actionModal}
         onClose={() => setActionModal(null)}
         onConfirm={handleUpdateStatus}
-        title={actionModal?.type === 'aceptada_empresa' ? 'Aceptar Candidato' : 'Rechazar Candidato'}
-        message={
-          actionModal?.type === 'aceptada_empresa'
-            ? `¿Estás seguro que deseas aceptar a ${actionModal?.name} para la vacante "${actionModal?.vacancyTitle}"? Se actualizará el estado de la postulación.`
-            : `¿Estás seguro que deseas rechazar a ${actionModal?.name} para la vacante "${actionModal?.vacancyTitle}"? Se actualizará el estado de la postulación.`
-        }
-        confirmText={actionModal?.type === 'aceptada_empresa' ? 'Sí, aceptar' : 'Sí, rechazar'}
-        variant={actionModal?.type === 'aceptada_empresa' ? 'primary' : 'danger'}
+        title={confirmTexts.title || ''}
+        message={confirmTexts.message || ''}
+        confirmText={confirmTexts.confirmText || 'Confirmar'}
+        variant={confirmTexts.variant || 'primary'}
       />
 
+      {/* Modal — Agendar Entrevista */}
+      <Modal
+        isOpen={!!interviewModal}
+        onClose={() => setInterviewModal(null)}
+        title="Agendar Entrevista"
+        size="md"
+      >
+        {interviewModal && (
+          <div className="flex flex-col gap-5">
+            {/* Header del candidato */}
+            <Card variant="accent" padding="sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#3c8dbc] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
+                  {(interviewModal.candidato || '?').charAt(0)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{interviewModal.candidato}</p>
+                  <p className="text-xs text-slate-500 m-0">Vacante: {interviewModal.vacante}</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Fecha y hora */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  <FiCalendar size={12} className="inline mr-1" />
+                  Fecha de entrevista *
+                </label>
+                <input
+                  type="date"
+                  value={interviewForm.fecha_entrevista}
+                  onChange={(e) => setInterviewForm(prev => ({ ...prev, fecha_entrevista: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-800 bg-white focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  <FiClock size={12} className="inline mr-1" />
+                  Hora de entrevista *
+                </label>
+                <input
+                  type="time"
+                  value={interviewForm.hora_entrevista}
+                  onChange={(e) => setInterviewForm(prev => ({ ...prev, hora_entrevista: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-800 bg-white focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Modalidad */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                Modalidad de entrevista *
+              </label>
+              <div className="flex gap-3">
+                {['Presencial', 'Virtual'].map((mod) => (
+                  <button
+                    key={mod}
+                    type="button"
+                    onClick={() => setInterviewForm(prev => ({ ...prev, modalidad_entrevista: mod, direccion_entrevista: '', link_reunion: '' }))}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border text-sm font-medium transition-all cursor-pointer ${
+                      interviewForm.modalidad_entrevista === mod
+                        ? 'bg-primary-50 border-primary-300 text-primary-700 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    {mod === 'Presencial' ? <FiMapPin size={14} /> : <FiVideo size={14} />}
+                    {mod}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Campo condicional: Direccion o Link */}
+            {interviewForm.modalidad_entrevista === 'Presencial' ? (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  <FiMapPin size={12} className="inline mr-1" />
+                  Direccion de la entrevista *
+                </label>
+                <input
+                  type="text"
+                  value={interviewForm.direccion_entrevista}
+                  onChange={(e) => setInterviewForm(prev => ({ ...prev, direccion_entrevista: e.target.value }))}
+                  placeholder="Ej: Av. Delta s/n, Edificio administrativo, Piso 3"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-800 bg-white focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all placeholder:text-slate-400"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  <FiLink size={12} className="inline mr-1" />
+                  Enlace de la reunion *
+                </label>
+                <input
+                  type="url"
+                  value={interviewForm.link_reunion}
+                  onChange={(e) => setInterviewForm(prev => ({ ...prev, link_reunion: e.target.value }))}
+                  placeholder="Ej: https://meet.google.com/abc-defg-hij"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-800 bg-white focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all placeholder:text-slate-400"
+                />
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <Button variant="secondary" onClick={() => setInterviewModal(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleScheduleInterview}
+                disabled={interviewLoading}
+              >
+                {interviewLoading ? 'Agendando...' : 'Agendar Entrevista'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal — Perfil completo del candidato */}
       <Modal isOpen={!!viewProfileModal} onClose={() => setViewProfileModal(null)} title="Perfil Completo del Candidato" size="lg">
         {viewProfileModal && (() => {
           const selectedStudent = viewProfileModal;
@@ -290,14 +614,14 @@ export default function EmpresaPostulantes() {
 
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <InfoField icon={FiMail} label="Correo electrónico" value={selectedStudent.correo} />
-                <InfoField icon={FiCreditCard} label="Cédula" value={selectedStudent.cedula} />
+                <InfoField icon={FiMail} label="Correo electronico" value={selectedStudent.correo} />
+                <InfoField icon={FiCreditCard} label="Cedula" value={selectedStudent.cedula} />
               </div>
 
               {/* Experience */}
               {selectedStudent.experience_summary && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formación</h4>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formacion</h4>
                   <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md">{selectedStudent.experience_summary}</p>
                 </div>
               )}
@@ -305,7 +629,7 @@ export default function EmpresaPostulantes() {
               {/* Interests */}
               {selectedStudent.interests && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Áreas de interés</h4>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Areas de interes</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedStudent.interests.split(',').map((interest, i) => (
                       <span key={i} className="inline-flex items-center px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">

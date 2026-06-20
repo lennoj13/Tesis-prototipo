@@ -10,6 +10,7 @@ const statusStyles = {
   aprobado:          'bg-success-light text-green-700',
   aprobada:          'bg-success-light text-green-700',
   aceptada:          'bg-primary-50 text-primary-700',
+  entrevista:         'bg-violet-50 text-violet-700',
   aceptada_empresa:  'bg-info-light text-blue-700',
   rechazado:         'bg-danger-light text-red-700',
   rechazada:         'bg-danger-light text-red-700',
@@ -29,6 +30,7 @@ const statusLabels = {
   pendiente: 'Pendiente',
   aprobado: 'Aprobado',
   aprobada: 'Aprobada',
+  entrevista: 'En Entrevista',
   aceptada: 'Aceptada',
   aceptada_empresa: 'Aceptada por Empresa',
   rechazado: 'Rechazado',
@@ -53,6 +55,7 @@ export default function StatusBadge({ status, label }) {
         status === 'activo' || status === 'aprobado' || status === 'aprobada' || status === 'completada' ? 'bg-green-500' :
         status === 'pendiente' ? 'bg-amber-500' :
         status === 'rechazado' || status === 'rechazada' || status === 'rechazada_gestor' || status === 'reprobada' ? 'bg-red-500' :
+        status === 'entrevista' ? 'bg-violet-500' :
         status === 'abierta' || status === 'nuevo' || status === 'aceptada_empresa' || status === 'aceptada' ? 'bg-blue-500' :
         'bg-slate-400'
       }`} />

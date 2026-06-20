@@ -83,15 +83,27 @@ class ApplicationStatusService(Resource):
 
             rq_json = request.get_json()
             new_status = rq_json.get('status') or rq_json.get('estado')
-            valid_states = ['pendiente', 'aceptada_empresa', 'aceptada', 'aprobada', 'reprobada', 'rechazada', 'rechazada_gestor', 'cancelada', 'completada', 'anulada']
+            valid_states = ['pendiente', 'entrevista', 'aceptada_empresa', 'aceptada', 'aprobada', 'reprobada', 'rechazada', 'rechazada_gestor', 'cancelada', 'completada', 'anulada']
             if new_status not in valid_states:
                 return response_error(f"Estado no válido. Use: {', '.join(valid_states)}")
 
             notas = rq_json.get('notes') or rq_json.get('notas')
             supervisor_id = rq_json.get('supervisor_id')
 
+            # Datos de entrevista (cuando el estado es 'entrevista')
+            entrevista_data = None
+            if new_status == 'entrevista':
+                entrevista_data = {
+                    'fecha_entrevista': rq_json.get('fecha_entrevista'),
+                    'hora_entrevista': rq_json.get('hora_entrevista'),
+                    'modalidad_entrevista': rq_json.get('modalidad_entrevista'),
+                    'direccion_entrevista': rq_json.get('direccion_entrevista'),
+                    'link_reunion': rq_json.get('link_reunion'),
+                }
+
             result = ApplicationComponent.update_application_status(
-                application_id, new_status, notas=notas, supervisor_id=supervisor_id
+                application_id, new_status, notas=notas, supervisor_id=supervisor_id,
+                entrevista_data=entrevista_data
             )
             if result['result']:
                 return response_success(result.get('data'))
