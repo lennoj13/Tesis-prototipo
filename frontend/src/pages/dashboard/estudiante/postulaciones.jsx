@@ -178,11 +178,11 @@ export default function EstudiantePostulaciones() {
 
             {/* Datos de la entrevista (si aplica) */}
             {viewModal.fecha_entrevista && (
-              <Card padding="sm">
+              <div className="p-4 bg-slate-50 rounded-md">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FiCalendar size={14} /> Datos de la Entrevista
                 </h4>
-                <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                   <div className="flex items-center gap-2">
                     <FiCalendar size={14} className="text-slate-400 flex-shrink-0" />
                     <div>
@@ -240,7 +240,7 @@ export default function EstudiantePostulaciones() {
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* Datos de la vacante */}

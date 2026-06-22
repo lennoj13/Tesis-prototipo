@@ -61,7 +61,7 @@ export default function NuevaVacante() {
     if (!form.area) newErrors.area = 'Selecciona un área';
     if (!form.location.trim()) newErrors.location = 'La ubicación es obligatoria';
     if (!form.total_hours) newErrors.total_hours = 'Total de horas es obligatorio';
-    else if (parseInt(form.total_hours) > 244) newErrors.total_hours = 'Máximo 244 horas en total';
+    else if (parseInt(form.total_hours) > 240) newErrors.total_hours = 'Máximo 240 horas en total';
     if (!form.daily_hours) newErrors.daily_hours = 'Horas diarias es obligatorio';
     else if (parseInt(form.daily_hours) > 6) newErrors.daily_hours = 'Máximo 6 horas por día';
     if (!form.schedule.trim()) newErrors.schedule = 'El horario es obligatorio';

@@ -595,10 +595,62 @@ class RecomendacionHibridaComponent:
         return texto
 
     # =========================================================
+    # CÁLCULO BIDIRECCIONAL (Empresa -> Estudiante)
+    # =========================================================
+    @staticmethod
+    def precalcular_afinidad_vacante_background(vacante_id, facultad_id):
+        """
+        Cálculo bidireccional (de Vacante hacia Estudiantes).
+        Se ejecuta en segundo plano cuando una empresa crea o edita una vacante.
+        Calcula la afinidad de la nueva vacante contra todos los estudiantes de la facultad
+        e inserta los resultados en la caché para que la carga sea instantánea.
+        """
+        import threading
+        
+        def tarea_background():
+            if not RecomendacionHibridaComponent._load_models():
+                return
+            try:
+                HandleLogs.write_log(f"[NLP-BG] Iniciando precálculo de vacante {vacante_id} para facultad {facultad_id}")
+                
+                # 1. Obtener la vacante específica
+                vacantes_data = RecomendacionHibridaComponent._get_vacantes_facultad(facultad_id)
+                vacante_target = [v for v in vacantes_data if str(v['vacante_id']) == str(vacante_id)]
+                if not vacante_target:
+                    HandleLogs.write_log(f"[NLP-BG] Vacante {vacante_id} no encontrada en la extracción NLP")
+                    return
+                
+                # 2. Obtener a TODOS los estudiantes de esa facultad Y CON CUENTA ACTIVA
+                sql_estudiantes = """
+                    SELECT pe.usuario_id, pe.perfil_id 
+                    FROM public.perfiles_estudiante pe
+                    JOIN public.usuarios u ON pe.usuario_id = u.usuario_id
+                    WHERE pe.facultad_id = %s AND u.activo = true
+                """
+                est_result = DataBaseHandle.getRecords(sql_estudiantes, 0, (facultad_id,))
+                if not est_result['result'] or not est_result['data']:
+                    return
+                
+                # 3. Iterar y calcular
+                with RecomendacionHibridaComponent._inference_lock:
+                    for est in est_result['data']:
+                        afinidades = RecomendacionHibridaComponent._calcular_afinidad(
+                            est['usuario_id'], est['perfil_id'], facultad_id, vacante_target
+                        )
+                        if afinidades:
+                            RecomendacionHibridaComponent._save_cache(est['perfil_id'], afinidades)
+                
+                HandleLogs.write_log(f"[NLP-BG] Precálculo finalizado para vacante {vacante_id}")
+            except Exception as e:
+                HandleLogs.write_error(f"[NLP-BG] Error en precálculo de vacante: {e}")
+                
+        threading.Thread(target=tarea_background, daemon=True).start()
+
+    # =========================================================
     # ENDPOINT PRINCIPAL: Obtener recomendaciones
     # =========================================================
     @staticmethod
-    def get_recomendaciones(usuario_id, facultad_id):
+    def get_recomendaciones(usuario_id, facultad_id, force_recalculate=False):
         """
         Obtiene las vacantes con porcentaje de afinidad para un estudiante.
         Usa caché si existe, sino calcula y guarda.
@@ -606,18 +658,20 @@ class RecomendacionHibridaComponent:
         Args:
             usuario_id: ID del usuario (tabla usuarios)
             facultad_id: ID de la facultad del estudiante (para filtrar vacantes)
+            force_recalculate: Si es True, ignora el bloqueo de calculando_nlp y fuerza el cálculo.
         
         Returns:
             internal_response con lista de vacantes + porcentaje_afinidad
         """
         try:
-            # 1. Obtener perfil_id del estudiante
-            sql_perfil_id = "SELECT perfil_id FROM public.perfiles_estudiante WHERE usuario_id = %s"
+            # 1. Obtener perfil_id del estudiante y estado de calculo
+            sql_perfil_id = "SELECT perfil_id, calculando_nlp FROM public.perfiles_estudiante WHERE usuario_id = %s"
             perfil_result = DataBaseHandle.getRecords(sql_perfil_id, 1, (usuario_id,))
             if not perfil_result['result'] or not perfil_result['data']:
                 return internal_response(False, None, "Perfil de estudiante no encontrado")
 
             estudiante_id = perfil_result['data']['perfil_id']
+            is_calculating = bool(perfil_result['data'].get('calculando_nlp', False))
 
             # 2. Obtener vacantes activas de la facultad del estudiante
             vacantes_data = RecomendacionHibridaComponent._get_vacantes_facultad(facultad_id)
@@ -628,24 +682,31 @@ class RecomendacionHibridaComponent:
             vacante_ids = [v['vacante_id'] for v in vacantes_data]
             cache_result = RecomendacionHibridaComponent._get_cache(estudiante_id, vacante_ids)
 
-            # 4. Si hay caché completo para TODAS las vacantes, usar caché
-            if cache_result and len(cache_result) == len(vacante_ids):
-                afinidad_map = {c['vacante_id']: float(c['porcentaje_afinidad']) for c in cache_result}
+            # 4. Retornar caché si NO estamos forzando recalculo y:
+            # - La caché está completa para TODAS las vacantes
+            # - O si se está calculando en segundo plano (petición de frontend para no bloquear)
+            if not force_recalculate and ((cache_result and len(cache_result) == len(vacante_ids)) or is_calculating):
+                afinidad_map = {c['vacante_id']: float(c['porcentaje_afinidad']) for c in (cache_result or [])}
                 for v in vacantes_data:
                     v['porcentaje_afinidad'] = afinidad_map.get(v['vacante_id'], 0)
                 vacantes_data.sort(key=lambda x: x.get('porcentaje_afinidad', 0), reverse=True)
-                return internal_response(True, vacantes_data, "Recomendaciones desde caché")
+                
+                res = internal_response(True, vacantes_data, "Recomendaciones desde caché" if not is_calculating else "Calculando afinidades en background...")
+                res['is_calculating'] = is_calculating
+                return res
 
             # 5. Si no hay caché completo, USAR EL CANDADO (Double-Checked Locking)
             with RecomendacionHibridaComponent._inference_lock:
                 # Volvemos a consultar la caché por si otro hilo (ej. background thread) acaba de llenarla
                 cache_result_2 = RecomendacionHibridaComponent._get_cache(estudiante_id, vacante_ids)
-                if cache_result_2 and len(cache_result_2) == len(vacante_ids):
+                if cache_result_2 and len(cache_result_2) == len(vacante_ids) and not force_recalculate:
                     afinidad_map = {c['vacante_id']: float(c['porcentaje_afinidad']) for c in cache_result_2}
                     for v in vacantes_data:
                         v['porcentaje_afinidad'] = afinidad_map.get(v['vacante_id'], 0)
                     vacantes_data.sort(key=lambda x: x.get('porcentaje_afinidad', 0), reverse=True)
-                    return internal_response(True, vacantes_data, "Recomendaciones desde caché (Post-espera)")
+                    res = internal_response(True, vacantes_data, "Recomendaciones desde caché (Post-espera)")
+                    res['is_calculating'] = False
+                    return res
 
                 # Si definitivamente sigue vacía, calcular con el motor NLP
                 afinidades = RecomendacionHibridaComponent._calcular_afinidad(usuario_id, estudiante_id, facultad_id, vacantes_data)
@@ -653,7 +714,9 @@ class RecomendacionHibridaComponent:
                     # Fallback: retornar vacantes sin afinidad
                     for v in vacantes_data:
                         v['porcentaje_afinidad'] = 0
-                    return internal_response(True, vacantes_data, "Motor NLP no disponible, vacantes sin afinidad")
+                    res = internal_response(True, vacantes_data, "Motor NLP no disponible, vacantes sin afinidad")
+                    res['is_calculating'] = False
+                    return res
 
                 # 6. Guardar en caché
                 RecomendacionHibridaComponent._save_cache(estudiante_id, afinidades)
@@ -663,7 +726,9 @@ class RecomendacionHibridaComponent:
                 v['porcentaje_afinidad'] = afinidades.get(v['vacante_id'], 0)
 
             vacantes_data.sort(key=lambda x: x.get('porcentaje_afinidad', 0), reverse=True)
-            return internal_response(True, vacantes_data, "Recomendaciones calculadas por IA")
+            res = internal_response(True, vacantes_data, "Recomendaciones calculadas por IA")
+            res['is_calculating'] = False
+            return res
 
         except Exception as err:
             HandleLogs.write_error(err)

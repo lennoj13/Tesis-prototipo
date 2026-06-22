@@ -37,13 +37,13 @@ class VacancyComponent:
                 result = True
                 data = vacante_id
                 message = "Vacante creada exitosamente"
-                # Invalidar caché NLP para todos los estudiantes de la facultad
+                # Pre-calcular NLP para todos los estudiantes de la facultad
                 try:
-                    from ...api.Components.recomendacion_component import RecomendacionComponent
+                    from ...api.Components.recomendacion_hibrida_component import RecomendacionHibridaComponent
                     sql_fac = "SELECT facultad_id FROM public.instituciones WHERE institucion_id = %s"
                     fac_res = DataBaseHandle.getRecords(sql_fac, 1, (institucion_id,))
                     if fac_res['result'] and fac_res['data'] and fac_res['data'].get('facultad_id'):
-                        RecomendacionComponent.invalidar_cache_facultad(fac_res['data']['facultad_id'])
+                        RecomendacionHibridaComponent.precalcular_afinidad_vacante_background(vacante_id, fac_res['data']['facultad_id'])
                 except Exception:
                     pass
             else:
@@ -319,10 +319,18 @@ class VacancyComponent:
                 DataBaseHandle.ExecuteNonQuery("DELETE FROM public.habilidades_vacante WHERE vacante_id = %s", (vacante_id,))
                 VacancyComponent._add_vacancy_skills(vacante_id, p_data['skills'])
 
-            # Invalidar caché NLP para esta vacante
+            # Recalcular afinidad para esta vacante en todos los estudiantes
             try:
-                from ...api.Components.recomendacion_component import RecomendacionComponent
-                RecomendacionComponent.invalidar_cache_vacante(vacante_id)
+                from ...api.Components.recomendacion_hibrida_component import RecomendacionHibridaComponent
+                sql_fac = """
+                    SELECT i.facultad_id 
+                    FROM public.vacantes v 
+                    JOIN public.instituciones i ON v.institucion_id = i.institucion_id 
+                    WHERE v.vacante_id = %s
+                """
+                fac_res = DataBaseHandle.getRecords(sql_fac, 1, (vacante_id,))
+                if fac_res['result'] and fac_res['data']:
+                    RecomendacionHibridaComponent.precalcular_afinidad_vacante_background(vacante_id, fac_res['data']['facultad_id'])
             except Exception:
                 pass
                 

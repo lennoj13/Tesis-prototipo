@@ -149,7 +149,7 @@ export default function EmpresaVacantes() {
     if (!editForm.area) errs.area = 'Selecciona un área';
     if (!editForm.location?.trim()) errs.location = 'La ubicación es obligatoria';
     if (!editForm.total_hours) errs.total_hours = 'Obligatorio';
-    else if (parseInt(editForm.total_hours) > 244) errs.total_hours = 'Máx 244h';
+    else if (parseInt(editForm.total_hours) > 240) errs.total_hours = 'Máx 240h';
     if (!editForm.daily_hours) errs.daily_hours = 'Obligatorio';
     else if (parseInt(editForm.daily_hours) > 6) errs.daily_hours = 'Máx 6h/día';
     if (!editForm.schedule?.trim()) errs.schedule = 'Obligatorio';
@@ -437,11 +437,8 @@ export default function EmpresaVacantes() {
 
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Área <span className="text-danger">*</span></label>
-                <select name="area" value={editForm.area} onChange={handleEditChange} className={`${fieldBase} ${editErrors.area ? fieldErr : fieldOk}`}>
-                  <option value="">Seleccionar...</option>
-                  {areas.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+                <label className="text-sm font-semibold text-slate-700">Área o Departamento <span className="text-danger">*</span></label>
+                <input name="area" value={editForm.area} onChange={handleEditChange} placeholder="Ej: Tecnología, Contabilidad..." className={`${fieldBase} ${editErrors.area ? fieldErr : fieldOk}`} />
                 {editErrors.area && <p className="text-[0.8125rem] text-danger m-0">{editErrors.area}</p>}
               </div>
               <div className="flex flex-col gap-1.5">

@@ -74,6 +74,7 @@ export default function EmpresaPostulantes() {
   // Filtros
   const [filterEstado, setFilterEstado] = useState('todos');
   const [filterVacante, setFilterVacante] = useState('todas');
+  const [sortBy, setSortBy] = useState('afinidad');
 
   useEffect(() => {
     if (toast) {
@@ -291,6 +292,15 @@ export default function EmpresaPostulantes() {
     return true;
   });
 
+  // Aplicar ordenamiento dinámico
+  const sortedAndFilteredPostulantes = [...filteredPostulantes].sort((a, b) => {
+    if (sortBy === 'reciente') {
+      return new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime();
+    }
+    // Por defecto afinidad
+    return (b.afinidad || 0) - (a.afinidad || 0);
+  });
+
   // Filtro por estado - opciones
   const estadoFilterOptions = [
     { value: 'todos', label: 'Todos los estados' },
@@ -347,14 +357,14 @@ export default function EmpresaPostulantes() {
     <div className="animate-fade-in">
       <PageHeader
         title="Gestion de Postulantes"
-        subtitle={loading ? 'Cargando candidatos...' : `${filteredPostulantes.length} de ${postulantes.length} postulaciones`}
+        subtitle={loading ? 'Cargando candidatos...' : `${sortedAndFilteredPostulantes.length} de ${postulantes.length} postulaciones`}
       />
 
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <DataTable
         columns={columns}
-        data={filteredPostulantes}
+        data={sortedAndFilteredPostulantes}
         searchKeys={['candidato', 'vacante', 'correo']}
         filters={
           <>
@@ -379,9 +389,17 @@ export default function EmpresaPostulantes() {
                 ))}
               </select>
             )}
-            {(filterEstado !== 'todos' || filterVacante !== 'todas') && (
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer transition-colors focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+            >
+              <option value="afinidad">Ordenar por: Afinidad</option>
+              <option value="reciente">Ordenar por: Más reciente</option>
+            </select>
+            {(filterEstado !== 'todos' || filterVacante !== 'todas' || sortBy !== 'afinidad') && (
               <button
-                onClick={() => { setFilterEstado('todos'); setFilterVacante('todas'); }}
+                onClick={() => { setFilterEstado('todos'); setFilterVacante('todas'); setSortBy('afinidad'); }}
                 className="px-3 py-2 text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200 rounded-md cursor-pointer hover:bg-slate-200 transition-colors"
               >
                 Limpiar filtros

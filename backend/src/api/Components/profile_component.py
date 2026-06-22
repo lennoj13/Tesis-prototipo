@@ -97,27 +97,47 @@ class ProfileComponent:
                     p_data.get('curriculum_url'), user_id
                 ))
                 
-                sql_get_id = "SELECT perfil_id FROM public.perfiles_estudiante WHERE usuario_id = %s"
+                sql_get_id = "SELECT perfil_id, facultad_id FROM public.perfiles_estudiante WHERE usuario_id = %s"
                 res_id = DataBaseHandle.getRecords(sql_get_id, 1, (user_id,))
                 
                 if res_id['result'] and res_id['data']:
                     perfil_id = res_id['data']['perfil_id']
+                    facultad_id = res_id['data']['facultad_id']
                     if 'skills' in p_data:
                         ProfileComponent._update_student_skills(perfil_id, p_data['skills'])
-                    # Invalidar caché y pre-calcular afinidad NLP Híbrida en segundo plano
+                    # Indicar que se esta calculando NLP para que el frontend bloquee iteracciones
                     try:
-                        from ...api.Components.recomendacion_component import RecomendacionComponent
+                        DataBaseHandle.ExecuteNonQuery(
+                            "UPDATE public.perfiles_estudiante SET calculando_nlp = TRUE WHERE perfil_id = %s", 
+                            (perfil_id,)
+                        )
+                    except Exception as e:
+                        HandleLogs.write_error(f"Error seteando calculando_nlp: {e}")
+
+                    # Pre-calcular afinidad NLP Híbrida en segundo plano
+                    try:
                         from ...api.Components.recomendacion_hibrida_component import RecomendacionHibridaComponent
                         import threading
+                        import time
                         
-                        RecomendacionComponent.invalidar_cache_estudiante(perfil_id)
-                        
-                        # Pre-calcular en background para ahorrar tiempo al entrar al feed
                         def precalcular():
                             try:
-                                RecomendacionHibridaComponent.get_recomendaciones(user_id, None)
+                                HandleLogs.write_log(f"[*] Iniciando recálculo NLP en segundo plano para estudiante {perfil_id}...")
+                                # Simulamos una demora para que el toast sea visible en el prototipo
+                                time.sleep(3)
+                                RecomendacionHibridaComponent.get_recomendaciones(user_id, facultad_id, force_recalculate=True)
+                                HandleLogs.write_log(f"[*] Recálculo NLP completado con éxito para estudiante {perfil_id}.")
                             except Exception as e:
                                 HandleLogs.write_error(f"Error precalculando NLP: {e}")
+                            finally:
+                                # Al terminar, liberar el bloqueo
+                                try:
+                                    DataBaseHandle.ExecuteNonQuery(
+                                        "UPDATE public.perfiles_estudiante SET calculando_nlp = FALSE WHERE perfil_id = %s", 
+                                        (perfil_id,)
+                                    )
+                                except Exception as e:
+                                    pass
                                 
                         threading.Thread(target=precalcular, daemon=True).start()
                     except Exception as e:

@@ -115,9 +115,9 @@ export default function TrackingStepper({
           const isLast = idx === STEPS.length - 1;
 
           return (
-            <div key={step.key} className="flex items-start flex-1" style={{ minWidth: 0 }}>
+            <div key={step.key} className={`flex items-start ${isLast ? '' : 'flex-1'}`} style={{ minWidth: 0 }}>
               {/* Paso */}
-              <div className="flex flex-col items-center" style={{ minWidth: '72px' }}>
+              <div className="flex flex-col items-center w-28 flex-shrink-0">
                 <div
                   className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${styles.circle}`}
                 >
@@ -168,10 +168,10 @@ export default function TrackingStepper({
           </p>
         </div>
       )}
-      {currentStatus === 'aprobada' && (
+      {['aceptada', 'aprobada'].includes(currentStatus) && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-700 m-0 font-semibold">Practica aprobada exitosamente.</p>
-          <p className="text-xs text-green-600 m-0 mt-1">Tu practica preprofesional ha sido formalizada. La empresa se pondra en contacto contigo.</p>
+          <p className="text-sm text-green-700 m-0 font-semibold">Practica formalizada exitosamente.</p>
+          <p className="text-xs text-green-600 m-0 mt-1">El proceso de postulacion ha concluido con exito.</p>
         </div>
       )}
       {currentStatus === 'reprobada' && (

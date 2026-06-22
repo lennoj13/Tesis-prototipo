@@ -43,8 +43,11 @@ export default function EstudianteDashboard() {
   const [toast, setToast] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
+    let pollingInterval = null;
+
     async function loadData() {
       try {
         // Llamar al motor NLP para obtener vacantes con afinidad real
@@ -61,6 +64,34 @@ export default function EstudianteDashboard() {
           vacantes: vacs.length,
           postulaciones: apps.length,
         });
+
+        // Manejar cálculo en background
+        if (recRes.is_calculating) {
+          setIsCalculating(true);
+          setToast({ type: 'calculating', message: 'Calculando afinidad...' });
+          
+          if (!pollingInterval) {
+            pollingInterval = setInterval(async () => {
+              try {
+                const pollRes = await recomendacionService.getRecomendaciones();
+                if (pollRes.result) {
+                  setVacantes(pollRes.data || []);
+                  if (!pollRes.is_calculating) {
+                    setIsCalculating(false);
+                    setToast({ type: 'success', message: 'Afinidades actualizadas exitosamente.' });
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                  }
+                }
+              } catch (e) {
+                console.error("Error polling NLP:", e);
+              }
+            }, 3000); // 3 segundos
+          }
+        } else {
+          setIsCalculating(false);
+        }
+
       } catch (err) {
         console.error('Error cargando dashboard:', err);
       } finally {
@@ -68,6 +99,10 @@ export default function EstudianteDashboard() {
       }
     }
     loadData();
+
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
   }, [user]);
 
   const activeStates = ['pendiente', 'entrevista', 'aceptada_empresa', 'aceptada'];
@@ -171,9 +206,9 @@ export default function EstudianteDashboard() {
             return (
               <Card
                 key={v.vacante_id}
-                onClick={() => setSelectedVacancy(v)}
-                hover
-                className="relative"
+                onClick={() => !isCalculating && setSelectedVacancy(v)}
+                hover={!isCalculating}
+                className={`relative transition-opacity duration-300 ${isCalculating ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 {/* Affinity badge */}
                 <div className={`absolute top-4 right-4 flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold ${afColor.bg} ${afColor.text} ${afColor.border} border`}>

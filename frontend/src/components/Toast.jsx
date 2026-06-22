@@ -5,7 +5,7 @@
  */
 
 import { useEffect } from 'react';
-import { FiCheckCircle, FiAlertTriangle, FiInfo, FiXCircle } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertTriangle, FiInfo, FiXCircle, FiLoader } from 'react-icons/fi';
 
 const toastStyles = {
   success: {
@@ -28,6 +28,12 @@ const toastStyles = {
     text: 'text-blue-700',
     Icon: FiInfo,
   },
+  calculating: {
+    bg: 'bg-blue-50 border-blue-200',
+    text: 'text-blue-700',
+    Icon: FiLoader,
+    iconClass: 'animate-spin',
+  },
 };
 
 export default function Toast({ type = 'info', message, onClose, duration = 4000 }) {
@@ -44,8 +50,8 @@ export default function Toast({ type = 'info', message, onClose, duration = 4000
   const ToastIcon = style.Icon;
 
   return (
-    <div className={`fixed top-4 right-4 z-[9999] shadow-lg px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in border ${style.bg} ${style.text}`}>
-      <ToastIcon size={16} className="flex-shrink-0" />
+    <div className={`fixed top-24 right-4 z-[9999] shadow-lg px-4 py-3 rounded-md text-sm font-medium flex items-center gap-2 animate-fade-in border ${style.bg} ${style.text}`}>
+      <ToastIcon size={16} className={`flex-shrink-0 ${style.iconClass || ''}`} />
       <span className="flex-1">{message}</span>
       {onClose && (
         <button

@@ -51,7 +51,7 @@ class DataBaseHandle:
             result = True
         except Exception as ex:
             HandleLogs.write_error(ex)
-            message = ex.__str__()
+            message = repr(ex)
         finally:
             if cursor:
                 cursor.close()
@@ -92,7 +92,7 @@ class DataBaseHandle:
             result = True
         except Exception as ex:
             HandleLogs.write_error(ex)
-            message = ex.__str__()
+            message = repr(ex)
         finally:
             if cursor:
                 cursor.close()

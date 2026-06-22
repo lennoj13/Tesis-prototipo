@@ -49,7 +49,10 @@ class RecomendacionHibridaService(Resource):
 
             result = RecomendacionHibridaComponent.get_recomendaciones(usuario_id, facultad_id)
             if result['result']:
-                return response_success(result['data'])
+                resp = response_success(result['data'])
+                resp[0]['is_calculating'] = result.get('is_calculating', False)
+                resp[0]['message'] = result.get('message', 'Exitoso')
+                return resp
             return response_error(result['message'])
 
         except Exception as err:

@@ -373,30 +373,13 @@ export default function EmpresaDashboard() {
                         Este estudiante ya se postuló — Estado: <strong>{statusLabels[modalStatus] || modalStatus || 'Postulado'}</strong>
                       </p>
                     </div>
-                    {canAct && (
                       <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          icon={<FiCheck />}
-                          loading={isAccepting}
-                          disabled={isBusy}
-                          onClick={() => handleDecision(selectedStudent.application_id, 'aceptada_empresa', selectedStudent.vacancy_id)}
-                        >
-                          Aceptar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          icon={<FiX />}
-                          loading={isRejecting}
-                          disabled={isBusy}
-                          onClick={() => handleDecision(selectedStudent.application_id, 'rechazada', selectedStudent.vacancy_id)}
-                        >
-                          Rechazar
-                        </Button>
+                        <Link to="/dashboard/empresa/postulantes">
+                          <Button size="sm" variant="primary">
+                            Gestionar postulación
+                          </Button>
+                        </Link>
                       </div>
-                    )}
                   </div>
                 </Card>
               )}
