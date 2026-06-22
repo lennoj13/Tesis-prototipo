@@ -59,6 +59,7 @@ CREATE TABLE public.perfiles_estudiante (
     resumen_experiencia TEXT,
     intereses TEXT,
     curriculum_url TEXT,
+    calculando_nlp BOOLEAN DEFAULT FALSE,
     creado_en TIMESTAMP DEFAULT NOW(),
     actualizado_en TIMESTAMP DEFAULT NOW()
 );
