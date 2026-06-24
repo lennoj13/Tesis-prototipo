@@ -16,6 +16,26 @@ export default function GestorEstudiantes() {
   const [applications, setApplications] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  // Filtros
+  const [filterPracticas, setFilterPracticas] = useState('todos');
+  const [filterEstado, setFilterEstado] = useState('todos');
+  const [filterSemestre, setFilterSemestre] = useState('todos');
+
+  // Semestres unicos para el filtro
+  const uniqueSemestres = [...new Set(estudiantes.map(e => e.semestre).filter(Boolean))].sort((a,b) => Number(a) - Number(b));
+
+  // Filtrar estudiantes
+  const filteredEstudiantes = estudiantes.filter(e => {
+    if (filterEstado === 'activos' && !e.activo) return false;
+    if (filterEstado === 'inactivos' && e.activo) return false;
+    if (filterSemestre !== 'todos' && String(e.semestre) !== String(filterSemestre)) return false;
+    
+    if (filterPracticas === 'con_practicas' && (!e.practicas_aprobadas || e.practicas_aprobadas === 0)) return false;
+    if (filterPracticas === 'sin_practicas' && e.practicas_aprobadas > 0) return false;
+
+    return true;
+  });
+
   useEffect(() => {
     async function loadStudents() {
       try {
@@ -84,7 +104,7 @@ export default function GestorEstudiantes() {
     <div className="animate-fade-in">
       <PageHeader
         title="Directorio de Estudiantes"
-        subtitle={loading ? 'Cargando...' : `${estudiantes.length} estudiantes registrados en tu carrera.`}
+        subtitle={loading ? 'Cargando...' : `${filteredEstudiantes.length} estudiantes filtrados de ${estudiantes.length} registrados.`}
       />
 
       {loading ? (
@@ -97,8 +117,50 @@ export default function GestorEstudiantes() {
       ) : (
         <DataTable
           columns={columns}
-          data={estudiantes}
+          data={filteredEstudiantes}
           searchKeys={['nombre', 'apellido', 'cedula', 'correo']}
+          filters={
+            <>
+              <select
+                value={filterEstado}
+                onChange={(e) => setFilterEstado(e.target.value)}
+                className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+              >
+                <option value="todos">Todos los estados</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
+              <select
+                value={filterPracticas}
+                onChange={(e) => setFilterPracticas(e.target.value)}
+                className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+              >
+                <option value="todos">Todas las prácticas</option>
+                <option value="con_practicas">Con Prácticas Aprobadas</option>
+                <option value="sin_practicas">Nunca han tenido prácticas</option>
+              </select>
+              {uniqueSemestres.length > 0 && (
+                <select
+                  value={filterSemestre}
+                  onChange={(e) => setFilterSemestre(e.target.value)}
+                  className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white text-slate-700 outline-none cursor-pointer focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+                >
+                  <option value="todos">Todos los semestres</option>
+                  {uniqueSemestres.map(sem => (
+                    <option key={sem} value={sem}>{sem}º Semestre</option>
+                  ))}
+                </select>
+              )}
+              {(filterEstado !== 'todos' || filterPracticas !== 'todos' || filterSemestre !== 'todos') && (
+                <button
+                  onClick={() => { setFilterEstado('todos'); setFilterPracticas('todos'); setFilterSemestre('todos'); }}
+                  className="px-3 py-2 text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200 rounded-md cursor-pointer hover:bg-slate-200 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </>
+          }
           actions={(row) => (
             <button
               onClick={() => handleViewDetail(row)}

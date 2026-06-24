@@ -14,6 +14,7 @@ import TrackingStepper from 'components/TrackingStepper';
 import Modal from 'components/Modal';
 import Toast from 'components/Toast';
 import Card from 'components/Card';
+import ConfirmDialog from 'components/ConfirmDialog';
 import { FiEye, FiMapPin, FiCalendar, FiBriefcase, FiClock, FiVideo, FiLink, FiExternalLink } from 'react-icons/fi';
 
 const statusMap = {
@@ -35,6 +36,7 @@ export default function EstudiantePostulaciones() {
   const [viewModal, setViewModal] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   useEffect(() => {
     if (toast) {
@@ -89,7 +91,11 @@ export default function EstudiantePostulaciones() {
     loadData();
   }, [user]);
 
-  const handleCancelApplication = async () => {
+  const handleCancelApplicationClick = () => {
+    setConfirmCancelOpen(true);
+  };
+
+  const doCancelApplication = async () => {
     if (!viewModal || !viewModal.id) return;
     setCancelLoading(true);
     try {
@@ -346,7 +352,7 @@ export default function EstudiantePostulaciones() {
             {viewModal.estadoRaw === 'pendiente' && (
               <div className="flex justify-end pt-4 border-t border-slate-100">
                 <button
-                  onClick={handleCancelApplication}
+                  onClick={handleCancelApplicationClick}
                   disabled={cancelLoading}
                   className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md text-sm font-semibold hover:bg-red-50 disabled:opacity-50 transition-colors cursor-pointer"
                 >
@@ -357,6 +363,16 @@ export default function EstudiantePostulaciones() {
           </div>
         )}
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmCancelOpen}
+        onClose={() => setConfirmCancelOpen(false)}
+        onConfirm={doCancelApplication}
+        title="Cancelar Postulación"
+        message={`¿Estás seguro de que deseas cancelar tu postulación a la vacante "${viewModal?.vacante}"? Esta acción no se puede deshacer.`}
+        confirmText="Sí, cancelar"
+        variant="danger"
+      />
     </div>
   );
 }

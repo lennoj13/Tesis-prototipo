@@ -10,6 +10,7 @@ import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
 import profileService from 'services/profileService';
 import adminService from 'services/adminService';
+import ConfirmDialog from 'components/ConfirmDialog';
 import { FiEye, FiLoader, FiFileText } from 'react-icons/fi';
 
 export default function GestorPostulaciones() {
@@ -23,6 +24,7 @@ export default function GestorPostulaciones() {
   const [selectedSupervisor, setSelectedSupervisor] = useState('');
   const [actionLoading, setActionLoading] = useState({ approve: false, reject: false });
   const [toast, setToast] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     if (toast) {
@@ -81,7 +83,15 @@ export default function GestorPostulaciones() {
     setSelectedSupervisor('');
   }
 
-  async function confirmApprove() {
+  function handleApproveClick() {
+    setConfirmAction('approve');
+  }
+
+  function handleRejectClick() {
+    setConfirmAction('reject');
+  }
+
+  async function doApprove() {
     if (!detailModal) return;
     setActionLoading(prev => ({ ...prev, approve: true }));
     try {
@@ -104,7 +114,7 @@ export default function GestorPostulaciones() {
     }
   }
 
-  async function handleReject() {
+  async function doReject() {
     if (!detailModal) return;
     setActionLoading(prev => ({ ...prev, reject: true }));
     try {
@@ -212,11 +222,20 @@ export default function GestorPostulaciones() {
           onUpdateSupervisor={handleUpdateSupervisor}
           creatingSupervisor={creatingSupervisor}
           showActions={true}
-          onApprove={confirmApprove}
-          onReject={handleReject}
+          onApprove={handleApproveClick}
+          onReject={handleRejectClick}
           approveLoading={actionLoading.approve}
           rejectLoading={actionLoading.reject}
           approveDisabled={!selectedSupervisor}
+        />
+        <ConfirmDialog
+          isOpen={!!confirmAction}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={confirmAction === 'approve' ? doApprove : doReject}
+          title={confirmAction === 'approve' ? 'Aprobar Solicitud' : 'Rechazar Solicitud'}
+          message={confirmAction === 'approve' ? '¿Estás seguro de que deseas aprobar esta solicitud?' : '¿Estás seguro de que deseas rechazar esta solicitud? El proceso se cerrará.'}
+          confirmText={confirmAction === 'approve' ? 'Aprobar' : 'Rechazar'}
+          variant={confirmAction === 'approve' ? 'primary' : 'danger'}
         />
       </div>
     );

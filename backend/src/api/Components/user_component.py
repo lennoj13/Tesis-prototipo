@@ -33,7 +33,9 @@ class UserComponent:
                        r.nombre as rol_nombre, u.activo, pe.semestre,
                        COALESCE(pe.facultad_id, pg.facultad_id, i.facultad_id) as facultad_id, 
                        COALESCE(pe.carrera_id, pg.carrera_id) as carrera_id,
-                       TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en
+                       TO_CHAR(u.creado_en, 'YYYY-MM-DD') as creado_en,
+                       (SELECT COUNT(*) FROM public.postulaciones p WHERE p.estudiante_id = pe.perfil_id) as total_postulaciones,
+                       (SELECT COUNT(*) FROM public.postulaciones p WHERE p.estudiante_id = pe.perfil_id AND p.estado IN ('aprobada', 'completada', 'aceptada_empresa')) as practicas_aprobadas
                 FROM public.usuarios u
                 JOIN public.roles r ON u.rol_id = r.rol_id
                 LEFT JOIN public.perfiles_estudiante pe ON u.usuario_id = pe.usuario_id
