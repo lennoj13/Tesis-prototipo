@@ -507,6 +507,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from ...utils.database.connection_db import DataBaseHandle
 from ...utils.general.logs import HandleLogs
 from ...utils.general.response import internal_response
+from sentence_transformers import SentenceTransformer
 
 class RecomendacionHibridaComponent:
     """
@@ -563,7 +564,6 @@ class RecomendacionHibridaComponent:
             cls._svr_scaler = joblib.load(svr_scaler_path)
 
             HandleLogs.write_log("[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2)...")
-            from sentence_transformers import SentenceTransformer
             cls._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
             cls._models_loaded = True
