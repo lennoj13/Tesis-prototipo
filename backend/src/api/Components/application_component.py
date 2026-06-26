@@ -203,6 +203,53 @@ class ApplicationComponent:
                 if supervisor_id:
                     set_parts.append("supervisor_id = %s")
                     params.append(supervisor_id)
+                
+                # Despachar envío de correo al gestor
+                try:
+                    from ...utils.general.email_sender import EmailSender
+                    
+                    # 1. Obtener detalles de la postulación
+                    sql_detalles = """
+                        SELECT 
+                            u_est.nombre || ' ' || u_est.apellido as estudiante_nombre,
+                            v.titulo as vacante_titulo,
+                            i.nombre as empresa_nombre,
+                            c.nombre as carrera_nombre,
+                            pe.carrera_id
+                        FROM public.postulaciones p
+                        JOIN public.perfiles_estudiante pe ON p.estudiante_id = pe.perfil_id
+                        JOIN public.usuarios u_est ON pe.usuario_id = u_est.usuario_id
+                        JOIN public.carreras c ON pe.carrera_id = c.carrera_id
+                        JOIN public.vacantes v ON p.vacante_id = v.vacante_id
+                        JOIN public.instituciones i ON v.institucion_id = i.institucion_id
+                        WHERE p.postulacion_id = %s
+                    """
+                    det_res = DataBaseHandle.getRecords(sql_detalles, 1, (postulacion_id,))
+                    if det_res['result'] and det_res['data']:
+                        det = det_res['data']
+                        
+                        # 2. Buscar al gestor de esa carrera
+                        sql_gestor = """
+                            SELECT u.correo, u.nombre, u.apellido
+                            FROM public.perfiles_gestor pg
+                            JOIN public.usuarios u ON pg.usuario_id = u.usuario_id
+                            WHERE pg.carrera_id = %s AND u.activo = true
+                        """
+                        gestor_res = DataBaseHandle.getRecords(sql_gestor, 0, (det['carrera_id'],))
+                        if gestor_res['result'] and gestor_res['data']:
+                            for gestor in gestor_res['data']:
+                                gestor_nombre = f"{gestor['nombre']} {gestor['apellido']}"
+                                EmailSender.send_acceptance_notification(
+                                    to_email=gestor['correo'],
+                                    gestor_nombre=gestor_nombre,
+                                    estudiante_nombre=det['estudiante_nombre'],
+                                    empresa_nombre=det['empresa_nombre'],
+                                    vacante_titulo=det['vacante_titulo'],
+                                    carrera_nombre=det['carrera_nombre']
+                                )
+                except Exception as e:
+                    HandleLogs.write_error("Error al despachar correo al gestor: " + str(e))
+
             elif nuevo_estado == 'aceptada':
                 set_parts.append("fecha_respuesta_gestor = NOW()")
                 if notas:
