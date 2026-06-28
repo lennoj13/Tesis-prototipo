@@ -47,11 +47,6 @@ export default function AdminDashboard() {
     { label: 'Total postulaciones', value: stats?.total_postulaciones, icon: FiTarget, color: 'purple' },
   ];
 
-  const detailCards = [
-    { label: 'Postulaciones pendientes', value: stats?.postulaciones_pendientes, icon: FiClock, color: 'amber' },
-    { label: 'Postulaciones aprobadas', value: stats?.postulaciones_aprobadas, icon: FiCheckCircle, color: 'green' },
-    { label: 'Empresas por aprobar', value: stats?.empresas_pendientes, icon: FiAlertCircle, color: 'red' },
-  ];
 
   return (
     <div className="animate-fade-in">
@@ -76,20 +71,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Tarjetas secundarias de detalle */}
-      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Pendientes de atención</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-        {detailCards.map((card, i) => (
-          <StatCard
-            key={i}
-            label={card.label}
-            value={card.value}
-            icon={card.icon}
-            color={card.color}
-            loading={loading}
-          />
-        ))}
-      </div>
+
     </div>
   );
 }

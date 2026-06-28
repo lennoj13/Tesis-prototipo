@@ -383,7 +383,7 @@ export default function AdminEmpresas() {
               <FiEdit2 size={16} />
             </button>
 
-            <button onClick={() => setDeleteTarget(row)} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600" title="Eliminar empresa">
+            <button onClick={() => setDeleteTarget(row)} className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600" title="Desactivar empresa">
               <FiTrash2 size={16} />
             </button>
           </>
@@ -671,7 +671,7 @@ export default function AdminEmpresas() {
                                           <FiEdit2 size={12} /> Editar
                                         </button>
                                         <button onClick={() => setDeleteSupTarget(sup)} className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 cursor-pointer transition-colors text-xs font-semibold">
-                                          <FiTrash2 size={12} /> Eliminar
+                                          <FiTrash2 size={12} /> Desactivar
                                         </button>
                                       </div>
                                     </div>
@@ -849,9 +849,9 @@ export default function AdminEmpresas() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Eliminar Empresa"
-        message={deleteTarget ? `¿Estás seguro de que deseas eliminar permanentemente a "${deleteTarget.nombre_empresa}"? Esta acción borrará a la empresa, a sus representantes y no se puede deshacer.` : ''}
-        confirmText={actionLoading ? 'Eliminando...' : 'Eliminar'}
+        title="Desactivar Empresa"
+        message={deleteTarget ? `¿Estás seguro de que deseas desactivar a "${deleteTarget.nombre_empresa}"? La empresa y sus representantes ya no tendrán acceso al sistema, pero sus registros se conservarán.` : ''}
+        confirmText={actionLoading ? 'Desactivando...' : 'Desactivar'}
       />
 
       {/* Delete Confirmation Dialog for Supervisor */}
@@ -859,9 +859,9 @@ export default function AdminEmpresas() {
         isOpen={!!deleteSupTarget}
         onClose={() => setDeleteSupTarget(null)}
         onConfirm={handleDeleteSupervisor}
-        title="Eliminar Supervisor"
-        message={deleteSupTarget ? `¿Estás seguro de que deseas eliminar permanentemente al supervisor "${deleteSupTarget.nombre} ${deleteSupTarget.apellido}"? Esta acción no se puede deshacer.` : ''}
-        confirmText="Eliminar"
+        title="Desactivar Supervisor"
+        message={deleteSupTarget ? `¿Estás seguro de que deseas desactivar al supervisor "${deleteSupTarget.nombre} ${deleteSupTarget.apellido}"? Esta acción restringirá su acceso pero conservará su historial.` : ''}
+        confirmText="Desactivar"
       />
     </div>
   );

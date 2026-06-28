@@ -441,7 +441,7 @@ export default function AdminUsuarios() {
               <button
                 onClick={() => setDeleteTarget(row)}
                 className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-600"
-                title="Eliminar usuario"
+                title="Desactivar usuario"
               >
                 <FiTrash2 size={16} />
               </button>
@@ -775,9 +775,9 @@ export default function AdminUsuarios() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Eliminar Usuario"
-        message={deleteTarget ? `¿Estás seguro de que deseas eliminar permanentemente a "${deleteTarget.nombre} ${deleteTarget.apellido || ''}"? Esta acción borrará todos sus datos y no se puede deshacer.` : ''}
-        confirmText={actionLoading ? 'Eliminando...' : 'Eliminar'}
+        title="Desactivar Usuario"
+        message={deleteTarget ? `¿Estás seguro de que deseas desactivar a "${deleteTarget.nombre} ${deleteTarget.apellido || ''}"? El usuario ya no tendrá acceso al sistema, pero sus registros se conservarán (eliminación lógica).` : ''}
+        confirmText={actionLoading ? 'Desactivando...' : 'Desactivar'}
       />
     </div>
   );
