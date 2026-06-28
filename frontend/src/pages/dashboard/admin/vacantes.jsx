@@ -89,7 +89,8 @@ export default function AdminVacantes() {
   const handleDelete = async (id) => {
     try {
       await vacancyService.delete(id);
-      setVacantes(prev => prev.filter(v => v.vacancy_id !== id));
+      // En lugar de removerla de la lista, la marcamos como inactiva (cerrada)
+      setVacantes(prev => prev.map(v => v.vacante_id === id ? { ...v, activo: false } : v));
     } catch (err) { console.error(err); }
   };
 
@@ -122,7 +123,7 @@ export default function AdminVacantes() {
             >
               <option value="">Modalidad</option>
               <option value="Presencial">Presencial</option>
-              <option value="Hibrido">Híbrido</option>
+              <option value="Híbrido">Híbrido</option>
               <option value="Remoto">Remoto</option>
             </select>
             <select
@@ -158,7 +159,7 @@ export default function AdminVacantes() {
             <button
               onClick={() => setDeleteConfirm(row)}
               className="flex items-center justify-center w-8 h-8 rounded-md border-none bg-transparent text-slate-400 cursor-pointer transition-colors hover:bg-danger-light hover:text-danger"
-              title="Eliminar"
+              title="Desactivar"
             >
               <FiTrash2 size={16} />
             </button>
@@ -237,8 +238,9 @@ export default function AdminVacantes() {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => handleDelete(deleteConfirm?.vacante_id)}
-        title="Eliminar Vacante"
-        message={`¿Eliminar "${deleteConfirm?.titulo}"?`}
+        title="Desactivar Vacante"
+        message={`¿Estás seguro de que deseas desactivar "${deleteConfirm?.titulo}"? La vacante pasará a estado inactivo y dejará de recibir postulaciones.`}
+        confirmText="Desactivar"
       />
     </div>
   );

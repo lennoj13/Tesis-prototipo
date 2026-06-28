@@ -4,7 +4,7 @@
  * Modulo 5: Postulacion y Seguimiento
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from 'context/AuthContext';
 import applicationService from 'services/applicationService';
 import PageHeader from 'components/PageHeader';
@@ -37,6 +37,10 @@ export default function EstudiantePostulaciones() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+
+  const [estadoFilter, setEstadoFilter] = useState('');
+  const [modalidadFilter, setModalidadFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     if (toast) {
@@ -144,6 +148,26 @@ export default function EstudiantePostulaciones() {
     { key: 'fecha', label: 'Fecha', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
+  const sortedAndFilteredPostulaciones = useMemo(() => {
+    let result = [...postulaciones];
+
+    if (estadoFilter) {
+      result = result.filter(p => p.estado === estadoFilter);
+    }
+    if (modalidadFilter) {
+      result = result.filter(p => p.modalidad === modalidadFilter);
+    }
+
+    switch (sortBy) {
+      case 'oldest': result.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)); break;
+      case 'alphaAsc': result.sort((a, b) => (a.vacante || '').localeCompare(b.vacante || '')); break;
+      case 'alphaDesc': result.sort((a, b) => (b.vacante || '').localeCompare(a.vacante || '')); break;
+      case 'newest': default: result.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); break;
+    }
+
+    return result;
+  }, [postulaciones, estadoFilter, modalidadFilter, sortBy]);
+
   return (
     <div className="animate-fade-in">
       <PageHeader
@@ -155,8 +179,46 @@ export default function EstudiantePostulaciones() {
 
       <DataTable
         columns={columns}
-        data={postulaciones}
+        data={sortedAndFilteredPostulaciones}
         searchKeys={['vacante', 'empresa', 'area']}
+        filters={
+          <>
+            <select
+              value={estadoFilter}
+              onChange={(e) => setEstadoFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
+            >
+              <option value="">Todos los Estados</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="entrevista">Entrevista</option>
+              <option value="aprobado">Aprobadas</option>
+              <option value="rechazado">Rechazadas</option>
+              <option value="cancelada">Canceladas</option>
+              <option value="anulada">Anuladas</option>
+              <option value="completada">Completadas</option>
+            </select>
+            <select
+              value={modalidadFilter}
+              onChange={(e) => setModalidadFilter(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="">Modalidad</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Hibrido">Híbrido</option>
+              <option value="Remoto">Remoto</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[120px] truncate"
+            >
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguos</option>
+              <option value="alphaAsc">A-Z (Vacante)</option>
+              <option value="alphaDesc">Z-A (Vacante)</option>
+            </select>
+          </>
+        }
         actions={(row) => (
           <button
             onClick={() => setViewModal(row)}

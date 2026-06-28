@@ -14,12 +14,13 @@ const STEPS = [
 ];
 
 const REJECTED_STATES = ['rechazada', 'rechazada_gestor'];
-const FINAL_STATES = ['aprobada', 'reprobada', 'anulada', 'completada', 'cancelada'];
+const FINAL_STATES = ['aprobada', 'reprobada', 'completada'];
+const CANCELLED_STATES = ['cancelada', 'anulada'];
 
 function getStepIndex(status) {
   const idx = STEPS.findIndex(s => s.key === status);
   if (idx !== -1) return idx;
-  if (REJECTED_STATES.includes(status)) return -1;
+  if (REJECTED_STATES.includes(status) || CANCELLED_STATES.includes(status)) return -1;
   if (FINAL_STATES.includes(status)) return STEPS.length;
   return 0;
 }
@@ -48,13 +49,17 @@ export default function TrackingStepper({
 }) {
   const isRejected = REJECTED_STATES.includes(currentStatus);
   const isFinal = FINAL_STATES.includes(currentStatus);
-  const isCancelled = currentStatus === 'cancelada';
+  const isCancelled = CANCELLED_STATES.includes(currentStatus);
   const currentIndex = getStepIndex(currentStatus);
   const rejectedAtStep = isRejected ? getRejectedAtStep(currentStatus, fechaEntrevista) : -1;
 
   const dates = [fechaPostulacion, fechaEntrevista, fechaAceptacion, fechaFormalizacion];
 
   function getStepState(stepIdx) {
+    if (isCancelled) {
+      if (stepIdx === 0) return 'cancelled';
+      return 'pending';
+    }
     if (isRejected) {
       if (stepIdx < rejectedAtStep) return 'completed';
       if (stepIdx === rejectedAtStep) return 'rejected';
@@ -89,6 +94,11 @@ export default function TrackingStepper({
       label: 'text-red-700 font-semibold',
       line: 'bg-slate-200',
     },
+    cancelled: {
+      circle: 'bg-slate-400 text-white border-slate-400 shadow-sm',
+      label: 'text-slate-600 font-semibold',
+      line: 'bg-slate-200',
+    },
   };
 
   function formatDate(dateStr) {
@@ -110,9 +120,13 @@ export default function TrackingStepper({
         {STEPS.map((step, idx) => {
           const state = getStepState(idx);
           const styles = stepStyles[state];
-          const StepIcon = state === 'rejected' ? FiX : step.icon;
+          const StepIcon = (state === 'rejected' || state === 'cancelled') ? FiX : step.icon;
           const dateStr = formatDate(dates[idx]);
           const isLast = idx === STEPS.length - 1;
+
+          let displayLabel = step.label;
+          if (state === 'rejected') displayLabel = 'Rechazada';
+          if (state === 'cancelled') displayLabel = currentStatus === 'anulada' ? 'Anulada' : 'Cancelada';
 
           return (
             <div key={step.key} className={`flex items-start ${isLast ? '' : 'flex-1'}`} style={{ minWidth: 0 }}>
@@ -124,7 +138,7 @@ export default function TrackingStepper({
                   <StepIcon size={18} />
                 </div>
                 <p className={`text-[11px] mt-2 text-center leading-tight m-0 transition-colors duration-300 ${styles.label}`}>
-                  {state === 'rejected' ? 'Rechazada' : step.label}
+                  {displayLabel}
                 </p>
                 {dateStr && (
                   <p className="text-[10px] text-slate-400 m-0 mt-0.5">{dateStr}</p>
@@ -161,10 +175,10 @@ export default function TrackingStepper({
           </p>
         </div>
       )}
-      {isCancelled && (
+      {currentStatus === 'cancelada' && (
         <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
           <p className="text-sm text-slate-600 m-0 font-medium">
-            Has cancelado esta postulacion.
+            Esta postulación fue cancelada porque la vacante ha sido cerrada o ya no está disponible.
           </p>
         </div>
       )}

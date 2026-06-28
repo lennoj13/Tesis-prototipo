@@ -350,6 +350,10 @@ class VacancyComponent:
                     pendientes = res_check['data']['pendientes']
                     return internal_response(False, None, f"No puedes cerrar la vacante. Tienes {pendientes} postulante(s) en estado pendiente. Debes rechazarlos o procesarlos antes de cerrar.")
 
+            # Cambiar estado de postulaciones pendientes a 'cancelada' para liberar al estudiante
+            sql_update_postulaciones = "UPDATE public.postulaciones SET estado = 'cancelada' WHERE vacante_id = %s AND estado = 'pendiente'"
+            DataBaseHandle.ExecuteNonQuery(sql_update_postulaciones, (vacante_id,))
+
             sql = "UPDATE public.vacantes SET activo = false WHERE vacante_id = %s"
             DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
             # Invalidar caché NLP para esta vacante
