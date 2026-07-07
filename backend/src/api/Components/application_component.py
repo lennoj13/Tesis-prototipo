@@ -600,3 +600,25 @@ class ApplicationComponent:
         except Exception as err:
             HandleLogs.write_error(err)
             return internal_response(False, None, str(err))
+
+    @staticmethod
+    def get_solicitud_data_by_cedula(cedula):
+        """Busca una solicitud aprobada por la cédula del estudiante (Demo SIUG)"""
+        try:
+            sql = """
+                SELECT p.postulacion_id
+                FROM public.postulaciones p
+                JOIN public.perfiles_estudiante pe ON p.estudiante_id = pe.perfil_id
+                JOIN public.usuarios u ON pe.usuario_id = u.usuario_id
+                WHERE u.cedula = %s AND p.estado IN ('aprobada', 'aceptada')
+                ORDER BY p.actualizado_en DESC
+                LIMIT 1
+            """
+            result = DataBaseHandle.getRecords(sql, 1, (cedula,))
+            if result['result'] and result['data']:
+                postulacion_id = result['data']['postulacion_id']
+                return ApplicationComponent.get_solicitud_data(postulacion_id)
+            return internal_response(False, None, "No se encontro una solicitud aprobada para la cedula provista.")
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return internal_response(False, None, str(err))

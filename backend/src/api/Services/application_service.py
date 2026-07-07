@@ -130,3 +130,32 @@ class ApplicationSolicitudService(Resource):
         except Exception as err:
             HandleLogs.write_error(err)
             return response_error("Error: " + str(err))
+
+class SiugDemoService(Resource):
+    @staticmethod
+    def get(cedula):
+        """
+        Consulta de Solicitud de Práctica Preprofesional (SIUG)
+        ---
+        tags:
+          - Integración SIUG
+        parameters:
+          - name: cedula
+            in: path
+            type: string
+            required: true
+            description: Cédula del estudiante. Ej. 0955236773
+        responses:
+          200:
+            description: Retorna el paquete JSON completo de la solicitud aprobada.
+        """
+        try:
+
+            result = ApplicationComponent.get_solicitud_data_by_cedula(cedula)
+            if result['result']:
+                return response_success(result['data'])
+            return response_error(result['message'])
+        except Exception as err:
+            HandleLogs.write_error(err)
+            return response_error("Error: " + str(err))
+

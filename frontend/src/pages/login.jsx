@@ -150,24 +150,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Tip de prueba */}
-          <div className="mt-6 py-3.5 px-4 bg-info-light rounded-md border border-blue-500/15">
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <FiInfo size={14} className="inline align-middle mr-1.5" /><strong className="text-primary-700">Credenciales de prueba:</strong> (password: <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">Prueba123.</code>)
-            </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed mt-1">
-              <span className="font-medium">Estudiante:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0955236773</code>
-            </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Empresa:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0990151100</code>
-            </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Gestor PPP:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000002</code>
-            </p>
-            <p className="m-0 text-[0.8125rem] text-slate-600 leading-relaxed">
-              <span className="font-medium">Admin:</span> <code className="bg-primary-100 px-1.5 py-px rounded text-xs font-mono text-primary-800">0900000001</code>
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ from ..Services.user_service import UserService, CurrentUserService, ChangePassw
 from ..Services.vacancy_services import VacancyService, VacancyCatalogService, VacancyDetailService
 from ..Services.profile_service import ProfileService, PublicProfileService
 from ..Services.skills_service import SkillListService
-from ..Services.application_service import ApplicationService, ApplicationStatusService, ApplicationSolicitudService
+from ..Services.application_service import ApplicationService, ApplicationStatusService, ApplicationSolicitudService, SiugDemoService
 from ..Services.admin_service import (
     AdminStatsService, AdminCompanyService, AdminCompanyStatusService,
     AdminDeleteUserService, AdminUserDetailService, AdminReportsService,
@@ -38,6 +38,9 @@ def load_routes(api):
     api.add_resource(ApplicationService, '/applications')
     api.add_resource(ApplicationStatusService, '/applications/<int:application_id>')
     api.add_resource(ApplicationSolicitudService, '/applications/<int:application_id>/solicitud')
+    
+    # === SIUG DEMO ===
+    api.add_resource(SiugDemoService, '/siug/estudiante/<string:cedula>/solicitud')
 
     # === Habilidades ===
     api.add_resource(SkillListService, '/skills')
