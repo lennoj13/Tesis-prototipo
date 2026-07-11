@@ -139,7 +139,7 @@ def construir_features_semanticas(df_interacciones):
         skill_match_score = (len(sk_est.intersection(sk_vac)) / max(1, len(sk_vac))) * 100
         skill_complementarity_score = (len(sk_vac.difference(sk_est)) / max(1, len(sk_vac))) * 100
         
-        # Unificar todo el vector numérico de entrada (1 + 384 + 2 = 387 columnas en X)
+        # Unificar vector de entrada
         features_fila = np.concatenate([[sim_coseno], diff_vectorial, [skill_match_score, skill_complementarity_score]])
         features_X.append(features_fila)
         

@@ -52,7 +52,7 @@ class MatchingComponent:
                     sql_applied_all = "SELECT estudiante_id, postulacion_id, estado, porcentaje_afinidad, habilidades_snapshot FROM public.postulaciones WHERE vacante_id = %s"
                     app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
                 except Exception:
-                    # Fallback por si la columna habilidades_snapshot aun no existe en BD
+                    # Proveer array vacío si no hay snapshot
                     sql_applied_all = "SELECT estudiante_id, postulacion_id, estado, porcentaje_afinidad FROM public.postulaciones WHERE vacante_id = %s"
                     app_all_result = DataBaseHandle.getRecords(sql_applied_all, 0, (vid,))
                     
@@ -127,16 +127,16 @@ class MatchingComponent:
                                 'is_optional': vs['es_opcional'],
                             })
 
-                    # Si el estudiante ya aplicó, la afinidad es estrictamente la del momento de su aplicación (Motor NLP)
+                    # Afinidad congelada al postular
                     if already_applied and already_applied.get('porcentaje_afinidad') is not None:
                         affinity = float(already_applied['porcentaje_afinidad'])
                     else:
-                        # Si no ha aplicado, o es una postulación muy antigua sin porcentaje, usamos 0
+                        # Fallback 0%
                         affinity = 0
 
                     # Solo incluir candidatos que ya hayan postulado (vista de empresa)
                     if has_applied:
-                        # Todas las skills del estudiante (soporta llaves antiguas del snapshot)
+                        # Skills del estudiante
                         all_skills = [{
                             'name': s.get('habilidad_nombre', s.get('nombre', '')), 
                             'category': s.get('habilidad_categoria', s.get('categoria', '')), 

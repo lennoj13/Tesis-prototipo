@@ -83,7 +83,7 @@ class ProfileComponent:
 
             if role == 'estudiante':
                 raw_semester = p_data.get('semester') or ''
-                # Strip everything except digits so '8º semestre' → '8'
+                # Extraer valor numérico del semestre
                 semester_clean = ''.join(c for c in str(raw_semester) if c.isdigit()) or None
 
                 sql_stud = """
@@ -105,7 +105,7 @@ class ProfileComponent:
                     facultad_id = res_id['data']['facultad_id']
                     if 'skills' in p_data:
                         ProfileComponent._update_student_skills(perfil_id, p_data['skills'])
-                    # Indicar que se esta calculando NLP para que el frontend bloquee iteracciones
+                    # Bandera de bloqueo NLP
                     try:
                         DataBaseHandle.ExecuteNonQuery(
                             "UPDATE public.perfiles_estudiante SET calculando_nlp = TRUE WHERE perfil_id = %s", 
@@ -123,7 +123,7 @@ class ProfileComponent:
                         def precalcular():
                             try:
                                 HandleLogs.write_log(f"[*] Iniciando recálculo NLP en segundo plano para estudiante {perfil_id}...")
-                                # Simulamos una demora para que el toast sea visible en el prototipo
+
                                 time.sleep(3)
                                 RecomendacionHibridaComponent.get_recomendaciones(user_id, facultad_id, force_recalculate=True)
                                 HandleLogs.write_log(f"[*] Recálculo NLP completado con éxito para estudiante {perfil_id}.")

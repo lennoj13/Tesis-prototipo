@@ -89,7 +89,7 @@ export default function AdminVacantes() {
   const handleDelete = async (id) => {
     try {
       await vacancyService.delete(id);
-      // En lugar de removerla de la lista, la marcamos como inactiva (cerrada)
+      // Marcar vacante como inactiva
       setVacantes(prev => prev.map(v => v.vacante_id === id ? { ...v, activo: false } : v));
     } catch (err) { console.error(err); }
   };

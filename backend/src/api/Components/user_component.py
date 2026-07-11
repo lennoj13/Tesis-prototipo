@@ -14,7 +14,7 @@ class UserComponent:
             params = []
 
             if facultad_id:
-                # If they filter by facultad, filter estudiantes, gestores and empresas
+                # Aplicar filtro por facultad
                 where_clauses.append("(pe.facultad_id = %s OR pg.facultad_id = %s OR i.facultad_id = %s OR r.nombre = 'admin')")
                 params.extend([facultad_id, facultad_id, facultad_id])
             

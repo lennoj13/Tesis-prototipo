@@ -1,4 +1,4 @@
-#VERSION PARA MODELOS CON EUCLIDIAN y Manhattan
+
 # import os
 # import re
 # import numpy as np
@@ -983,7 +983,7 @@ class RecomendacionHibridaComponent:
                 #REGLAS LÓGICAS
                 #REGLA 1: BAJA SIMILITUD CONTEXTUAL
                 if sim_coseno < 0.38:
-                    # Si el contexto semántico es bajísimo, XGBoost tiende a alucinar por ruido.
+                    # Mitigar alucinación por ruido semántico bajo.
                     base_score = min(p_xgb, p_svr)
                     if match_score == 0:
                         # Si no hay match semántico NI tampoco coincidencia de habilidades:
@@ -994,8 +994,7 @@ class RecomendacionHibridaComponent:
 
                 #REGLA 2: DETECCIÓN DE INFLACIÓN TEXTO BASURA LARGO
                 elif sim_coseno > 0.48 and match_score < 15.0:
-                    # ¡ALERTA DE INFLACIÓN! El transformer arroja similitud alta por colisiones vectoriales 
-                    # de ruido, pero las habilidades cruzadas reales de la base de datos no lo respaldan.
+                    # Mitigar inflación por colisiones vectoriales sin respaldo en habilidades.
                     base_score = min(p_xgb, p_svr)
                     if match_score == 0:
                         score = base_score * 0.3  # Castigo por simular contexto con basura
@@ -1013,13 +1012,12 @@ class RecomendacionHibridaComponent:
 
                 # REGLA 4: COMPORTAMIENTO ALUCINATORIO
                 elif p_xgb >= 60.0 and sim_coseno < 0.45:
-                    # XGBoost se infla debido al ruido texturizado pero el Transformer duda (< 0.45).
-                    # Mitigamos confiando en el SVR que es más conservador
+                    # Priorizar SVR conservador ante duda del Transformer (< 0.45).
                     score = p_svr if p_svr < p_xgb else (p_xgb + p_svr) / 2.0
 
                 # REGLA 5: PERFIL TEÓRICO
                 elif p_xgb < 40.0 and p_svr >= 48.0:
-                    # SVR detecta una tendencia lineal de compatibilidad que los árboles de XGBoost descartan.
+                    # Aplicar corrección de tendencia lineal SVR.
                     score = (p_svr + match_score) / 2.0 if match_score > 0 else p_svr
 
                 # REGLA 6: COMPORTAMIENTO HÍBRIDO NORMAL

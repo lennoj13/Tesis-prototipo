@@ -511,13 +511,13 @@ class ApplicationComponent:
                     snap = d['habilidades_snapshot']
                     raw = json.loads(snap) if isinstance(snap, str) else snap
                     
-                    # Formato nuevo: objeto con habilidades, resumen_experiencia, intereses
+                    # Extraer del nuevo formato
                     if isinstance(raw, dict):
                         raw_skills = raw.get('habilidades', [])
                         snap_experiencia = raw.get('resumen_experiencia', '')
                         snap_intereses = raw.get('intereses', '')
                     else:
-                        # Formato viejo: array directo de habilidades
+                        # Extraer del array directo
                         raw_skills = raw
                     
                     habilidades = [

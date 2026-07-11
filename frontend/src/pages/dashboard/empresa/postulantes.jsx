@@ -103,7 +103,7 @@ export default function EmpresaPostulantes() {
       const allApplicants = appRes.data || [];
       const matchData = matchRes.data || [];
 
-      // Filtrar las canceladas por el estudiante (basura para la empresa)
+      // Filtrar postulaciones canceladas
       const activeApplicants = allApplicants.filter(p => p.estado !== 'cancelada');
 
       // Crear mapa de candidatos enriquecidos para extraer habilidades e intereses

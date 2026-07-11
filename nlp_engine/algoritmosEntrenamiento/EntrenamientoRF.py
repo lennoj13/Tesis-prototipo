@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from scipy.spatial.distance import euclidean, cityblock # Nuevas métricas espaciales
+from scipy.spatial.distance import euclidean, cityblock
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
@@ -132,7 +132,7 @@ def construir_features_semanticas(df_interacciones):
         # 4.2. Diferencia absoluta elemental (384 dimensiones)
         diff_vectorial = np.abs(emb_e - emb_v)
         
-        # 4.3. NUEVAS MÉTRICAS: Distancias geométricas de magnitud espacial
+        # 4.3. Distancias geométricas
         dist_euclidiana = euclidean(emb_e, emb_v)
         dist_manhattan = cityblock(emb_e, emb_v)
         

@@ -7,7 +7,7 @@ import joblib
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from sklearn.metrics.pairwise import cosine_similarity
-from scipy.spatial.distance import euclidean, cityblock # Nuevas métricas geométricas
+from scipy.spatial.distance import euclidean, cityblock
 from sentence_transformers import SentenceTransformer
 import nltk
 import spacy
@@ -16,7 +16,7 @@ from nltk.corpus import stopwords
 warnings.filterwarnings("ignore")
 nltk.download("stopwords", quiet=True)
 
-# CONFIGURACIÓN OPTIMIZADA EN ESPAÑOL PARA EL PROCESAMIENTO SEMÁNTICO
+# Configuración de procesamiento semántico
 stop_words = set(stopwords.words("spanish"))
 try:
     nlp = spacy.load("es_core_news_sm", disable=["parser", "ner"])
@@ -143,7 +143,7 @@ def recomendar_vacantes_db_test(usuario_id, top_n=3):
         # 2. Diferencia absoluta por componente
         diff_vectorial = np.abs(emb_usuario - emb_v)
         
-        # 3. NUEVAS MÉTRICAS: Distancia Euclidiana y Manhattan
+        # 3. Distancia Euclidiana y Manhattan
         dist_euclidiana = euclidean(emb_usuario, emb_v)
         dist_manhattan = cityblock(emb_usuario, emb_v)
         

@@ -2,7 +2,7 @@
 
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-// Roles del sistema (ahora en espanol, igual que la BD)
+// Roles del sistema
 export const ROLES = {
   ESTUDIANTE: 'estudiante',
   EMPRESA: 'empresa',

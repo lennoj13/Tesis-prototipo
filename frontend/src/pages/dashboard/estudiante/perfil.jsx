@@ -15,7 +15,7 @@ import SkillSelector from 'components/SkillSelector';
 import Modal from 'components/Modal';
 import { FiSave, FiPlus, FiX, FiCheckCircle } from 'react-icons/fi';
 
-// Eliminamos las listas de carreras y semestres porque vienen precargadas del SIUG.
+
 
 export default function EstudiantePerfil() {
   const { user } = useAuth();

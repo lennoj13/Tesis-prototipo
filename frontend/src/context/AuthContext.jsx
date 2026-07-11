@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
       if (response.result && response.data) {
         const { token, user_info } = response.data;
         
-        // Normalizar el rol: el backend ahora devuelve roles en espanol
+        // Normalizar rol
         const backendRole = user_info.role; // 'estudiante', 'empresa', 'gestor', 'admin'
         
         // Mapear datos del backend al formato del frontend

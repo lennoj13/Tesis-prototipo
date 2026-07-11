@@ -55,7 +55,7 @@ export default function EstudianteDashboard() {
           recomendacionService.getRecomendaciones(),
           applicationService.getMyApplications(user?.profile_id),
         ]);
-        // recRes.data ya contiene las vacantes con porcentaje_afinidad calculado por IA
+        // Asignar vacantes con afinidad calculada
         const vacs = recRes.result ? (recRes.data || []) : [];
         const apps = appRes.result ? (appRes.data || []) : [];
         setVacantes(vacs);

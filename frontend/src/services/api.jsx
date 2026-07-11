@@ -47,7 +47,7 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth_expired'));
       }
-      // Resolver la promesa para que no salte el error de Axios en rojo en la pantalla
+      // Silenciar error de promesa en UI
       return Promise.resolve({ data: { result: false, message: 'Token expirado' } });
     }
     return Promise.reject(error);
