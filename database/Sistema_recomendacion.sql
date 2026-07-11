@@ -8,6 +8,7 @@
 -- Dumped by pg_dump version 18.3
 
 -- Started on 2026-07-10 22:52:04
+-- Base de datos
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
