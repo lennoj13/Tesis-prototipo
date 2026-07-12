@@ -23,7 +23,7 @@ class RecomendacionVacantesService(Resource):
             usuario_id = auth['data']['user_id']
             facultad_id = auth['data'].get('facultad_id')
 
-            result = RecomendacionComponent.get_recomendaciones(usuario_id, facultad_id)
+            result = RecomendacionHibridaComponent.get_recomendaciones(usuario_id, facultad_id)
             if result['result']:
                 return response_success(result['data'])
             return response_error(result['message'])
