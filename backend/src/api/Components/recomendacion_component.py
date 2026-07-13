@@ -5,6 +5,7 @@ import pandas as pd
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import euclidean, cityblock
+from sentence_transformers import SentenceTransformer
 
 from ...utils.database.connection_db import DataBaseHandle
 from ...utils.general.logs import HandleLogs
@@ -44,15 +45,14 @@ class RecomendacionComponent:
             project_root = os.path.abspath(os.path.join(base_dir, '..', '..', '..', '..'))
             nlp_dir = os.path.join(project_root, 'nlp_engine')
 
-            model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost', 'pivipp_xgboost.pkl')
-            scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost', 'pivipp_xgboost_scaler.pkl')
+            model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost.pkl')
+            scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost_scaler.pkl')
 
             HandleLogs.write_log("[NLP] Cargando modelo XGBoost y scaler...")
             cls._model = joblib.load(model_path)
             cls._scaler = joblib.load(scaler_path)
 
             HandleLogs.write_log("[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2)...")
-            from sentence_transformers import SentenceTransformer
             cls._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
             cls._models_loaded = True
@@ -346,9 +346,6 @@ class RecomendacionComponent:
                 sim_coseno = cosine_similarity([emb_usuario], [emb_v])[0][0]
                 diff_vectorial = np.abs(emb_usuario - emb_v)
 
-                # Distancias euclidiana y manhattan
-                dist_euclidiana = euclidean(emb_usuario, emb_v)
-                dist_manhattan = cityblock(emb_usuario, emb_v)
 
                 # Variables de coincidencia de habilidades
                 habs_vac = set([s.lower() for s in habilidades_por_vacante.get(row['vacante_id'], [])])
@@ -359,7 +356,6 @@ class RecomendacionComponent:
                 vector_completo = np.concatenate([
                     [sim_coseno],
                     diff_vectorial,
-                    [dist_euclidiana, dist_manhattan],
                     [skill_match_score, skill_complementarity_score]
                 ])
                 features_inferencia.append(vector_completo)
