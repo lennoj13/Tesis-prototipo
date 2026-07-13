@@ -167,14 +167,20 @@ export default function NuevaVacante() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">Descripción <span className="text-danger">*</span></label>
-            <textarea name="description" value={form.description} onChange={handleChange} rows={4} placeholder="Describe las actividades del practicante..." className={`${fieldBase} resize-y min-h-[100px] ${errors.description ? fieldErr : fieldOk}`} />
+            <div className="flex justify-between items-end">
+              <label className="text-sm font-semibold text-slate-700">Descripción <span className="text-danger">*</span></label>
+              <span className="text-xs text-slate-400">{form.description?.length || 0}/800</span>
+            </div>
+            <textarea name="description" maxLength={800} value={form.description} onChange={handleChange} rows={4} placeholder="Describe las actividades del practicante..." className={`${fieldBase} resize-y min-h-[100px] ${errors.description ? fieldErr : fieldOk}`} />
             {errors.description && <p className="text-[0.8125rem] text-danger">{errors.description}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700">Requisitos en texto <span className="text-danger">*</span></label>
-            <textarea name="requirements" value={form.requirements} onChange={handleChange} rows={3} placeholder="- Estudiante de Ing. en Software (7mo semestre o superior)&#10;- Conocimiento en React" className={`${fieldBase} resize-y min-h-[80px] ${errors.requirements ? fieldErr : fieldOk}`} />
+            <div className="flex justify-between items-end">
+              <label className="text-sm font-semibold text-slate-700">Requisitos en texto <span className="text-danger">*</span></label>
+              <span className="text-xs text-slate-400">{form.requirements?.length || 0}/800</span>
+            </div>
+            <textarea name="requirements" maxLength={800} value={form.requirements} onChange={handleChange} rows={3} placeholder="- Estudiante de Ing. en Software (8vo semestre o superior)&#10;- Conocimiento en React" className={`${fieldBase} resize-y min-h-[80px] ${errors.requirements ? fieldErr : fieldOk}`} />
             {errors.requirements && <p className="text-[0.8125rem] text-danger">{errors.requirements}</p>}
           </div>
 

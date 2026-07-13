@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import { FiPlus, FiX } from 'react-icons/fi';
@@ -10,6 +10,14 @@ export default function SkillSelector({
   isVacancy = false
 }) {
   const [customSkill, setCustomSkill] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (errorMsg) {
+      const timer = setTimeout(() => setErrorMsg(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMsg]);
 
   const normalizeSkill = (skill, defaultLevel = 3) => {
     const rawName = skill?.name || skill?.nombre || skill?.habilidad_nombre || skill || '';
@@ -38,6 +46,10 @@ export default function SkillSelector({
     if (selectedSkills.some((h) => skillKey(h.name) === key)) {
       onChange(selectedSkills.filter((h) => skillKey(h.name) !== key));
     } else {
+      if (selectedSkills.length >= 20) {
+        setErrorMsg("Límite máximo de 20 habilidades alcanzado.");
+        return;
+      }
       onChange([...selectedSkills, normalized]);
     }
   };
@@ -62,6 +74,10 @@ export default function SkillSelector({
     
     if (existingCatalog) {
       if (!selectedSkills.some((h) => skillKey(h.name) === key)) {
+        if (selectedSkills.length >= 20) {
+          setErrorMsg("Límite máximo de 20 habilidades alcanzado.");
+          return;
+        }
         onChange([...selectedSkills, normalizeSkill(existingCatalog)]);
       }
       setCustomSkill('');
@@ -69,6 +85,10 @@ export default function SkillSelector({
     }
     
     if (!selectedSkills.some((h) => skillKey(h.name) === key)) {
+      if (selectedSkills.length >= 20) {
+        setErrorMsg("Límite máximo de 20 habilidades alcanzado.");
+        return;
+      }
       onChange([
         ...selectedSkills,
         { skill_id: null, name: trimmed, level: 3, category: null, is_optional: false, is_custom: true }
@@ -127,6 +147,9 @@ export default function SkillSelector({
           </Button>
         </div>
         <p className="text-[11px] text-slate-500">Si no encuentras la habilidad en la lista, agrégala manualmente.</p>
+        {errorMsg && (
+          <p className="text-[11px] font-semibold text-danger m-0 animate-fade-in">{errorMsg}</p>
+        )}
       </div>
       
       {allSkills.length > 0 && (

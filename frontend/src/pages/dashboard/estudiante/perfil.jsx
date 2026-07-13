@@ -208,11 +208,13 @@ export default function EstudiantePerfil() {
           <div className={sectionBodyClass}>
             <textarea
               rows={4}
+              maxLength={800}
               value={form.experience_summary}
               onChange={(e) => setForm((prev) => ({ ...prev, experience_summary: e.target.value }))}
               placeholder="Describe brevemente tu experiencia previa"
               className={`${fieldBase} resize-y min-h-[100px]`}
             />
+            <p className="text-xs text-slate-500 mt-2 text-right">{form.experience_summary?.length || 0}/800 caracteres</p>
           </div>
         </section>
       </div>

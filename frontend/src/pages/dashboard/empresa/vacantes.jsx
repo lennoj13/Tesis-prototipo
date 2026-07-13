@@ -414,14 +414,20 @@ export default function EmpresaVacantes() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Descripción <span className="text-danger">*</span></label>
-              <textarea name="description" value={editForm.description} onChange={handleEditChange} rows={3} className={`${fieldBase} resize-y min-h-[80px] ${editErrors.description ? fieldErr : fieldOk}`} />
+              <div className="flex justify-between items-end">
+                <label className="text-sm font-semibold text-slate-700">Descripción <span className="text-danger">*</span></label>
+                <span className="text-xs text-slate-400">{editForm.description?.length || 0}/800</span>
+              </div>
+              <textarea name="description" maxLength={800} value={editForm.description} onChange={handleEditChange} rows={3} className={`${fieldBase} resize-y min-h-[80px] ${editErrors.description ? fieldErr : fieldOk}`} />
               {editErrors.description && <p className="text-[0.8125rem] text-danger m-0">{editErrors.description}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Requisitos <span className="text-danger">*</span></label>
-              <textarea name="requirements" value={editForm.requirements} onChange={handleEditChange} rows={2} className={`${fieldBase} resize-y min-h-[60px] ${editErrors.requirements ? fieldErr : fieldOk}`} />
+              <div className="flex justify-between items-end">
+                <label className="text-sm font-semibold text-slate-700">Requisitos <span className="text-danger">*</span></label>
+                <span className="text-xs text-slate-400">{editForm.requirements?.length || 0}/800</span>
+              </div>
+              <textarea name="requirements" maxLength={800} value={editForm.requirements} onChange={handleEditChange} rows={2} className={`${fieldBase} resize-y min-h-[60px] ${editErrors.requirements ? fieldErr : fieldOk}`} />
               {editErrors.requirements && <p className="text-[0.8125rem] text-danger m-0">{editErrors.requirements}</p>}
             </div>
 
