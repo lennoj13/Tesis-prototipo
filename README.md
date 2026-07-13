@@ -30,7 +30,6 @@ Instalar dependencias y levantar:
 ```bash
 cd backend
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 python app.py
 ```
 
@@ -96,7 +95,7 @@ Los scripts de entrenamiento se encuentran en `nlp_engine/algoritmos_SC/` por si
 | Frontend      | React, React Router, Axios                    |
 | Backend       | Flask, Flask-RESTful, PyJWT                    |
 | Base de Datos | PostgreSQL                                     |
-| Motor NLP     | Sentence-BERT, XGBoost, SVR, spaCy             |
+| Motor NLP     | Sentence-BERT, XGBoost, SVR                    |
 
 ---
 
