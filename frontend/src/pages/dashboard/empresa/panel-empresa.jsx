@@ -178,7 +178,7 @@ export default function EmpresaDashboard() {
       ) : (
         <div className="flex flex-col gap-6">
           {matchingData.map((vacancy) => {
-            const appliedCandidates = vacancy.candidates.filter(c => c.already_applied);
+            const appliedCandidates = vacancy.candidates.filter(c => c.already_applied && c.application_status !== 'cancelada' && c.application_status !== 'anulada');
             if (appliedCandidates.length === 0) return null;
 
             return (
@@ -315,7 +315,7 @@ export default function EmpresaDashboard() {
               {selectedStudent.experience_summary && (
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formación</h4>
-                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md">{selectedStudent.experience_summary}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md whitespace-pre-wrap">{selectedStudent.experience_summary}</p>
                 </div>
               )}
 

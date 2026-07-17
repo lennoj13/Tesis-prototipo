@@ -16,6 +16,8 @@ import { FiEye, FiLoader, FiFileText } from 'react-icons/fi';
 export default function GestorPostulaciones() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const [detailModal, setDetailModal] = useState(null);
   const [solicitudData, setSolicitudData] = useState(null);
@@ -172,9 +174,19 @@ export default function GestorPostulaciones() {
     return false;
   }
 
-  const pendingApps = applications.filter(a => a.estado === 'aceptada_empresa');
+  const pendingApps = applications.filter(a => {
+    if (a.estado !== 'aceptada_empresa') return false;
+    if (dateFrom && a.fecha_respuesta_empresa && a.fecha_respuesta_empresa < dateFrom) return false;
+    if (dateTo && a.fecha_respuesta_empresa && a.fecha_respuesta_empresa > dateTo) return false;
+    return true;
+  });
 
   const columns = [
+    {
+      key: 'fecha_respuesta_empresa',
+      label: 'F. Respuesta Emp.',
+      render: (_, app) => app.fecha_respuesta_empresa ? <span className="text-sm font-medium text-slate-700">{app.fecha_respuesta_empresa}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
+    },
     {
       key: 'estudiante',
       label: 'Estudiante / Carrera',
@@ -267,6 +279,37 @@ export default function GestorPostulaciones() {
           columns={columns}
           data={pendingApps}
           searchKeys={['nombre_estudiante', 'titulo_vacante', 'titulo', 'nombre_empresa']}
+          filters={
+            <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-600">Desde:</label>
+                <input 
+                  type="date" 
+                  className="text-xs border-slate-300 rounded-md py-1 px-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-600">Hasta:</label>
+                <input 
+                  type="date" 
+                  className="text-xs border-slate-300 rounded-md py-1 px-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline transition-colors ml-1"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+          }
           actions={(row) => (
             <Button
               variant="outline"

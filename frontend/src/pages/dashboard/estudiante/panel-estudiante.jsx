@@ -163,12 +163,12 @@ export default function EstudianteDashboard() {
           <span>
             <strong>
               {activeApplication.estado === 'pendiente' 
-                ? 'Tienes una postulacion pendiente' 
+                ? 'Tienes una postulación pendiente' 
                 : activeApplication.estado === 'entrevista'
                   ? 'Tienes una entrevista programada'
                   : activeApplication.estado === 'aceptada_empresa' 
-                    ? 'Tienes una postulacion aceptada por la empresa'
-                    : 'Tienes una postulacion formalizada en curso'}
+                    ? 'Tienes una postulación aceptada por la empresa'
+                    : 'Tienes una postulación formalizada en curso'}
             </strong>
             {activeApplication.nombre_empresa && ` en ${activeApplication.nombre_empresa}`}.
             {activeApplication.estado === 'pendiente' 
@@ -355,25 +355,25 @@ export default function EstudianteDashboard() {
               {/* Info pills */}
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {selectedVacancy.modalidad && (
-                  <InfoField icon={FiClock} label="Modalidad" value={selectedVacancy.modalidad} />
+                  <InfoField icon={FiClock} label="Modalidad" value={selectedVacancy.modalidad} truncate={false} />
                 )}
                 {selectedVacancy.ubicacion && (
-                  <InfoField icon={FiMapPin} label="Ubicación" value={selectedVacancy.ubicacion} />
+                  <InfoField icon={FiMapPin} label="Ubicación" value={selectedVacancy.ubicacion} truncate={false} />
                 )}
                 {selectedVacancy.cupos && (
-                  <InfoField icon={FiUsers} label="Cupos" value={`${selectedVacancy.cupos} disponibles`} />
+                  <InfoField icon={FiUsers} label="Cupos" value={`${selectedVacancy.cupos} disponibles`} truncate={false} />
                 )}
                 {selectedVacancy.fecha_expiracion && (
-                  <InfoField icon={FiCalendar} label="Vigencia" value={new Date(selectedVacancy.fecha_expiracion).toLocaleDateString('es-EC')} />
+                  <InfoField icon={FiCalendar} label="Vigencia" value={new Date(selectedVacancy.fecha_expiracion).toLocaleDateString('es-EC')} truncate={false} />
                 )}
                 {totalHoras && (
-                  <InfoField icon={FiFileText} label="Horas totales" value={`${totalHoras} horas`} />
+                  <InfoField icon={FiFileText} label="Horas totales" value={`${totalHoras} horas`} truncate={false} />
                 )}
                 {horasDiarias && (
-                  <InfoField icon={FiClock} label="Horas al dia" value={`${horasDiarias} horas`} />
+                  <InfoField icon={FiClock} label="Horas al día" value={`${horasDiarias} horas`} truncate={false} />
                 )}
                 {horario && (
-                  <InfoField icon={FiCalendar} label="Horario" value={horario} />
+                  <InfoField icon={FiCalendar} label="Horario" value={horario} truncate={false} />
                 )}
               </div>
 
@@ -381,7 +381,7 @@ export default function EstudianteDashboard() {
               {selectedVacancy.descripcion && (
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Descripción</h4>
-                  <p className="text-sm text-slate-700 leading-relaxed m-0">{selectedVacancy.descripcion}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed m-0 whitespace-pre-wrap">{selectedVacancy.descripcion}</p>
                 </div>
               )}
 
@@ -389,7 +389,7 @@ export default function EstudianteDashboard() {
               {selectedVacancy.requisitos && (
                 <div>
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Requisitos</h4>
-                  <p className="text-sm text-slate-700 leading-relaxed m-0">{selectedVacancy.requisitos}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed m-0 whitespace-pre-wrap">{selectedVacancy.requisitos}</p>
                 </div>
               )}
 

@@ -61,6 +61,7 @@ export default function AdminVacantes() {
   }, [vacantes, modalidadFilter, estadoFilter, facultadFilter, sortBy]);
 
   const columns = [
+    { key: 'creado_en', label: 'Publicación', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
     {
       key: 'titulo',
       label: 'Vacante',
@@ -83,7 +84,6 @@ export default function AdminVacantes() {
       ),
     },
     { key: 'activo', label: 'Estado', render: (val) => <StatusBadge status={val ? 'abierta' : 'cerrada'} /> },
-    { key: 'creado_en', label: 'Publicación', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
   const handleDelete = async (id) => {
@@ -179,7 +179,7 @@ export default function AdminVacantes() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} />
+              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} truncate={false} />
               <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.ubicacion || 'No especificada'} />
               <InfoField icon={FiClock} label="Modalidad" value={viewModal.modalidad || 'Presencial'} />
               <InfoField icon={FiCalendar} label="Horario" value={viewModal.horario || 'No especificado'} />

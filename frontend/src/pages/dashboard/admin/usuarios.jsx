@@ -300,6 +300,7 @@ export default function AdminUsuarios() {
   }, [toast]);
 
   const columns = [
+    { key: 'creado_en', label: 'Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
     {
       key: 'nombre',
       label: 'Nombre',
@@ -330,7 +331,6 @@ export default function AdminUsuarios() {
       ),
     },
     { key: 'activo', label: 'Estado', render: (val) => <StatusBadge status={val ? 'activo' : 'inactivo'} /> },
-    { key: 'creado_en', label: 'Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
 
   return (
@@ -394,8 +394,8 @@ export default function AdminUsuarios() {
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
             >
               <option value="">Todas las Facultades</option>
-              <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
-              <option value="2">INGENIERIA QUIMICA</option>
+              <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
+              <option value="2">INGENIERÍA QUÍMICA</option>
             </select>
             <select
               value={carreraFilter}
@@ -632,8 +632,8 @@ export default function AdminUsuarios() {
                     onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                   >
-                    <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
-                    <option value="2">INGENIERIA QUIMICA</option>
+                    <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
+                    <option value="2">INGENIERÍA QUÍMICA</option>
                   </select>
                 </div>
                 <div className={editModal.rol_nombre === 'estudiante' ? '' : 'col-span-2'}>
@@ -724,8 +724,8 @@ export default function AdminUsuarios() {
                   onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                 >
-                  <option value="1">CIENCIAS MATEMATICAS Y FISICAS</option>
-                  <option value="2">INGENIERIA QUIMICA</option>
+                  <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
+                  <option value="2">INGENIERÍA QUÍMICA</option>
                 </select>
               </div>
               <div className={createForm.rol === 'estudiante' ? '' : 'col-span-2'}>

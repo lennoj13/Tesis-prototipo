@@ -86,7 +86,11 @@ export default function NuevaVacante() {
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    let newValue = value;
+    if (name === 'area' && value.length > 0) {
+      newValue = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+    setForm(prev => ({ ...prev, [name]: newValue }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   }
 
@@ -186,7 +190,7 @@ export default function NuevaVacante() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-slate-700">Habilidades Específicas Solicitadas</label>
-            <p className="text-xs text-slate-500 mb-2">Selecciona las habilidades, el nivel mínimo requerido y si son opcionales para esta vacante.</p>
+            <p className="text-xs text-slate-500 mb-2">Selecciona las habilidades necesarias para esta vacante.</p>
             <SkillSelector 
               selectedSkills={habilidades} 
               allSkills={allSkills} 
@@ -198,7 +202,19 @@ export default function NuevaVacante() {
           <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-slate-700">Área o Departamento <span className="text-danger">*</span></label>
-              <input name="area" value={form.area} onChange={handleChange} placeholder="Ej: Tecnología, Contabilidad..." className={`${fieldBase} ${errors.area ? fieldErr : fieldOk}`} />
+              <input name="area" list="areas-list" value={form.area} onChange={handleChange} placeholder="Ej: Desarrollo de Software, QA..." className={`${fieldBase} ${errors.area ? fieldErr : fieldOk}`} />
+              <datalist id="areas-list">
+                <option value="Desarrollo de Software" />
+                <option value="Desarrollo Web" />
+                <option value="Desarrollo Móvil" />
+                <option value="Inteligencia Artificial" />
+                <option value="Base de Datos" />
+                <option value="Infraestructura y Redes" />
+                <option value="Seguridad Informática" />
+                <option value="Soporte Técnico" />
+                <option value="Gestión de Proyectos de TI" />
+                <option value="QA y Pruebas" />
+              </datalist>
               {errors.area && <p className="text-[0.8125rem] text-danger">{errors.area}</p>}
             </div>
             <div className="flex flex-col gap-1.5">

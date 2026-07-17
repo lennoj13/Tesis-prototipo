@@ -69,10 +69,20 @@ class ApplicationComponent:
             profile_res = DataBaseHandle.getRecords(sql_profile, 1, (estudiante_id,))
             profile_data = profile_res['data'] if profile_res['result'] and profile_res['data'] else {}
 
+            # Capturar foto de la vacante
+            sql_vacante = """
+                SELECT titulo, area, modalidad, ubicacion, descripcion, requisitos, horario, cupos, total_horas, horas_diarias
+                FROM public.vacantes
+                WHERE vacante_id = %s
+            """
+            vacante_res = DataBaseHandle.getRecords(sql_vacante, 1, (vacante_id,))
+            vacante_data = vacante_res['data'] if vacante_res['result'] and vacante_res['data'] else {}
+
             snapshot = {
                 'habilidades': skills_list,
                 'resumen_experiencia': profile_data.get('resumen_experiencia', ''),
                 'intereses': profile_data.get('intereses', ''),
+                'vacante': vacante_data
             }
 
             sql = """
@@ -103,6 +113,7 @@ class ApplicationComponent:
                        p.link_reunion,
                        TO_CHAR(p.fecha_respuesta_empresa, 'YYYY-MM-DD') as fecha_respuesta_empresa,
                        TO_CHAR(p.fecha_respuesta_gestor, 'YYYY-MM-DD') as fecha_respuesta_gestor,
+                       p.habilidades_snapshot,
                        v.vacante_id, v.titulo, v.area, v.modalidad, v.ubicacion,
                        v.descripcion, v.requisitos, v.horario, v.cupos,
                        TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
@@ -134,8 +145,23 @@ class ApplicationComponent:
                             if vid not in skills_by_vacante:
                                 skills_by_vacante[vid] = []
                             skills_by_vacante[vid].append(s)
+                    import json
                     for v in data:
                         v['skills'] = skills_by_vacante.get(v['vacante_id'], [])
+                        if v.get('habilidades_snapshot'):
+                            try:
+                                snap = v['habilidades_snapshot']
+                                raw = json.loads(snap) if isinstance(snap, str) else snap
+                                if isinstance(raw, dict) and 'vacante' in raw and raw['vacante']:
+                                    vac_snap = raw['vacante']
+                                    for key in ['titulo', 'area', 'modalidad', 'ubicacion', 'descripcion', 'requisitos', 'horario', 'cupos', 'total_horas', 'horas_diarias']:
+                                        if key in vac_snap:
+                                            v[key] = vac_snap[key]
+                            except Exception:
+                                pass
+                        # Eliminar el snapshot de la respuesta para no saturar el payload si no es necesario
+                        if 'habilidades_snapshot' in v:
+                            del v['habilidades_snapshot']
                 return internal_response(True, data, "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
@@ -353,7 +379,21 @@ class ApplicationComponent:
             """
             result = DataBaseHandle.getRecords(sql, 0, (institucion_id,))
             if result['result']:
-                return internal_response(True, result['data'] or [], "Postulantes de empresa encontrados")
+                data = result['data'] or []
+                import json
+                for d in data:
+                    if d.get('habilidades_snapshot'):
+                        try:
+                            snap = d['habilidades_snapshot']
+                            raw = json.loads(snap) if isinstance(snap, str) else snap
+                            if isinstance(raw, dict) and 'vacante' in raw and raw['vacante']:
+                                vac_snap = raw['vacante']
+                                if 'titulo' in vac_snap:
+                                    d['titulo_vacante'] = vac_snap['titulo']
+                        except Exception:
+                            pass
+                        del d['habilidades_snapshot']
+                return internal_response(True, data, "Postulantes de empresa encontrados")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
             HandleLogs.write_error(err)
@@ -382,6 +422,9 @@ class ApplicationComponent:
                 SELECT p.postulacion_id, p.estado, p.nro_solicitud,
                        CAST(p.porcentaje_afinidad AS FLOAT) as porcentaje_afinidad,
                        TO_CHAR(p.creado_en, 'YYYY-MM-DD') as creado_en,
+                       TO_CHAR(p.fecha_respuesta_empresa, 'YYYY-MM-DD') as fecha_respuesta_empresa,
+                       TO_CHAR(p.fecha_respuesta_gestor, 'YYYY-MM-DD') as fecha_respuesta_gestor,
+                       p.habilidades_snapshot,
                        pe.perfil_id as estudiante_id,
                        u.nombre || ' ' || u.apellido as nombre_estudiante,
                        u.correo, u.cedula, pe.semestre,
@@ -402,7 +445,21 @@ class ApplicationComponent:
             """
             result = DataBaseHandle.getRecords(sql, 0, tuple(params)) if params else DataBaseHandle.getRecords(sql, 0)
             if result['result']:
-                return internal_response(True, result['data'] or [], "Postulaciones encontradas")
+                data = result['data'] or []
+                import json
+                for d in data:
+                    if d.get('habilidades_snapshot'):
+                        try:
+                            snap = d['habilidades_snapshot']
+                            raw = json.loads(snap) if isinstance(snap, str) else snap
+                            if isinstance(raw, dict) and 'vacante' in raw and raw['vacante']:
+                                vac_snap = raw['vacante']
+                                if 'titulo' in vac_snap:
+                                    d['titulo_vacante'] = vac_snap['titulo']
+                        except Exception:
+                            pass
+                        del d['habilidades_snapshot']
+                return internal_response(True, data, "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
             HandleLogs.write_error(err)
@@ -516,6 +573,18 @@ class ApplicationComponent:
                         raw_skills = raw.get('habilidades', [])
                         snap_experiencia = raw.get('resumen_experiencia', '')
                         snap_intereses = raw.get('intereses', '')
+                        if 'vacante' in raw and raw['vacante']:
+                            vac_snap = raw['vacante']
+                            d['vac_titulo'] = vac_snap.get('titulo', d['vac_titulo'])
+                            d['vac_area'] = vac_snap.get('area', d['vac_area'])
+                            d['modalidad'] = vac_snap.get('modalidad', d['modalidad'])
+                            d['vac_ubicacion'] = vac_snap.get('ubicacion', d['vac_ubicacion'])
+                            d['vac_descripcion'] = vac_snap.get('descripcion', d['vac_descripcion'])
+                            d['vac_requisitos'] = vac_snap.get('requisitos', d['vac_requisitos'])
+                            d['vac_cupos'] = vac_snap.get('cupos', d['vac_cupos'])
+                            d['horas_asignadas'] = vac_snap.get('total_horas', d['horas_asignadas'])
+                            d['horas_diarias'] = vac_snap.get('horas_diarias', d['horas_diarias'])
+                            d['horario'] = vac_snap.get('horario', d['horario'])
                     else:
                         # Extraer del array directo
                         raw_skills = raw

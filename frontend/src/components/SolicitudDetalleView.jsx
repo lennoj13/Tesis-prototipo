@@ -251,7 +251,7 @@ export default function SolicitudDetalleView({
                 <InfoField label="RUC Empresa" value={institucion.ruc} />
                 <InfoField label="Dirección Empresa" value={institucion.direccion || '-'} />
                 <InfoField label="Título Vacante" value={vacante.titulo} />
-                <InfoField label="Área" value={vacante.area} />
+                <InfoField label="Área" value={vacante.area} truncate={false} />
                 <InfoField label="Modalidad" value={vacante.modalidad} />
                 <InfoField label="Ubicación Vacante" value={vacante.ubicacion} />
                 <InfoField label="Cupos" value={vacante.cupos} />
@@ -259,7 +259,7 @@ export default function SolicitudDetalleView({
               {vacante.descripcion && (
                 <div className="mt-3">
                   <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Descripción</span>
-                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3">
+                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3 whitespace-pre-wrap">
                     {vacante.descripcion}
                   </p>
                 </div>
@@ -267,7 +267,7 @@ export default function SolicitudDetalleView({
               {vacante.requisitos && (
                 <div className="mt-3">
                   <span className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Requisitos</span>
-                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3">
+                  <p className="mt-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md p-3 whitespace-pre-wrap">
                     {vacante.requisitos}
                   </p>
                 </div>

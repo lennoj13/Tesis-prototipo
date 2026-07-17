@@ -252,7 +252,7 @@ class AdminCreateCompanyService(Resource):
                 telefono_empresa=rq.get('telefono_empresa'),
                 fecha_limite_convenio=rq.get('fecha_limite_convenio'),
                 codigo_convenio=rq.get('codigo_convenio'),
-                tipo_convenio=rq.get('tipo_convenio', 'PRACTICAS PREPROFESIONALES'),
+                tipo_convenio=rq.get('tipo_convenio', 'PRÁCTICAS PREPROFESIONALES'),
                 fecha_inicio_convenio=rq.get('fecha_inicio_convenio'),
                 nombre_abreviado=rq.get('nombre_abreviado')
             )

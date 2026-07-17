@@ -5,7 +5,7 @@ import Card from 'components/Card';
 import Modal from 'components/Modal';
 import DataTable from 'components/DataTable';
 import adminService from 'services/adminService';
-import { FiEye, FiBriefcase, FiMapPin, FiMail, FiPhone, FiGlobe, FiLoader } from 'react-icons/fi';
+import { FiEye, FiBriefcase, FiMapPin, FiMail, FiPhone, FiGlobe, FiLoader, FiCalendar } from 'react-icons/fi';
 import Toast from 'components/Toast';
 
 export default function EstudianteEmpresas() {
@@ -140,8 +140,8 @@ export default function EstudianteEmpresas() {
                 <div className="flex items-center gap-2"><FiMail className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Correo contacto</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.correo_contacto || '-'}</p></div></div>
                 <div className="flex items-center gap-2"><FiPhone className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Teléfono</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.telefono || '-'}</p></div></div>
                 {detailData.sitio_web && <div className="flex items-center gap-2 col-span-2"><FiGlobe className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Sitio Web</p><a href={detailData.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">{detailData.sitio_web}</a></div></div>}
-                <div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Inicio Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_inicio_convenio || '-'}</p></div>
-                <div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Vigente hasta</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_limite_convenio ? new Date(detailData.fecha_limite_convenio).toLocaleDateString('es-EC') : '-'}</p></div>
+                <div className="flex items-center gap-2"><FiCalendar className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Inicio Convenio</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_inicio_convenio || '-'}</p></div></div>
+                <div className="flex items-center gap-2"><FiCalendar className="text-slate-400" size={14} /><div><p className="text-[10px] text-slate-400 uppercase font-semibold m-0">Vigente hasta</p><p className="text-sm font-medium text-slate-800 m-0">{detailData.fecha_limite_convenio ? new Date(detailData.fecha_limite_convenio).toLocaleDateString('es-EC') : '-'}</p></div></div>
               </div>
             ) : null}
           </div>

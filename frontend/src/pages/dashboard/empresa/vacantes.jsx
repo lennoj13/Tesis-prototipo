@@ -134,9 +134,13 @@ export default function EmpresaVacantes() {
 
   function handleEditChange(e) {
     const { name, value, type, checked } = e.target;
+    let newValue = type === 'checkbox' ? checked : value;
+    if (name === 'area' && typeof newValue === 'string' && newValue.length > 0) {
+      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+    }
     setEditForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: newValue,
     }));
     if (editErrors[name]) setEditErrors(prev => ({ ...prev, [name]: '' }));
   }
@@ -234,6 +238,7 @@ export default function EmpresaVacantes() {
   };
 
   const columns = [
+    { key: 'created_at', label: 'Publicación', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
     {
       key: 'title',
       label: 'Vacante de Práctica',
@@ -331,16 +336,16 @@ export default function EmpresaVacantes() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} />
-              <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.location || 'No especificada'} />
-              <InfoField icon={FiClock} label="Modalidad" value={viewModal.modality || 'Presencial'} />
-              <InfoField icon={FiCalendar} label="Horario" value={viewModal.schedule || 'No especificado'} />
-              <InfoField icon={FiClock} label="Total Horas" value={viewModal.total_hours ? `${viewModal.total_hours}h` : '-'} />
-              <InfoField icon={FiClock} label="Horas Diarias" value={viewModal.daily_hours ? `${viewModal.daily_hours}h/día` : '-'} />
-              <InfoField icon={FiUsers} label="Cupos Disponibles" value={viewModal.slots || 1} />
-              <InfoField icon={FiUsers} label="Total Postulantes" value={viewModal.applications_count || 0} />
-              <InfoField icon={FiCalendar} label="Fecha Publicación" value={viewModal.created_at ? new Date(viewModal.created_at).toLocaleDateString() : '-'} />
-              <InfoField icon={FiCalendar} label="Fecha Expiración" value={viewModal.expires_at ? new Date(viewModal.expires_at).toLocaleDateString() : '-'} />
+              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} truncate={false} />
+              <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.location || 'No especificada'} truncate={false} />
+              <InfoField icon={FiClock} label="Modalidad" value={viewModal.modality || 'Presencial'} truncate={false} />
+              <InfoField icon={FiCalendar} label="Horario" value={viewModal.schedule || 'No especificado'} truncate={false} />
+              <InfoField icon={FiClock} label="Total Horas" value={viewModal.total_hours ? `${viewModal.total_hours}h` : '-'} truncate={false} />
+              <InfoField icon={FiClock} label="Horas Diarias" value={viewModal.daily_hours ? `${viewModal.daily_hours}h/día` : '-'} truncate={false} />
+              <InfoField icon={FiUsers} label="Cupos Disponibles" value={viewModal.slots || 1} truncate={false} />
+              <InfoField icon={FiUsers} label="Total Postulantes" value={viewModal.applications_count || 0} truncate={false} />
+              <InfoField icon={FiCalendar} label="Fecha Publicación" value={viewModal.created_at ? new Date(viewModal.created_at).toLocaleDateString() : '-'} truncate={false} />
+              <InfoField icon={FiCalendar} label="Fecha Expiración" value={viewModal.expires_at ? new Date(viewModal.expires_at).toLocaleDateString() : '-'} truncate={false} />
             </div>
 
             {viewModal.description && (
@@ -444,7 +449,19 @@ export default function EmpresaVacantes() {
             <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-slate-700">Área o Departamento <span className="text-danger">*</span></label>
-                <input name="area" value={editForm.area} onChange={handleEditChange} placeholder="Ej: Tecnología, Contabilidad..." className={`${fieldBase} ${editErrors.area ? fieldErr : fieldOk}`} />
+                <input name="area" list="areas-list" value={editForm.area} onChange={handleEditChange} placeholder="Ej: Desarrollo de Software, QA..." className={`${fieldBase} ${editErrors.area ? fieldErr : fieldOk}`} />
+                <datalist id="areas-list">
+                  <option value="Desarrollo de Software" />
+                  <option value="Desarrollo Web" />
+                  <option value="Desarrollo Móvil" />
+                  <option value="Inteligencia Artificial" />
+                  <option value="Base de Datos" />
+                  <option value="Infraestructura y Redes" />
+                  <option value="Seguridad Informática" />
+                  <option value="Soporte Técnico" />
+                  <option value="Gestión de Proyectos de TI" />
+                  <option value="QA y Pruebas" />
+                </datalist>
                 {editErrors.area && <p className="text-[0.8125rem] text-danger m-0">{editErrors.area}</p>}
               </div>
               <div className="flex flex-col gap-1.5">

@@ -7,10 +7,10 @@
 import { FiFileText, FiUsers, FiCheckCircle, FiClipboard, FiX } from 'react-icons/fi';
 
 const STEPS = [
-  { key: 'pendiente', label: 'Postulacion Enviada', icon: FiFileText },
+  { key: 'pendiente', label: 'Postulación Enviada', icon: FiFileText },
   { key: 'entrevista', label: 'Entrevista', icon: FiUsers },
   { key: 'aceptada_empresa', label: 'Aceptada por Empresa', icon: FiCheckCircle },
-  { key: 'aceptada', label: 'Formalizacion', icon: FiClipboard },
+  { key: 'aceptada', label: 'Formalización', icon: FiClipboard },
 ];
 
 const REJECTED_STATES = ['rechazada', 'rechazada_gestor'];
@@ -170,8 +170,8 @@ export default function TrackingStepper({
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-700 m-0 font-medium">
             {currentStatus === 'rechazada_gestor'
-              ? 'Tu solicitud fue rechazada por el gestor de practicas preprofesionales.'
-              : 'Tu postulacion no fue seleccionada por la empresa en esta oportunidad.'}
+              ? 'Tu solicitud fue rechazada por el gestor de prácticas preprofesionales.'
+              : 'Tu postulación no fue seleccionada por la empresa en esta oportunidad.'}
           </p>
         </div>
       )}
@@ -184,28 +184,28 @@ export default function TrackingStepper({
       )}
       {['aceptada', 'aprobada'].includes(currentStatus) && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-700 m-0 font-semibold">Practica formalizada exitosamente.</p>
-          <p className="text-xs text-green-600 m-0 mt-1">El proceso de postulacion ha concluido con exito.</p>
+          <p className="text-sm text-green-700 m-0 font-semibold">Práctica formalizada exitosamente.</p>
+          <p className="text-xs text-green-600 m-0 mt-1">El proceso de postulación ha concluido con éxito.</p>
         </div>
       )}
       {currentStatus === 'reprobada' && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-700 m-0 font-medium">
-            Tu practica preprofesional ha sido reprobada.
+            Tu práctica preprofesional ha sido reprobada.
           </p>
         </div>
       )}
       {currentStatus === 'anulada' && (
         <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
           <p className="text-sm text-slate-600 m-0 font-medium">
-            Esta practica ha sido anulada administrativamente.
+            Esta práctica ha sido anulada administrativamente.
           </p>
         </div>
       )}
       {currentStatus === 'completada' && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-700 m-0 font-semibold">Practica completada</p>
-          <p className="text-xs text-green-600 m-0 mt-1">Has finalizado satisfactoriamente esta practica preprofesional.</p>
+          <p className="text-sm text-green-700 m-0 font-semibold">Práctica completada</p>
+          <p className="text-xs text-green-600 m-0 mt-1">Has finalizado satisfactoriamente esta práctica preprofesional.</p>
         </div>
       )}
     </div>

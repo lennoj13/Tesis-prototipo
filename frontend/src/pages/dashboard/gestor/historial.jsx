@@ -13,6 +13,8 @@ export default function GestorHistorial() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todas');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const [detailModal, setDetailModal] = useState(null);
   const [solicitudData, setSolicitudData] = useState(null);
@@ -81,11 +83,26 @@ export default function GestorHistorial() {
     (app) => ['aceptada', 'aprobada', 'reprobada', 'rechazada_gestor', 'completada', 'anulada'].includes(app.estado)
   );
 
-  const filteredApps = filter === 'todas'
-    ? historyApps
-    : historyApps.filter((app) => app.estado === filter);
+  const filteredApps = historyApps.filter((app) => {
+    if (filter !== 'todas' && app.estado !== filter) return false;
+    
+    if (dateFrom && app.fecha_respuesta_gestor && app.fecha_respuesta_gestor < dateFrom) return false;
+    if (dateTo && app.fecha_respuesta_gestor && app.fecha_respuesta_gestor > dateTo) return false;
+    
+    return true;
+  });
 
   const columns = [
+    {
+      key: 'nro_solicitud',
+      label: 'Nro. Sol.',
+      render: (_, app) => app.nro_solicitud ? <span className="text-sm text-green-600 font-medium">{app.nro_solicitud}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
+    },
+    {
+      key: 'fecha_respuesta_gestor',
+      label: 'F. Resolución',
+      render: (_, app) => app.fecha_respuesta_gestor ? <span className="text-sm font-medium text-slate-700">{app.fecha_respuesta_gestor}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
+    },
     {
       key: 'estudiante',
       label: 'Estudiante / Carrera',
@@ -105,11 +122,6 @@ export default function GestorHistorial() {
           <p className="text-xs text-slate-500 m-0">{app.nombre_empresa || '-'}</p>
         </div>
       ),
-    },
-    {
-      key: 'nro_solicitud',
-      label: 'Nro. Sol.',
-      render: (_, app) => app.nro_solicitud ? <span className="text-xs text-green-600 font-medium">{app.nro_solicitud}</span> : <span className="text-xs text-slate-400">-</span>,
     },
     {
       key: 'estado',
@@ -191,6 +203,37 @@ export default function GestorHistorial() {
           columns={columns}
           data={filteredApps}
           searchKeys={['nombre_estudiante', 'titulo_vacante', 'titulo', 'nombre_empresa', 'nro_solicitud']}
+          filters={
+            <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-600">Desde:</label>
+                <input 
+                  type="date" 
+                  className="text-xs border-slate-300 rounded-md py-1 px-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-600">Hasta:</label>
+                <input 
+                  type="date" 
+                  className="text-xs border-slate-300 rounded-md py-1 px-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline transition-colors ml-1"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+          }
           actions={(row) => (
             <Button
               variant="outline"

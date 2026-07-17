@@ -15,7 +15,7 @@ import Modal from 'components/Modal';
 import Toast from 'components/Toast';
 import Card from 'components/Card';
 import ConfirmDialog from 'components/ConfirmDialog';
-import { FiEye, FiMapPin, FiCalendar, FiBriefcase, FiClock, FiVideo, FiLink, FiExternalLink } from 'react-icons/fi';
+import { FiEye, FiMapPin, FiCalendar, FiBriefcase, FiClock, FiVideo, FiLink, FiExternalLink, FiUsers, FiFileText, FiActivity } from 'react-icons/fi';
 
 const statusMap = {
   pending: 'pendiente',
@@ -105,11 +105,11 @@ export default function EstudiantePostulaciones() {
     try {
       const res = await applicationService.updateStatus(viewModal.id, { estado: 'cancelada' });
       if (res.result) {
-        setToast({ type: 'success', message: 'Has cancelado tu postulacion exitosamente.' });
+        setToast({ type: 'success', message: 'Has cancelado tu postulación exitosamente.' });
         setViewModal(null);
         await loadData();
       } else {
-        setToast({ type: 'error', message: res.message || 'Error al cancelar la postulacion' });
+        setToast({ type: 'error', message: res.message || 'Error al cancelar la postulación' });
       }
     } catch (e) {
       setToast({ type: 'error', message: 'Error al conectar con el servidor' });
@@ -121,7 +121,7 @@ export default function EstudiantePostulaciones() {
   const columns = [
     {
       key: 'vacante',
-      label: 'Vacante de Practicas',
+      label: 'Vacante de Prácticas',
       render: (val, row) => (
         <div>
           <p className="font-medium text-slate-800 m-0">{val}</p>
@@ -143,7 +143,7 @@ export default function EstudiantePostulaciones() {
         );
       },
     },
-    { key: 'area', label: 'Area' },
+    { key: 'area', label: 'Área' },
     { key: 'estado', label: 'Estado', render: (val) => <StatusBadge status={val} /> },
     { key: 'fecha', label: 'Fecha', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
   ];
@@ -172,7 +172,7 @@ export default function EstudiantePostulaciones() {
     <div className="animate-fade-in">
       <PageHeader
         title="Mis Postulaciones"
-        subtitle={loading ? 'Cargando...' : `${postulaciones.length} postulaciones a practicas preprofesionales`}
+        subtitle={loading ? 'Cargando...' : `${postulaciones.length} postulaciones a prácticas preprofesionales`}
       />
 
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
@@ -204,7 +204,7 @@ export default function EstudiantePostulaciones() {
             >
               <option value="">Modalidad</option>
               <option value="Presencial">Presencial</option>
-              <option value="Hibrido">Híbrido</option>
+              <option value="Híbrido">Híbrido</option>
               <option value="Remoto">Remoto</option>
             </select>
             <select
@@ -231,7 +231,7 @@ export default function EstudiantePostulaciones() {
       />
 
       {/* Modal — Detalle de postulacion */}
-      <Modal isOpen={!!viewModal} onClose={() => setViewModal(null)} title="Seguimiento de Postulacion" size="lg">
+      <Modal isOpen={!!viewModal} onClose={() => setViewModal(null)} title="Seguimiento de Postulación" size="lg">
         {viewModal && (
           <div className="flex flex-col gap-5">
             {/* Stepper de seguimiento */}
@@ -286,7 +286,7 @@ export default function EstudiantePostulaciones() {
                     <div className="flex items-center gap-2">
                       <FiMapPin size={14} className="text-slate-400 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-slate-500 m-0">Direccion</p>
+                        <p className="text-xs text-slate-500 m-0">Dirección</p>
                         <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.direccion_entrevista}</p>
                       </div>
                     </div>
@@ -295,14 +295,14 @@ export default function EstudiantePostulaciones() {
                     <div className="flex items-center gap-2 col-span-2">
                       <FiLink size={14} className="text-slate-400 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-slate-500 m-0">Enlace de reunion</p>
+                        <p className="text-xs text-slate-500 m-0">Enlace de reunión</p>
                         <a
                           href={viewModal.link_reunion}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm font-semibold text-primary-600 hover:text-primary-700 underline flex items-center gap-1"
                         >
-                          Unirse a la reunion <FiExternalLink size={12} />
+                          Unirse a la reunión <FiExternalLink size={12} />
                         </a>
                       </div>
                     </div>
@@ -334,63 +334,83 @@ export default function EstudiantePostulaciones() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <FiMapPin size={14} className="text-slate-400" />
+                <div>
+                  <p className="text-xs text-slate-500 m-0">Ubicación</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.ubicacion || '-'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <FiBriefcase size={14} className="text-slate-400" />
                 <div>
-                  <p className="text-xs text-slate-500 m-0">Ubicacion</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.ubicacion || '-'}</p>
+                  <p className="text-xs text-slate-500 m-0">Área</p>
+                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.area || '-'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <FiCalendar size={14} className="text-slate-400" />
                 <div>
-                  <p className="text-xs text-slate-500 m-0">Fecha postulacion</p>
+                  <p className="text-xs text-slate-500 m-0">Fecha postulación</p>
                   <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.fecha ? new Date(viewModal.fecha).toLocaleDateString('es-EC') : '-'}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 m-0 mb-1">Estado</p>
-                <StatusBadge status={viewModal.estado} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 p-4 max-md:grid-cols-1">
-              {viewModal.cupos && (
+              <div className="flex items-center gap-2">
+                <FiActivity size={14} className="text-slate-400" />
                 <div>
-                  <p className="text-xs text-slate-500 m-0">Cupos</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.cupos} disponibles</p>
+                  <p className="text-xs text-slate-500 m-0 mb-1">Estado</p>
+                  <StatusBadge status={viewModal.estado} />
+                </div>
+              </div>
+
+              {viewModal.cupos && (
+                <div className="flex items-center gap-2">
+                  <FiUsers size={14} className="text-slate-400" />
+                  <div>
+                    <p className="text-xs text-slate-500 m-0">Cupos</p>
+                    <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.cupos} disponibles</p>
+                  </div>
                 </div>
               )}
               {viewModal.total_horas && (
-                <div>
-                  <p className="text-xs text-slate-500 m-0">Horas totales</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.total_horas} horas</p>
+                <div className="flex items-center gap-2">
+                  <FiFileText size={14} className="text-slate-400" />
+                  <div>
+                    <p className="text-xs text-slate-500 m-0">Horas totales</p>
+                    <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.total_horas} horas</p>
+                  </div>
                 </div>
               )}
               {viewModal.horas_diarias && (
-                <div>
-                  <p className="text-xs text-slate-500 m-0">Horas al dia</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horas_diarias} horas</p>
+                <div className="flex items-center gap-2">
+                  <FiClock size={14} className="text-slate-400" />
+                  <div>
+                    <p className="text-xs text-slate-500 m-0">Horas al día</p>
+                    <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horas_diarias} horas</p>
+                  </div>
                 </div>
               )}
               {viewModal.horario && (
-                <div>
-                  <p className="text-xs text-slate-500 m-0">Horario</p>
-                  <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horario}</p>
+                <div className="flex items-center gap-2">
+                  <FiCalendar size={14} className="text-slate-400" />
+                  <div>
+                    <p className="text-xs text-slate-500 m-0">Horario</p>
+                    <p className="text-sm font-semibold text-slate-800 m-0">{viewModal.horario}</p>
+                  </div>
                 </div>
               )}
             </div>
 
             {viewModal.descripcion && (
               <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Descripcion</h4>
-                <p className="text-sm text-slate-700 leading-relaxed m-0">{viewModal.descripcion}</p>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Descripción</h4>
+                <p className="text-sm text-slate-700 leading-relaxed m-0 whitespace-pre-wrap">{viewModal.descripcion}</p>
               </div>
             )}
 
             {viewModal.requisitos && (
               <div>
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Requisitos</h4>
-                <p className="text-sm text-slate-700 leading-relaxed m-0">{viewModal.requisitos}</p>
+                <p className="text-sm text-slate-700 leading-relaxed m-0 whitespace-pre-wrap">{viewModal.requisitos}</p>
               </div>
             )}
 
@@ -418,7 +438,7 @@ export default function EstudiantePostulaciones() {
                   disabled={cancelLoading}
                   className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md text-sm font-semibold hover:bg-red-50 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  {cancelLoading ? 'Cancelando...' : 'Cancelar Postulacion'}
+                  {cancelLoading ? 'Cancelando...' : 'Cancelar Postulación'}
                 </button>
               </div>
             )}

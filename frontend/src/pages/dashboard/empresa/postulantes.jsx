@@ -230,11 +230,11 @@ export default function EmpresaPostulantes() {
       return;
     }
     if (interviewForm.modalidad_entrevista === 'Presencial' && !interviewForm.direccion_entrevista.trim()) {
-      setToast({ type: 'error', message: 'Debe indicar la direccion para la entrevista presencial.' });
+      setToast({ type: 'error', message: 'Debe indicar la dirección para la entrevista presencial.' });
       return;
     }
     if (interviewForm.modalidad_entrevista === 'Virtual' && !interviewForm.link_reunion.trim()) {
-      setToast({ type: 'error', message: 'Debe indicar el enlace de reunion para la entrevista virtual.' });
+      setToast({ type: 'error', message: 'Debe indicar el enlace de reunión para la entrevista virtual.' });
       return;
     }
 
@@ -267,14 +267,14 @@ export default function EmpresaPostulantes() {
     if (actionModal.type === 'aceptada_empresa') {
       return {
         title: 'Aceptar Candidato',
-        message: `Al aceptar a ${actionModal.name}, su postulacion pasara a revision del gestor de practicas preprofesionales para la vacante "${actionModal.vacancyTitle}".`,
+        message: `Al aceptar a ${actionModal.name}, su postulación pasará a revisión del gestor de prácticas preprofesionales para la vacante "${actionModal.vacancyTitle}".`,
         confirmText: 'Aceptar candidato',
         variant: 'primary',
       };
     }
     return {
       title: 'Rechazar Candidato',
-      message: `Al rechazar a ${actionModal.name}, se cerrara su proceso para la vacante "${actionModal.vacancyTitle}".`,
+      message: `Al rechazar a ${actionModal.name}, se cerrará su proceso para la vacante "${actionModal.vacancyTitle}".`,
       confirmText: 'Rechazar candidato',
       variant: 'danger',
     };
@@ -356,7 +356,7 @@ export default function EmpresaPostulantes() {
   return (
     <div className="animate-fade-in">
       <PageHeader
-        title="Gestion de Postulantes"
+        title="Gestión de Postulantes"
         subtitle={loading ? 'Cargando candidatos...' : `${sortedAndFilteredPostulantes.length} de ${postulantes.length} postulaciones`}
       />
 
@@ -551,7 +551,7 @@ export default function EmpresaPostulantes() {
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                   <FiMapPin size={12} className="inline mr-1" />
-                  Direccion de la entrevista *
+                  Dirección de la entrevista *
                 </label>
                 <input
                   type="text"
@@ -565,7 +565,7 @@ export default function EmpresaPostulantes() {
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                   <FiLink size={12} className="inline mr-1" />
-                  Enlace de la reunion *
+                  Enlace de la reunión *
                 </label>
                 <input
                   type="url"
@@ -632,22 +632,22 @@ export default function EmpresaPostulantes() {
 
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <InfoField icon={FiMail} label="Correo electronico" value={selectedStudent.correo} />
-                <InfoField icon={FiCreditCard} label="Cedula" value={selectedStudent.cedula} />
+                <InfoField icon={FiMail} label="Correo electrónico" value={selectedStudent.correo} />
+                <InfoField icon={FiCreditCard} label="Cédula" value={selectedStudent.cedula} />
               </div>
 
               {/* Experience */}
               {selectedStudent.experience_summary && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formacion</h4>
-                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md">{selectedStudent.experience_summary}</p>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Experiencia y formación</h4>
+                  <p className="text-sm text-slate-700 leading-relaxed m-0 p-3 bg-slate-50 rounded-md whitespace-pre-wrap">{selectedStudent.experience_summary}</p>
                 </div>
               )}
 
               {/* Interests */}
               {selectedStudent.interests && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Areas de interes</h4>
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Áreas de interés</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedStudent.interests.split(',').map((interest, i) => (
                       <span key={i} className="inline-flex items-center px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">

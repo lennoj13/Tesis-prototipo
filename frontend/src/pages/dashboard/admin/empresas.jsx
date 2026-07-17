@@ -211,7 +211,7 @@ export default function AdminEmpresas() {
       company_name: row.nombre_empresa || '', ruc: row.ruc || '',
       industry: row.industria || '', correo_contacto: row.correo_contacto || '',
       telefono_empresa: row.telefono_empresa || '', fecha_limite_convenio: row.fecha_limite_convenio || '',
-      codigo_convenio: row.codigo_convenio || '', tipo_convenio: row.tipo_convenio || 'PRACTICAS PREPROFESIONALES',
+      codigo_convenio: row.codigo_convenio || '', tipo_convenio: row.tipo_convenio || 'PRÁCTICAS PREPROFESIONALES',
       fecha_inicio_convenio: row.fecha_inicio_convenio || '', nombre_abreviado: row.nombre_abreviado || '',
       direccion: row.direccion || '', ciudad: row.ciudad || '', sitio_web: row.sitio_web || '',
       activo: row.activo
@@ -264,7 +264,7 @@ export default function AdminEmpresas() {
           correo: '', contrasena: '', telefono: '', nombre_empresa: '', ruc: '',
           industria: '', direccion: '', ciudad: 'Guayaquil', correo_contacto: '', sitio_web: '',
           facultad_id: '1', telefono_empresa: '', fecha_limite_convenio: '',
-          codigo_convenio: '', tipo_convenio: 'PRACTICAS PREPROFESIONALES', fecha_inicio_convenio: '', nombre_abreviado: ''
+          codigo_convenio: '', tipo_convenio: 'PRÁCTICAS PREPROFESIONALES', fecha_inicio_convenio: '', nombre_abreviado: ''
         });
         load();
       } else {

@@ -100,7 +100,7 @@ export default function GestorVacantes() {
             >
               <option value="">Modalidad</option>
               <option value="Presencial">Presencial</option>
-              <option value="Hibrido">Híbrido</option>
+              <option value="Híbrido">Híbrido</option>
               <option value="Remoto">Remoto</option>
             </select>
             <select
@@ -149,7 +149,7 @@ export default function GestorVacantes() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} />
+              <InfoField icon={FiBriefcase} label="Área / Departamento" value={viewModal.area || 'No especificado'} truncate={false} />
               <InfoField icon={FiMapPin} label="Ubicación" value={viewModal.ubicacion || 'No especificada'} />
               <InfoField icon={FiClock} label="Modalidad" value={viewModal.modalidad || 'Presencial'} />
               <InfoField icon={FiCalendar} label="Horario" value={viewModal.horario || 'No especificado'} />
