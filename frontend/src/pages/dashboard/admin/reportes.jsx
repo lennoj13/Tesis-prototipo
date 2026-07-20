@@ -8,7 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { FiTrendingUp, FiUsers, FiTarget, FiAward, FiLoader, FiInbox } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiTarget, FiAward, FiLoader, FiInbox, FiPrinter } from 'react-icons/fi';
+import { useAuth } from 'context/AuthContext';
+import { printReportHTML } from 'utils/printReport';
+import { useMetadata } from 'context/MetadataContext';
 
 const COLORS = ['#2f7df2', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#6366f1', '#f97316'];
 const ESTADO_COLORS = {
@@ -24,23 +27,23 @@ const ESTADO_COLORS = {
   'Completada': '#10b981',
 };
 
-const facultadesCarreras = {
-  "1": [
-    { id: "1", nombre: "Software" },
-    { id: "2", nombre: "Ciencias de Datos e Inteligencia Artificial" }
-  ],
-  "2": [
-    { id: "3", nombre: "Ingeniería de la Producción" }
-  ]
-};
 
 export default function AdminReportes() {
+  const { facultadNames: FACULTAD_NAMES, facultadesCarreras, metadataLoading } = useMetadata();
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [facultadFilter, setFacultadFilter] = useState('');
   const [carreraFilter, setCarreraFilter] = useState('');
+  const { user } = useAuth();
+
+  const handlePrint = () => {
+    printReportHTML(stats, reports, user, {
+      facultad: FACULTAD_NAMES[facultadFilter] || 'General (Todas)',
+      carrera: carreraFilter ? facultadesCarreras[facultadFilter]?.find(c => c.id === carreraFilter)?.nombre : 'General (Todas)'
+    });
+  };
 
   useEffect(() => {
     async function load() {
@@ -71,11 +74,11 @@ export default function AdminReportes() {
   const habilidadesDemandadas = reports?.habilidades_demandadas || [];
   const topEmpresas = reports?.top_empresas || [];
 
-  if (loading && !stats) {
+  if ((loading && !stats) || metadataLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 gap-2">
         <FiLoader className="animate-spin" size={20} />
-        <span>Cargando reportes...</span>
+        <span>Cargando reportes y metadatos...</span>
       </div>
     );
   }
@@ -96,8 +99,9 @@ export default function AdminReportes() {
               className="px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
             >
               <option value="">Todas las Facultades</option>
-              <option value="1">Ciencias Matemáticas y Físicas</option>
-              <option value="2">Ingeniería Química</option>
+              {Object.entries(FACULTAD_NAMES).map(([id, name]) => (
+                <option key={id} value={id}>{name.toUpperCase()}</option>
+              ))}
             </select>
             <select
               value={carreraFilter}
@@ -114,6 +118,13 @@ export default function AdminReportes() {
                 <option key={c.id} value={c.id}>{c.nombre}</option>
               ))}
             </select>
+            <button
+              onClick={handlePrint}
+              className="flex items-center justify-center p-2 text-slate-500 hover:text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-md transition-colors"
+              title="Imprimir Reportes"
+            >
+              <FiPrinter size={18} />
+            </button>
           </div>
         }
       />

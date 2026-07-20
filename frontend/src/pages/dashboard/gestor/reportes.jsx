@@ -8,7 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { FiTrendingUp, FiUsers, FiTarget, FiAward, FiLoader, FiInbox } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiTarget, FiAward, FiLoader, FiInbox, FiPrinter } from 'react-icons/fi';
+import { useAuth } from 'context/AuthContext';
+import { useMetadata } from 'context/MetadataContext';
+import { printReportHTML } from 'utils/printReport';
 
 const COLORS = ['#2f7df2', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#6366f1', '#f97316'];
 const ESTADO_COLORS = {
@@ -28,6 +31,26 @@ export default function GestorReportes() {
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { facultadesCarreras, metadataLoading } = useMetadata();
+
+  const handlePrint = () => {
+    let carreraNombre = 'General';
+    if (user?.carrera_id && facultadesCarreras) {
+      for (const careers of Object.values(facultadesCarreras)) {
+        const found = careers.find(c => String(c.id) === String(user.carrera_id));
+        if (found) {
+          carreraNombre = found.nombre;
+          break;
+        }
+      }
+    }
+
+    printReportHTML(stats, reports, user, {
+      facultad: user?.facultad_nombre || 'General',
+      carrera: carreraNombre
+    });
+  };
 
   useEffect(() => {
     async function load() {
@@ -58,11 +81,11 @@ export default function GestorReportes() {
   const habilidadesDemandadas = reports?.habilidades_demandadas || [];
   const topEmpresas = reports?.top_empresas || [];
 
-  if (loading && !stats) {
+  if ((loading && !stats) || metadataLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 gap-2">
         <FiLoader className="animate-spin" size={20} />
-        <span>Cargando reportes de tu carrera...</span>
+        <span>Cargando reportes y metadatos...</span>
       </div>
     );
   }
@@ -72,6 +95,15 @@ export default function GestorReportes() {
       <PageHeader
         title="Reportes de Mi Carrera"
         subtitle="Analíticas exclusivas de tu facultad y carrera asignada."
+        action={
+          <button
+            onClick={handlePrint}
+            className="flex items-center justify-center p-2 text-slate-500 hover:text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-md transition-colors"
+            title="Imprimir Reportes"
+          >
+            <FiPrinter size={18} />
+          </button>
+        }
       />
 
       {/* KPI Cards */}

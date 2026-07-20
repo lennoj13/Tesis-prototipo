@@ -13,6 +13,7 @@ import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Input from 'components/Input';
 import InfoField from 'components/InfoField';
+import { useMetadata } from 'context/MetadataContext';
 import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader, FiUserPlus, FiCreditCard, FiCalendar, FiActivity, FiUsers, FiPlusCircle } from 'react-icons/fi';
 
 const rolLabels = { estudiante: 'Estudiante', student: 'Estudiante', company: 'Empresa', empresa: 'Empresa', admin: 'Admin', gestor: 'Gestor' };
@@ -23,17 +24,10 @@ const rolColors = {
   'admin': 'bg-purple-100 text-purple-700',
 };
 
-const facultadesCarreras = {
-  "1": [
-    { id: "1", nombre: "Software" },
-    { id: "2", nombre: "Ciencias de Datos e Inteligencia Artificial" }
-  ],
-  "2": [
-    { id: "3", nombre: "Ingeniería de la Producción" }
-  ]
-};
+
 
 export default function AdminUsuarios() {
+  const { facultadesCarreras, facultadNames, metadataLoading } = useMetadata();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('');
@@ -394,8 +388,9 @@ export default function AdminUsuarios() {
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
             >
               <option value="">Todas las Facultades</option>
-              <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-              <option value="2">INGENIERÍA QUÍMICA</option>
+              {Object.entries(facultadNames).map(([id, name]) => (
+                <option key={id} value={id}>{name.toUpperCase()}</option>
+              ))}
             </select>
             <select
               value={carreraFilter}
@@ -632,8 +627,10 @@ export default function AdminUsuarios() {
                     onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                   >
-                    <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-                    <option value="2">INGENIERÍA QUÍMICA</option>
+                    <option value="">Seleccione Facultad</option>
+                    {Object.entries(facultadNames).map(([id, name]) => (
+                      <option key={id} value={id}>{name.toUpperCase()}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={editModal.rol_nombre === 'estudiante' ? '' : 'col-span-2'}>
@@ -724,8 +721,10 @@ export default function AdminUsuarios() {
                   onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                 >
-                  <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-                  <option value="2">INGENIERÍA QUÍMICA</option>
+                  <option value="">Seleccione Facultad</option>
+                  {Object.entries(facultadNames).map(([id, name]) => (
+                    <option key={id} value={id}>{name.toUpperCase()}</option>
+                  ))}
                 </select>
               </div>
               <div className={createForm.rol === 'estudiante' ? '' : 'col-span-2'}>

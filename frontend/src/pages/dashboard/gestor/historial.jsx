@@ -7,7 +7,8 @@ import EmptyState from 'components/EmptyState';
 import DataTable from 'components/DataTable';
 import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
-import { FiEye, FiLoader, FiCheckCircle, FiXCircle, FiMinusCircle } from 'react-icons/fi';
+import { FiEye, FiLoader, FiCheckCircle, FiXCircle, FiMinusCircle, FiDownload } from 'react-icons/fi';
+import { exportHistorialToExcel } from 'utils/exportUtils';
 
 export default function GestorHistorial() {
   const [applications, setApplications] = useState([]);
@@ -92,6 +93,10 @@ export default function GestorHistorial() {
     return true;
   });
 
+  const handleExport = () => {
+    exportHistorialToExcel(filteredApps);
+  };
+
   const columns = [
     {
       key: 'nro_solicitud',
@@ -164,6 +169,15 @@ export default function GestorHistorial() {
       <PageHeader
         title="Historial de Postulaciones"
         subtitle={loading ? 'Cargando historial...' : `${filteredApps.length} solicitudes en historial`}
+        action={
+          <button
+            onClick={handleExport}
+            className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-md transition-colors"
+            title="Exportar a CSV"
+          >
+            <FiDownload size={16} /> Exportar
+          </button>
+        }
       />
 
       <div className="flex gap-2 mt-4 mb-6 flex-wrap">

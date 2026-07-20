@@ -13,8 +13,10 @@ import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import InfoField from 'components/InfoField';
 import { FiEye, FiTrash2, FiClock, FiCalendar, FiMapPin, FiBriefcase, FiAlignLeft, FiUsers } from 'react-icons/fi';
+import { useMetadata } from 'context/MetadataContext';
 
 export default function AdminVacantes() {
+  const { facultadNames } = useMetadata();
   const [vacantes, setVacantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState(null);
@@ -113,8 +115,9 @@ export default function AdminVacantes() {
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
             >
               <option value="">Todas las Facultades</option>
-              <option value="1">Ciencias Matemáticas y Físicas</option>
-              <option value="2">Ingeniería Química</option>
+              {Object.entries(facultadNames).map(([id, name]) => (
+                <option key={id} value={id}>{name.toUpperCase()}</option>
+              ))}
             </select>
             <select
               value={modalidadFilter}

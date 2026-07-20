@@ -25,3 +25,5 @@ export const ROLE_LABELS = {
   gestor: 'Gestor PPP',
   admin: 'Administrador',
 };
+
+// EOF

@@ -14,6 +14,7 @@ from ..Services.admin_service import (
 )
 from ..Services.matching_service import MatchingCandidatesService
 from ..Services.recomendacion_service import RecomendacionVacantesService, RecomendacionHibridaService
+from ..Services.metadata_service import MetadataFacultadesService
 
 def load_routes(api):
     # === Autenticación ===
@@ -44,6 +45,9 @@ def load_routes(api):
 
     # === Habilidades ===
     api.add_resource(SkillListService, '/skills')
+
+    # === Metadatos (Facultades y Carreras) ===
+    api.add_resource(MetadataFacultadesService, '/metadata/facultades')
 
     # === Admin ===
     api.add_resource(AdminStatsService, '/admin/stats')

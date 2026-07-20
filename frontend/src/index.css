@@ -196,3 +196,26 @@
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* --- Print: oculta la app y muestra solo la plantilla de impresión --- */
+@media print {
+  @page {
+    size: A4;
+    margin: 0; /* Remove browser default margins */
+  }
+  #root { display: none !important; }
+  #print-overlay {
+    position: static !important;
+    left: auto !important;
+    display: block !important;
+    width: 210mm !important;
+    height: 100vh !important; /* Forces exact printable area height */
+    max-height: 100vh !important;
+    overflow: hidden !important; /* Prevents spilling to page 2 */
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+  }
+  body { background: white !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
