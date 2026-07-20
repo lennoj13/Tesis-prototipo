@@ -159,9 +159,6 @@ class ApplicationComponent:
                                             v[key] = vac_snap[key]
                             except Exception:
                                 pass
-                        # Eliminar el snapshot de la respuesta para no saturar el payload si no es necesario
-                        if 'habilidades_snapshot' in v:
-                            del v['habilidades_snapshot']
                 return internal_response(True, data, "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
@@ -392,7 +389,6 @@ class ApplicationComponent:
                                     d['titulo_vacante'] = vac_snap['titulo']
                         except Exception:
                             pass
-                        del d['habilidades_snapshot']
                 return internal_response(True, data, "Postulantes de empresa encontrados")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
@@ -458,7 +454,6 @@ class ApplicationComponent:
                                     d['titulo_vacante'] = vac_snap['titulo']
                         except Exception:
                             pass
-                        del d['habilidades_snapshot']
                 return internal_response(True, data, "Postulaciones encontradas")
             return internal_response(False, [], result.get('message', 'Error'))
         except Exception as err:
