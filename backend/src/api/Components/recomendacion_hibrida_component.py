@@ -1,15 +1,17 @@
-#Version para modelos de solo similitud coseno y diferencia vectorial
-#---------------------------------------------------------------------
-import os
-import re
+import threading
 import numpy as np
 import pandas as pd
-import joblib
-from sklearn.metrics.pairwise import cosine_similarity
 from ...utils.database.connection_db import DataBaseHandle
 from ...utils.general.logs import HandleLogs
 from ...utils.general.response import internal_response
-from sentence_transformers import SentenceTransformer
+from .nlp.recomendacion_hibrida_features import limpiar_texto_hibrido, construir_vector_features
+from .nlp.recomendacion_hibrida_models import cargar_modelos_hibridos
+from .nlp.recomendacion_hibrida_repository import (
+    obtener_vacantes_facultad, obtener_cache_afinidad, guardar_cache_afinidad,
+    invalidar_cache_estudiante as repo_invalidar_cache_estudiante,
+    invalidar_cache_vacante as repo_invalidar_cache_vacante,
+    invalidar_cache_facultad as repo_invalidar_cache_facultad,
+)
 
 class RecomendacionHibridaComponent:
     """
@@ -32,7 +34,6 @@ class RecomendacionHibridaComponent:
     UMBRAL_XGB_INFLADO = 60.0      # XGBoost score inflado
     UMBRAL_SVR_ALTO = 48.0         # SVR score alto
 
-
     _model = None
     _scaler = None
     _svr_model = None
@@ -41,7 +42,6 @@ class RecomendacionHibridaComponent:
     _models_loaded = False
     _load_error = None
     
-    import threading
     _inference_lock = threading.Lock()
     _stats_lock = threading.Lock()  # Para estadísticas de inferencia
         
@@ -71,34 +71,9 @@ class RecomendacionHibridaComponent:
             return cls._load_error is None
 
         try:
-            # Resolver ruta absoluta al directorio nlp_engine
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            # Subimos desde backend/src/api/Components → backend/ → raíz del proyecto
-            project_root = os.path.abspath(os.path.join(base_dir, '..', '..', '..', '..'))
-            nlp_dir = os.path.join(project_root, 'nlp_engine')
-
-            model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost.pkl')
-            scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost_scaler.pkl')
-
-            # model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'pivipp_random_forest.pkl')
-            # scaler_path = os.path.join(nlp_dir, 'modelos_entrenados','pivipp_scaler.pkl')
-
-            HandleLogs.write_log("[NLP] Cargando modelo XGBoost y scaler...")
-            cls._model = joblib.load(model_path)
-            cls._scaler = joblib.load(scaler_path)
-
-            svr_model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'svr2', 'pivipp_svr.pkl')
-            svr_scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'svr2', 'pivipp_svr_scaler.pkl')
-            HandleLogs.write_log('[NLP] Cargando modelo SVR y scaler...')
-            cls._svr_model = joblib.load(svr_model_path)
-            cls._svr_scaler = joblib.load(svr_scaler_path)
-
-            HandleLogs.write_log("[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2)...")
-            cls._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-
+            cls._model, cls._scaler, cls._svr_model, cls._svr_scaler, cls._embedding_model = cargar_modelos_hibridos()
             cls._models_loaded = True
             cls._load_error = None
-            HandleLogs.write_log("[NLP] Modelos cargados exitosamente.")
             return True
 
         except Exception as e:
@@ -113,60 +88,13 @@ class RecomendacionHibridaComponent:
     # =========================================================
     @staticmethod
     def _limpiar_texto(texto):
-        """
-        Homologada con el entrenamiento del modelo XGBoost.
-        No usa spaCy para garantizar embeddings idénticos en estructura.
-        """
-        if not isinstance(texto, str):
-            return ""
-        texto = texto.lower()
-        texto = re.sub(re.compile(r'[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]'), ' ', texto)
-        texto = re.sub(r'\s+', ' ', texto).strip()
-        return texto
+        return limpiar_texto_hibrido(texto)
     #----------------------------------
     #FUNCION UNIFICADA PARA CONSTRUIR FEATURES
     #----------------------------------------
     @staticmethod
     def _construir_vector_features(emb_estudiante, emb_vacante, skills_est, skills_vac):
-        """
-        Construye el vector de features para el modelo.
-        IDÉNTICO al usado en entrenamiento para garantizar consistencia.
-        
-        Args:
-            emb_estudiante: Embedding del estudiante (384 dims)
-            emb_vacante: Embedding de la vacante (384 dims)
-            skills_est: Lista de habilidades del estudiante
-            skills_vac: Lista de habilidades de la vacante
-            
-        Returns:
-            tuple: (vector_completo, sim_coseno, skill_match_score, skill_complementarity_score)
-        """
-        # 1. Similitud coseno (dirección semántica)
-        sim_coseno = cosine_similarity([emb_estudiante], [emb_vacante])[0][0]
-        
-        # 2. Diferencia vectorial (componente a componente)
-        diff_vectorial = np.abs(emb_estudiante - emb_vacante)
-        
-        # 3. Match léxico de habilidades
-        sk_est = set([s.lower().strip() for s in skills_est if s])
-        sk_vac = set([s.lower().strip() for s in skills_vac if s])
-        
-        # Calcular métricas de skills
-        if len(sk_vac) > 0:
-            skill_match_score = (len(sk_est.intersection(sk_vac)) / len(sk_vac)) * 100
-            skill_complementarity_score = (len(sk_vac.difference(sk_est)) / len(sk_vac)) * 100
-        else:
-            skill_match_score = 0.0
-            skill_complementarity_score = 0.0
-        
-        # Construir vector final (mismo orden que en entrenamiento)
-        vector_completo = np.concatenate([
-            [sim_coseno],
-            diff_vectorial,
-            [skill_match_score, skill_complementarity_score]
-        ])
-        
-        return vector_completo, sim_coseno, skill_match_score, skill_complementarity_score
+        return construir_vector_features(emb_estudiante, emb_vacante, skills_est, skills_vac)
     
     # =========================================================
     # CÁLCULO BIDIRECCIONAL (Empresa -> Estudiante)
@@ -201,6 +129,7 @@ class RecomendacionHibridaComponent:
                     JOIN public.usuarios u ON pe.usuario_id = u.usuario_id
                     WHERE pe.facultad_id = %s AND u.activo = true
                 """
+                from ...utils.database.connection_db import DataBaseHandle
                 est_result = DataBaseHandle.getRecords(sql_estudiantes, 0, (facultad_id,))
                 if not est_result['result'] or not est_result['data']:
                     return
@@ -240,6 +169,7 @@ class RecomendacionHibridaComponent:
         try:
             # 1. Obtener perfil_id del estudiante y estado de calculo
             sql_perfil_id = "SELECT perfil_id, calculando_nlp FROM public.perfiles_estudiante WHERE usuario_id = %s"
+            from ...utils.database.connection_db import DataBaseHandle
             perfil_result = DataBaseHandle.getRecords(sql_perfil_id, 1, (usuario_id,))
             if not perfil_result['result'] or not perfil_result['data']:
                 return internal_response(False, None, "Perfil de estudiante no encontrado")
@@ -314,90 +244,17 @@ class RecomendacionHibridaComponent:
     @staticmethod
     def _get_vacantes_facultad(facultad_id):
         """Obtiene vacantes activas filtradas por facultad, con skills incluidos"""
-        where_clause = ""
-        params = []
-        if facultad_id:
-            where_clause = "AND i.facultad_id = %s"
-            params.append(facultad_id)
-
-        sql = f"""
-            SELECT v.vacante_id, v.titulo, v.area, v.descripcion, v.requisitos,
-                   v.modalidad, v.ubicacion, v.total_horas, v.horas_diarias, v.horario,
-                   v.cupos, v.activo, v.supervisor_id,
-                   i.nombre as nombre_empresa, i.correo_contacto, i.industria, i.facultad_id,
-                   u.nombre || ' ' || u.apellido as persona_contacto,
-                   TO_CHAR(v.creado_en, 'YYYY-MM-DD') as creado_en,
-                   TO_CHAR(v.fecha_expiracion, 'YYYY-MM-DD') as fecha_expiracion,
-                   COALESCE(p.total, 0) as total_postulaciones
-            FROM public.vacantes v
-            JOIN public.instituciones i ON v.institucion_id = i.institucion_id
-            JOIN public.usuarios u ON i.usuario_id = u.usuario_id
-            LEFT JOIN (
-                SELECT vacante_id, COUNT(*) as total
-                FROM public.postulaciones
-                GROUP BY vacante_id
-            ) p ON p.vacante_id = v.vacante_id
-            WHERE v.activo = true {where_clause}
-            ORDER BY v.creado_en DESC
-        """
-        result = DataBaseHandle.getRecords(sql, 0, tuple(params)) if params else DataBaseHandle.getRecords(sql, 0)
-        if not result['result'] or not result['data']:
-            return []
-
-        vacantes = result['data']
-
-        # Agregar skills a cada vacante
-        vacante_ids = [v['vacante_id'] for v in vacantes]
-        sql_skills = """
-            SELECT hv.vacante_id, h.habilidad_id, h.nombre as habilidad_nombre, h.categoria,
-                   hv.nivel_requerido, hv.es_opcional
-            FROM public.habilidades_vacante hv
-            JOIN public.habilidades h ON hv.habilidad_id = h.habilidad_id
-            WHERE hv.vacante_id = ANY(%s)
-        """
-        skills_res = DataBaseHandle.getRecords(sql_skills, 0, (vacante_ids,))
-        skills_by_vacante = {}
-        if skills_res['result'] and skills_res['data']:
-            for s in skills_res['data']:
-                vid = s['vacante_id']
-                if vid not in skills_by_vacante:
-                    skills_by_vacante[vid] = []
-                skills_by_vacante[vid].append(s)
-
-        for v in vacantes:
-            v['skills'] = skills_by_vacante.get(v['vacante_id'], [])
-
-        return vacantes
+        return obtener_vacantes_facultad(facultad_id)
 
     @staticmethod
     def _get_cache(estudiante_id, vacante_ids):
         """Consulta el caché de afinidad para un estudiante y un set de vacantes"""
-        if not vacante_ids:
-            return None
-        sql = """
-            SELECT vacante_id, CAST(porcentaje_afinidad AS FLOAT) as porcentaje_afinidad
-            FROM public.cache_afinidad
-            WHERE estudiante_id = %s AND vacante_id = ANY(%s)
-        """
-        result = DataBaseHandle.getRecords(sql, 0, (estudiante_id, vacante_ids))
-        if result['result'] and result['data']:
-            return result['data']
-        return None
+        return obtener_cache_afinidad(estudiante_id, vacante_ids)
 
     @staticmethod
     def _save_cache(estudiante_id, afinidades):
         """Guarda las afinidades calculadas en el caché (upsert)"""
-        try:
-            for vacante_id, porcentaje in afinidades.items():
-                sql = """
-                    INSERT INTO public.cache_afinidad (estudiante_id, vacante_id, porcentaje_afinidad)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (estudiante_id, vacante_id)
-                    DO UPDATE SET porcentaje_afinidad = EXCLUDED.porcentaje_afinidad, calculado_en = NOW()
-                """
-                DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id, vacante_id, round(porcentaje, 2)))
-        except Exception as err:
-            HandleLogs.write_error(err)
+        return guardar_cache_afinidad(estudiante_id, afinidades)
 
     # =========================================================
     # MOTOR NLP: Cálculo de afinidad con XGBoost
@@ -797,37 +654,17 @@ class RecomendacionHibridaComponent:
     @staticmethod
     def invalidar_cache_estudiante(estudiante_id):
         """Borra el caché de un estudiante específico (cuando actualiza perfil/skills)"""
-        try:
-            sql = "DELETE FROM public.cache_afinidad WHERE estudiante_id = %s"
-            DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id,))
-            HandleLogs.write_log(f"[NLP] Caché invalidado para estudiante_id={estudiante_id}")
-        except Exception as err:
-            HandleLogs.write_error(err)
+        return repo_invalidar_cache_estudiante(estudiante_id)
 
     @staticmethod
     def invalidar_cache_vacante(vacante_id):
         """Borra el caché de una vacante (cuando se edita o cierra)"""
-        try:
-            sql = "DELETE FROM public.cache_afinidad WHERE vacante_id = %s"
-            DataBaseHandle.ExecuteNonQuery(sql, (vacante_id,))
-            HandleLogs.write_log(f"[NLP] Caché invalidado para vacante_id={vacante_id}")
-        except Exception as err:
-            HandleLogs.write_error(err)
+        return repo_invalidar_cache_vacante(vacante_id)
 
     @staticmethod
     def invalidar_cache_facultad(facultad_id):
         """
         Borra el caché de todos los estudiantes de una facultad.
-        Se usa cuando se crea una nueva vacante en esa facultad.
+        cuando se crea una nueva vacante en esa facultad.
         """
-        try:
-            sql = """
-                DELETE FROM public.cache_afinidad 
-                WHERE estudiante_id IN (
-                    SELECT perfil_id FROM public.perfiles_estudiante WHERE facultad_id = %s
-                )
-            """
-            DataBaseHandle.ExecuteNonQuery(sql, (facultad_id,))
-            HandleLogs.write_log(f"[NLP] Caché invalidado para facultad_id={facultad_id}")
-        except Exception as err:
-            HandleLogs.write_error(err)
+        return repo_invalidar_cache_facultad(facultad_id)
