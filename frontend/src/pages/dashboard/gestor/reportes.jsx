@@ -4,6 +4,7 @@ import { useAuth } from 'context/AuthContext';
 import { useMetadata } from 'context/MetadataContext';
 import { printReportHTML } from 'utils/printReport';
 import ReportesView from 'components/ReportesView';
+import { FiPrinter } from 'react-icons/fi';
 
 export default function GestorReportes() {
   const [stats, setStats] = useState(null);
