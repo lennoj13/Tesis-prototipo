@@ -1,4 +1,3 @@
-
 /**
  * Empresa Vacantes — Lista de vacantes con ver, editar y eliminar.
  * Módulo 3: Gestión de Vacantes

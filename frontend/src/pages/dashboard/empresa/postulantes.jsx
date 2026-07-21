@@ -1,4 +1,3 @@
-
 /**
  * Empresa Postulantes — Vista de Gestion de Solicitudes
  * Modulo 4: Evaluacion de Postulaciones

@@ -1,4 +1,3 @@
-
 /**
  * Admin Empresas — Lista real de empresas con crear empresa.
  * Módulo 2: Gestión de Empresas
