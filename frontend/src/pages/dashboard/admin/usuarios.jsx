@@ -1,4 +1,3 @@
-
 /**
  * Admin Usuarios — Lista de usuarios con acciones, detalle, crear y toggle estado.
  * Módulo 1: Gestión de Usuarios
@@ -23,8 +22,6 @@ const rolColors = {
   gestor: 'bg-slate-100 text-slate-700',
   'admin': 'bg-purple-100 text-purple-700',
 };
-
-
 
 export default function AdminUsuarios() {
   const { facultadesCarreras, facultadNames, metadataLoading } = useMetadata();
@@ -294,10 +291,13 @@ export default function AdminUsuarios() {
   }, [toast]);
 
   const columns = [
-    { key: 'creado_en', label: 'Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
+     {
+      key: 'cedula', label: 'Cédula / RUC',
+      render: (val) => <span className="text-slate-700">{val || '-'}</span>
+    },
+    { key: 'creado_en', label: 'F. Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
     {
-      key: 'nombre',
-      label: 'Nombre',
+      key: 'nombre', label: 'Nombre',
       render: (val, row) => (
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 border ${row.activo ? 'bg-[#3c8dbc] border-[#2f6f92]' : 'bg-slate-400 border-slate-500'}`}>
@@ -311,13 +311,7 @@ export default function AdminUsuarios() {
       ),
     },
     {
-      key: 'cedula',
-      label: 'Cédula / RUC',
-      render: (val) => <span className="text-slate-700">{val || '-'}</span>
-    },
-    {
-      key: 'rol_nombre',
-      label: 'Rol',
+      key: 'rol_nombre', label: 'Rol',
       render: (val) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${rolColors[val] || 'bg-slate-100 text-slate-700'}`}>
           {rolLabels[val] || val}
