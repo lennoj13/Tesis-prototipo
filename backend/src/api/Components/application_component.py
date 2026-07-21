@@ -426,7 +426,7 @@ class ApplicationComponent:
                        u.correo, u.cedula, pe.semestre,
                        c.nombre as carrera,
                        v.vacante_id, v.titulo as titulo_vacante,
-                       i.institucion_id, i.usuario_id as empresa_usuario_id, i.nombre as nombre_empresa,
+                      i.institucion_id, i.usuario_id as empresa_usuario_id, i.nombre as nombre_empresa, i.ruc as ruc_empresa,
                        COALESCE(p.supervisor_id, v.supervisor_id) as supervisor_id,
                        sup.nombre as supervisor_nombre
                 FROM public.postulaciones p
