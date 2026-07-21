@@ -21,6 +21,17 @@ export default function GestorHistorial() {
   const [solicitudData, setSolicitudData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  function formatDate(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('es-EC', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
   useEffect(() => {
     loadApplications();
   }, []);
@@ -106,7 +117,7 @@ export default function GestorHistorial() {
     {
       key: 'fecha_respuesta_gestor',
       label: 'F. Resolución',
-      render: (_, app) => app.fecha_respuesta_gestor ? <span className="text-sm font-medium text-slate-700">{app.fecha_respuesta_gestor}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
+      render: (_, app) => app.fecha_respuesta_gestor ? <span className="text-sm font-medium text-slate-700">{formatDate(app.fecha_respuesta_gestor)}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
     },
     {
       key: 'estudiante',
