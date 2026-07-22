@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict sL4eNP1V0fNO0yi40fpQHarsUUbSRPftHkXfoaqo3qcJi55b5NL3mfBjfD9ywwh
+-- \restrict sL4eNP1V0fNO0yi40fpQHarsUUbSRPftHkXfoaqo3qcJi55b5NL3mfBjfD9ywwh
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -686,5 +686,4 @@ SELECT pg_catalog.setval('public.vacantes_vacante_id_seq', 26, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict sL4eNP1V0fNO0yi40fpQHarsUUbSRPftHkXfoaqo3qcJi55b5NL3mfBjfD9ywwh
-
+-- \unrestrict sL4eNP1V0fNO0yi40fpQHarsUUbSRPftHkXfoaqo3qcJi55b5NL3mfBjfD9ywwh
