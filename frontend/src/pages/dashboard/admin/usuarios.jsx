@@ -40,6 +40,7 @@ export default function AdminUsuarios() {
   const [editForm, setEditForm] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [createErrors, setCreateErrors] = useState({});
   // Crear usuario
   const [createModal, setCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', facultad_id: '1', carrera_id: '', semestre: '' });
@@ -89,6 +90,18 @@ export default function AdminUsuarios() {
   }, [usuarios, roleFilter, statusFilter, facultadFilter, carreraFilter, sortBy]);
 
   useEffect(() => { loadUsers(); }, []);
+
+  const onlyDigits = (value) => /^\d+$/.test(String(value || '').trim());
+  const onlyLetters = (value) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(String(value || '').trim());
+
+  function validateCreateUserForm() {
+    const errors = {};
+    if (createForm.cedula && !onlyDigits(createForm.cedula)) errors.cedula = 'La cédula debe contener solo dígitos';
+    if (createForm.nombre && !onlyLetters(createForm.nombre)) errors.nombre = 'El nombre debe contener solo letras';
+    if (createForm.apellido && !onlyLetters(createForm.apellido)) errors.apellido = 'El apellido debe contener solo letras';
+    if (createForm.telefono && !onlyDigits(createForm.telefono)) errors.telefono = 'El teléfono debe contener solo dígitos';
+    return errors;
+  }
 
   // Cargar detalle completo al abrir modal
   async function handleViewDetail(row) {
@@ -235,6 +248,13 @@ export default function AdminUsuarios() {
 
   // Crear usuario
   async function handleCreateUser() {
+    const fieldErrors = validateCreateUserForm();
+    if (Object.keys(fieldErrors).length > 0) {
+      setCreateErrors(fieldErrors);
+      setToast({ type: 'error', message: 'Corrige los campos marcados antes de continuar' });
+      return;
+    }
+
     const missingFields = [];
     if (!createForm.cedula) missingFields.push('Cédula');
     if (!createForm.nombre) missingFields.push('Nombre');
@@ -270,12 +290,15 @@ export default function AdminUsuarios() {
       if (res.result) {
         setToast({ type: 'success', message: 'Usuario creado exitosamente' });
         setCreateModal(false);
+        setCreateErrors({});
         setCreateForm({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', carrera_id: '', semestre: '' });
         loadUsers();
       } else {
+        if (res.data?.field_errors) setCreateErrors(res.data.field_errors);
         setToast({ type: 'error', message: res.message || 'Error al crear usuario' });
       }
     } catch (err) {
+      if (err.response?.data?.data?.field_errors) setCreateErrors(err.response.data.data.field_errors);
       setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar' });
     } finally {
       setActionLoading(false);
@@ -682,7 +705,7 @@ export default function AdminUsuarios() {
       </Modal>
 
       {/* Create User Modal */}
-      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Crear Nuevo Usuario" size="sm">
+      <Modal isOpen={createModal} onClose={() => { setCreateModal(false); setCreateErrors({}); }} title="Crear Nuevo Usuario" size="sm">
         <div className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Rol *</label>
@@ -696,14 +719,26 @@ export default function AdminUsuarios() {
               <option value="admin">Administrador</option>
             </select>
           </div>
-          <Input label="Cédula *" value={createForm.cedula} onChange={(e) => setCreateForm(p => ({...p, cedula: e.target.value}))} placeholder="0900000000" />
+          <Input label="Cédula *" value={createForm.cedula} error={createErrors.cedula} onChange={(e) => {
+            setCreateErrors(prev => ({ ...prev, cedula: '' }));
+            setCreateForm(p => ({...p, cedula: e.target.value}));
+          }} placeholder="0900000000" inputMode="numeric" />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Nombre *" value={createForm.nombre} onChange={(e) => setCreateForm(p => ({...p, nombre: e.target.value}))} />
-            <Input label="Apellido *" value={createForm.apellido} onChange={(e) => setCreateForm(p => ({...p, apellido: e.target.value}))} />
+            <Input label="Nombre *" value={createForm.nombre} error={createErrors.nombre} onChange={(e) => {
+              setCreateErrors(prev => ({ ...prev, nombre: '' }));
+              setCreateForm(p => ({...p, nombre: e.target.value}));
+            }} />
+            <Input label="Apellido *" value={createForm.apellido} error={createErrors.apellido} onChange={(e) => {
+              setCreateErrors(prev => ({ ...prev, apellido: '' }));
+              setCreateForm(p => ({...p, apellido: e.target.value}));
+            }} />
           </div>
           <Input label="Correo Electrónico *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} placeholder="correo@ejemplo.com" />
           <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
-          <Input label="Teléfono *" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
+          <Input label="Teléfono *" type="tel" value={createForm.telefono} error={createErrors.telefono} onChange={(e) => {
+            setCreateErrors(prev => ({ ...prev, telefono: '' }));
+            setCreateForm(p => ({...p, telefono: e.target.value}));
+          }} inputMode="numeric" />
 
 
           {(createForm.rol === 'estudiante' || createForm.rol === 'gestor') && (
@@ -751,7 +786,7 @@ export default function AdminUsuarios() {
           )}
 
           <div className="flex justify-end gap-3 mt-4">
-            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => setCreateModal(false)}>Cancelar</button>
+            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => { setCreateModal(false); setCreateErrors({}); }}>Cancelar</button>
             <button
               className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[120px] cursor-pointer disabled:opacity-50"
               onClick={handleCreateUser}
