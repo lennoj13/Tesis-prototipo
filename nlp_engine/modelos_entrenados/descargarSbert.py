@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 import os
-Base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dir = os.path.dirname(os.path.abspath(__file__))
+Base = os.path.dirname(os.path.dirname(dir))
 destino = os.path.join(Base, "nlp_engine", "modelos_entrenados", "sentence_transformers", "all-MiniLM-L6-v2")
 
 if os.path.exists(destino) and len(os.listdir(destino)) > 0:

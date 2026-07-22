@@ -24,11 +24,14 @@ def cargar_modelos_hibridos():
     svr_scaler = joblib.load(svr_scaler_path)
 
     #Usar el modelo desde el entorno local
-    HandleLogs.write_log('[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2) local para embeddings')
     sbert_path = os.path.join(nlp_dir, 'modelos_entrenados', 'sentence_transformers', 'all-MiniLM-L6-v2')
-    embedding_model = SentenceTransformer(sbert_path)
-    
-    #Usar el modelo desde Hugging Face en linea
-    #embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    try:
+        HandleLogs.write_log('[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2) local para embeddings')
+        embedding_model = SentenceTransformer(sbert_path)
+    except Exception as e:    
+        #Usar el modelo desde Hugging Face en linea
+        HandleLogs.write_log(f'[NLP] Error al cargar el modelo local: {e}')
+        HandleLogs.write_log(f'[NLP] Cargando SentenceTransformer en linea')
+        embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
     HandleLogs.write_log('[NLP] Modelos cargados exitosamente.')
     return model, scaler, svr_model, svr_scaler, embedding_model
