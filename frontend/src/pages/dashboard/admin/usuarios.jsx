@@ -721,8 +721,9 @@ export default function AdminUsuarios() {
           </div>
           <Input label="Cédula *" value={createForm.cedula} error={createErrors.cedula} onChange={(e) => {
             setCreateErrors(prev => ({ ...prev, cedula: '' }));
-            setCreateForm(p => ({...p, cedula: e.target.value}));
-          }} placeholder="0900000000" inputMode="numeric" />
+            const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+            setCreateForm(p => ({...p, cedula: digitsOnly}));
+          }} placeholder="0900000000" inputMode="numeric" maxLength={10} />
           <div className="grid grid-cols-2 gap-3">
             <Input label="Nombre *" value={createForm.nombre} error={createErrors.nombre} onChange={(e) => {
               setCreateErrors(prev => ({ ...prev, nombre: '' }));
