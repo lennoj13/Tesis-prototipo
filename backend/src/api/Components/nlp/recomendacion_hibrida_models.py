@@ -12,18 +12,23 @@ def cargar_modelos_hibridos():
     model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost.pkl')
     scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'xgboost2', 'pivipp_xgboost_scaler.pkl')
 
-    HandleLogs.write_log('[NLP] Cargando modelo XGBoost y scaler...')
+    HandleLogs.write_log('[NLP] Cargando modelo XGBoost y scaler')
     model = joblib.load(model_path)
     scaler = joblib.load(scaler_path)
 
     svr_model_path = os.path.join(nlp_dir, 'modelos_entrenados', 'svr2', 'pivipp_svr.pkl')
     svr_scaler_path = os.path.join(nlp_dir, 'modelos_entrenados', 'svr2', 'pivipp_svr_scaler.pkl')
-    HandleLogs.write_log('[NLP] Cargando modelo SVR y scaler...')
+    
+    HandleLogs.write_log('[NLP] Cargando modelo SVR y scaler')
     svr_model = joblib.load(svr_model_path)
     svr_scaler = joblib.load(svr_scaler_path)
 
-    HandleLogs.write_log('[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2)...')
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-
+    #Usar el modelo desde el entorno local
+    HandleLogs.write_log('[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2) local para embeddings')
+    sbert_path = os.path.join(nlp_dir, 'modelos_entrenados', 'sentence_transformers', 'all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer(sbert_path)
+    
+    #Usar el modelo desde Hugging Face en linea
+    #embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
     HandleLogs.write_log('[NLP] Modelos cargados exitosamente.')
     return model, scaler, svr_model, svr_scaler, embedding_model
