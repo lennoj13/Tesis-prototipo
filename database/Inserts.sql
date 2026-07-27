@@ -22,6 +22,8 @@ TRUNCATE TABLE
     public.facultades
 RESTART IDENTITY CASCADE;
 
+SELECT setval('habilidades_habilidad_id_seq', 1, false);
+
 -- ==========================================
 -- DATOS TABLA: public.facultades
 -- ==========================================
@@ -444,3 +446,21 @@ INSERT INTO public.cache_afinidad (id, estudiante_id, vacante_id, porcentaje_afi
 INSERT INTO public.cache_afinidad (id, estudiante_id, vacante_id, porcentaje_afinidad, calculado_en) VALUES (972, 2, 2, '57.99', '2026-07-27 14:33:27');
 INSERT INTO public.cache_afinidad (id, estudiante_id, vacante_id, porcentaje_afinidad, calculado_en) VALUES (977, 2, 3, '62.41', '2026-07-27 14:33:27');
 INSERT INTO public.cache_afinidad (id, estudiante_id, vacante_id, porcentaje_afinidad, calculado_en) VALUES (969, 2, 4, '54.51', '2026-07-27 14:33:27');
+
+-- ==============================================================================
+-- REINICIO DE SECUENCIAS
+-- ==============================================================================
+SELECT setval('facultades_facultad_id_seq', (SELECT COALESCE(MAX(facultad_id), 0) + 1 FROM facultades), false);
+SELECT setval('carreras_carrera_id_seq', (SELECT COALESCE(MAX(carrera_id), 0) + 1 FROM carreras), false);
+SELECT setval('roles_rol_id_seq', (SELECT COALESCE(MAX(rol_id), 0) + 1 FROM roles), false);
+SELECT setval('usuarios_usuario_id_seq', (SELECT COALESCE(MAX(usuario_id), 0) + 1 FROM usuarios), false);
+SELECT setval('instituciones_institucion_id_seq', (SELECT COALESCE(MAX(institucion_id), 0) + 1 FROM instituciones), false);
+SELECT setval('supervisores_supervisor_id_seq', (SELECT COALESCE(MAX(supervisor_id), 0) + 1 FROM supervisores), false);
+SELECT setval('perfiles_estudiante_perfil_id_seq', (SELECT COALESCE(MAX(perfil_id), 0) + 1 FROM perfiles_estudiante), false);
+SELECT setval('perfiles_gestor_perfil_id_seq', (SELECT COALESCE(MAX(perfil_id), 0) + 1 FROM perfiles_gestor), false);
+SELECT setval('vacantes_vacante_id_seq', (SELECT COALESCE(MAX(vacante_id), 0) + 1 FROM vacantes), false);
+SELECT setval('habilidades_habilidad_id_seq', (SELECT COALESCE(MAX(habilidad_id), 0) + 1 FROM habilidades), false);
+SELECT setval('habilidades_estudiante_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM habilidades_estudiante), false);
+SELECT setval('habilidades_vacante_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM habilidades_vacante), false);
+SELECT setval('postulaciones_postulacion_id_seq', (SELECT COALESCE(MAX(postulacion_id), 0) + 1 FROM postulaciones), false);
+SELECT setval('cache_afinidad_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM cache_afinidad), false);

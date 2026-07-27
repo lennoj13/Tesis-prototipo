@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Parsear DATABASE_URL en sus componentes
-_db_url = urlparse(os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/matching_db'))
+_db_url = urlparse(os.getenv('DATABASE_URL'))
 
 class Parametros:
     db_user = _db_url.username
