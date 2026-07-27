@@ -109,7 +109,9 @@ export function AuthProvider({ children }) {
           role: backendRole,
           role_id: user_info.role_id,
           profile_id: user_info.profile_id,
-          facultad_nombre: user_info.facultad_nombre
+          facultad_id: user_info.facultad_id,
+          facultad_nombre: user_info.facultad_nombre,
+          carrera_id: user_info.carrera_id
         };
 
         localStorage.setItem('matchpp_token', token);

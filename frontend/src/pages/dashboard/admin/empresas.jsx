@@ -1,4 +1,3 @@
-
 /**
  * Admin Empresas — Lista real de empresas con crear empresa.
  * Módulo 2: Gestión de Empresas
@@ -24,8 +23,10 @@ export default function AdminEmpresas() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [editModal, setEditModal] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [editErrors, setEditErrors] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [createErrors, setCreateErrors] = useState({});
   // Crear empresa
   const [createModal, setCreateModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -61,6 +62,43 @@ export default function AdminEmpresas() {
       if (scrollParent) scrollParent.scrollTo(0, 0);
     }
   }, [activeTab]);
+
+  const hasOnlyDigits = (value) => /^\d+$/.test(String(value || '').trim());
+  const hasOnlyLetters = (value) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(String(value || '').trim());
+
+  function validateCreateCompanyForm() {
+    const errors = {};
+    if (createForm.ruc && !hasOnlyDigits(createForm.ruc)) {
+      errors.ruc = 'El RUC debe contener solo dígitos';
+    }
+    if (createForm.cedula_representante && !hasOnlyDigits(createForm.cedula_representante)) {
+      errors.cedula_representante = 'La cédula debe contener solo dígitos';
+    }
+    if (createForm.nombre_representante && !hasOnlyLetters(createForm.nombre_representante)) {
+      errors.nombre_representante = 'El nombre debe contener solo letras';
+    }
+    if (createForm.apellido_representante && !hasOnlyLetters(createForm.apellido_representante)) {
+      errors.apellido_representante = 'El apellido debe contener solo letras';
+    }
+    if (createForm.telefono && !hasOnlyDigits(createForm.telefono)) {
+      errors.telefono = 'El teléfono del representante debe contener solo dígitos';
+    }
+    if (createForm.telefono_empresa && !hasOnlyDigits(createForm.telefono_empresa)) {
+      errors.telefono_empresa = 'El teléfono de la empresa debe contener solo dígitos';
+    }
+    return errors;
+  }
+
+  function validateEditCompanyForm() {
+    const errors = {};
+    if (editForm.ruc && !hasOnlyDigits(editForm.ruc)) {
+      errors.ruc = 'El RUC debe contener solo dígitos';
+    }
+    if (editForm.telefono_empresa && !hasOnlyDigits(editForm.telefono_empresa)) {
+      errors.telefono_empresa = 'El teléfono de la empresa debe contener solo dígitos';
+    }
+    return errors;
+  }
 
   const sortedAndFilteredEmpresas = useMemo(() => {
     let result = [...empresas];
@@ -207,6 +245,7 @@ export default function AdminEmpresas() {
 
   const handleEdit = (row) => {
     setEditModal(row);
+    setEditErrors({});
     setEditForm({
       company_name: row.nombre_empresa || '', ruc: row.ruc || '',
       industry: row.industria || '', correo_contacto: row.correo_contacto || '',
@@ -219,6 +258,13 @@ export default function AdminEmpresas() {
   };
 
   const saveEdit = async () => {
+    const fieldErrors = validateEditCompanyForm();
+    if (Object.keys(fieldErrors).length > 0) {
+      setEditErrors(fieldErrors);
+      setToast({ type: 'error', message: 'Corrige los campos marcados antes de guardar' });
+      return;
+    }
+
     setActionLoading(true);
     try {
       const { data: res } = await api.put(`/admin/companies/${editModal.institucion_id}/detail`, editForm);
@@ -236,12 +282,15 @@ export default function AdminEmpresas() {
           activo: editForm.activo
         } : e));
         setEditModal(null);
+        setEditErrors({});
         setToast({ type: 'success', message: 'Empresa actualizada' });
       } else {
+        if (res.data?.field_errors) setEditErrors(res.data.field_errors);
         setToast({ type: 'error', message: res.message || 'Error al actualizar' });
       }
     } catch (err) { 
       console.error(err);
+      if (err.response?.data?.data?.field_errors) setEditErrors(err.response.data.data.field_errors);
       setToast({ type: 'error', message: err.response?.data?.message || 'Error de conexión' });
     }
     finally { setActionLoading(false); }
@@ -249,6 +298,13 @@ export default function AdminEmpresas() {
 
   // Crear empresa
   async function handleCreateCompany() {
+    const fieldErrors = validateCreateCompanyForm();
+    if (Object.keys(fieldErrors).length > 0) {
+      setCreateErrors(fieldErrors);
+      setToast({ type: 'error', message: 'Corrige los campos marcados antes de continuar' });
+      return;
+    }
+
     if (!createForm.nombre_empresa || !createForm.ruc || !createForm.telefono_empresa || !createForm.cedula_representante || !createForm.nombre_representante || !createForm.apellido_representante || !createForm.correo || !createForm.contrasena || !createForm.telefono) {
       setToast({ type: 'error', message: 'Llene todos los campos obligatorios, incluyendo los teléfonos' });
       return;
@@ -259,6 +315,7 @@ export default function AdminEmpresas() {
       if (res.result) {
         setToast({ type: 'success', message: 'Empresa creada exitosamente' });
         setCreateModal(false);
+        setCreateErrors({});
         setCreateForm({
           cedula_representante: '', nombre_representante: '', apellido_representante: '',
           correo: '', contrasena: '', telefono: '', nombre_empresa: '', ruc: '',
@@ -268,9 +325,16 @@ export default function AdminEmpresas() {
         });
         load();
       } else {
+        if (res.data?.field_errors) {
+          setCreateErrors(res.data.field_errors);
+        }
         setToast({ type: 'error', message: res.message || 'Error al crear empresa' });
       }
     } catch (err) {
+      const backendErrors = err.response?.data?.data?.field_errors;
+      if (backendErrors) {
+        setCreateErrors(backendErrors);
+      }
       setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar' });
     } finally { setActionLoading(false); }
   }
@@ -741,11 +805,14 @@ export default function AdminEmpresas() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={!!editModal} onClose={() => setEditModal(null)} title="Editar Empresa" size="md">
+      <Modal isOpen={!!editModal} onClose={() => { setEditModal(null); setEditErrors({}); }} title="Editar Empresa" size="md">
         {editModal && (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
-              <Input label="RUC" value={editForm.ruc} onChange={(e) => setEditForm(p => ({...p, ruc: e.target.value}))} />
+              <Input label="RUC" value={editForm.ruc} error={editErrors.ruc} onChange={(e) => {
+                setEditErrors(prev => ({ ...prev, ruc: '' }));
+                setEditForm(p => ({...p, ruc: e.target.value}));
+              }} inputMode="numeric" />
               <Input label="Nombre Empresa" value={editForm.company_name} onChange={(e) => setEditForm(p => ({...p, company_name: e.target.value}))} />
               <Input label="Nombre Abreviado" value={editForm.nombre_abreviado} onChange={(e) => setEditForm(p => ({...p, nombre_abreviado: e.target.value}))} />
               <Input label="Código Convenio" value={editForm.codigo_convenio} onChange={(e) => setEditForm(p => ({...p, codigo_convenio: e.target.value}))} />
@@ -754,7 +821,10 @@ export default function AdminEmpresas() {
               <Input label="Ciudad" value={editForm.ciudad} onChange={(e) => setEditForm(p => ({...p, ciudad: e.target.value}))} />
               <Input label="Dirección" value={editForm.direccion} onChange={(e) => setEditForm(p => ({...p, direccion: e.target.value}))} />
               <Input label="Sitio Web" value={editForm.sitio_web} onChange={(e) => setEditForm(p => ({...p, sitio_web: e.target.value}))} />
-              <Input label="Teléfono de Empresa" value={editForm.telefono_empresa} onChange={(e) => setEditForm(p => ({...p, telefono_empresa: e.target.value}))} />
+              <Input label="Teléfono de Empresa" value={editForm.telefono_empresa} error={editErrors.telefono_empresa} onChange={(e) => {
+                setEditErrors(prev => ({ ...prev, telefono_empresa: '' }));
+                setEditForm(p => ({...p, telefono_empresa: e.target.value}));
+              }} inputMode="numeric" />
               <Input label="Correo de contacto" type="email" value={editForm.correo_contacto} onChange={(e) => setEditForm(p => ({...p, correo_contacto: e.target.value}))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -775,7 +845,7 @@ export default function AdminEmpresas() {
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-4">
-              <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => setEditModal(null)}>Cancelar</button>
+              <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => { setEditModal(null); setEditErrors({}); }}>Cancelar</button>
               <button className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[100px] cursor-pointer" onClick={saveEdit} disabled={actionLoading}>
                 {actionLoading ? <FiLoader className="animate-spin" /> : 'Guardar'}
               </button>
@@ -785,7 +855,7 @@ export default function AdminEmpresas() {
       </Modal>
 
       {/* Create Company Modal */}
-      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Crear Nueva Empresa" size="lg">
+      <Modal isOpen={createModal} onClose={() => { setCreateModal(false); setCreateErrors({}); }} title="Crear Nueva Empresa" size="lg">
         <div className="flex flex-col gap-5">
           {/* Datos de la empresa */}
           <div>
@@ -806,11 +876,17 @@ export default function AdminEmpresas() {
               <Input label="Tipo Convenio" value={createForm.tipo_convenio} onChange={(e) => setCreateForm(p => ({...p, tipo_convenio: e.target.value}))} />
               <Input label="Nombre Empresa *" value={createForm.nombre_empresa} onChange={(e) => setCreateForm(p => ({...p, nombre_empresa: e.target.value}))} />
               <Input label="Nombre Abreviado" value={createForm.nombre_abreviado} onChange={(e) => setCreateForm(p => ({...p, nombre_abreviado: e.target.value}))} />
-              <Input label="RUC *" value={createForm.ruc} onChange={(e) => setCreateForm(p => ({...p, ruc: e.target.value}))} placeholder="0990000000001" />
+              <Input label="RUC *" value={createForm.ruc} error={createErrors.ruc} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, ruc: '' }));
+                setCreateForm(p => ({...p, ruc: e.target.value}));
+              }} placeholder="0990000000001" inputMode="numeric" />
               <Input label="Industria / Sector" value={createForm.industria} onChange={(e) => setCreateForm(p => ({...p, industria: e.target.value}))} placeholder="Tecnología, Banca, etc." />
               <Input label="Ciudad" value={createForm.ciudad} onChange={(e) => setCreateForm(p => ({...p, ciudad: e.target.value}))} />
               <Input label="Dirección" value={createForm.direccion} onChange={(e) => setCreateForm(p => ({...p, direccion: e.target.value}))} />
-              <Input label="Teléfono de Empresa *" value={createForm.telefono_empresa} onChange={(e) => setCreateForm(p => ({...p, telefono_empresa: e.target.value}))} />
+              <Input label="Teléfono de Empresa *" value={createForm.telefono_empresa} error={createErrors.telefono_empresa} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, telefono_empresa: '' }));
+                setCreateForm(p => ({...p, telefono_empresa: e.target.value}));
+              }} inputMode="numeric" />
               <Input label="Sitio Web" value={createForm.sitio_web} onChange={(e) => setCreateForm(p => ({...p, sitio_web: e.target.value}))} placeholder="https://..." />
               <Input label="Correo de Empresa" type="email" value={createForm.correo_contacto} onChange={(e) => setCreateForm(p => ({...p, correo_contacto: e.target.value}))} />
               <Input label="Fecha Inicio Convenio" type="date" value={createForm.fecha_inicio_convenio} onChange={(e) => setCreateForm(p => ({...p, fecha_inicio_convenio: e.target.value}))} />
@@ -822,17 +898,29 @@ export default function AdminEmpresas() {
           <div className="border-t border-slate-100 pt-4">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Datos del Representante (Cuenta de acceso)</h4>
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Cédula *" value={createForm.cedula_representante} onChange={(e) => setCreateForm(p => ({...p, cedula_representante: e.target.value}))} />
-              <Input label="Teléfono (Representante) *" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
-              <Input label="Nombre *" value={createForm.nombre_representante} onChange={(e) => setCreateForm(p => ({...p, nombre_representante: e.target.value}))} />
-              <Input label="Apellido *" value={createForm.apellido_representante} onChange={(e) => setCreateForm(p => ({...p, apellido_representante: e.target.value}))} />
+              <Input label="Cédula *" value={createForm.cedula_representante} error={createErrors.cedula_representante} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, cedula_representante: '' }));
+                setCreateForm(p => ({...p, cedula_representante: e.target.value}));
+              }} inputMode="numeric" />
+              <Input label="Teléfono (Representante) *" type="tel" value={createForm.telefono} error={createErrors.telefono} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, telefono: '' }));
+                setCreateForm(p => ({...p, telefono: e.target.value}));
+              }} inputMode="numeric" />
+              <Input label="Nombre *" value={createForm.nombre_representante} error={createErrors.nombre_representante} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, nombre_representante: '' }));
+                setCreateForm(p => ({...p, nombre_representante: e.target.value}));
+              }} />
+              <Input label="Apellido *" value={createForm.apellido_representante} error={createErrors.apellido_representante} onChange={(e) => {
+                setCreateErrors(prev => ({ ...prev, apellido_representante: '' }));
+                setCreateForm(p => ({...p, apellido_representante: e.target.value}));
+              }} />
               <Input label="Correo *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} />
               <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 mt-2">
-            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => setCreateModal(false)}>Cancelar</button>
+            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => { setCreateModal(false); setCreateErrors({}); }}>Cancelar</button>
             <button
               className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[140px] cursor-pointer disabled:opacity-50"
               onClick={handleCreateCompany}

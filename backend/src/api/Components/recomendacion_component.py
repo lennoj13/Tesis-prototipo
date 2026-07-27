@@ -52,8 +52,13 @@ class RecomendacionComponent:
             cls._model = joblib.load(model_path)
             cls._scaler = joblib.load(scaler_path)
 
-            HandleLogs.write_log("[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2)...")
-            cls._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+            sbert_path = os.path.join(nlp_dir, 'modelos_entrenados', 'sentence_transformers', 'all-MiniLM-L6-v2')
+            try:
+                HandleLogs.write_log("[NLP] Cargando SentenceTransformer (all-MiniLM-L6-v2) local...")
+                cls._embedding_model = SentenceTransformer(sbert_path)
+            except Exception as e:
+                HandleLogs.write_log(f"[NLP] Error cargando modelo local: {e}. Usando en linea...")
+                cls._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
             cls._models_loaded = True
             cls._load_error = None

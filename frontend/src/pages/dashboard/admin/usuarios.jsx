@@ -1,4 +1,3 @@
-
 /**
  * Admin Usuarios — Lista de usuarios con acciones, detalle, crear y toggle estado.
  * Módulo 1: Gestión de Usuarios
@@ -13,6 +12,7 @@ import Modal from 'components/Modal';
 import ConfirmDialog from 'components/ConfirmDialog';
 import Input from 'components/Input';
 import InfoField from 'components/InfoField';
+import { useMetadata } from 'context/MetadataContext';
 import { FiEye, FiTrash2, FiEdit2, FiMail, FiPhone, FiBookOpen, FiAward, FiBriefcase, FiLoader, FiUserPlus, FiCreditCard, FiCalendar, FiActivity, FiUsers, FiPlusCircle } from 'react-icons/fi';
 
 const rolLabels = { estudiante: 'Estudiante', student: 'Estudiante', company: 'Empresa', empresa: 'Empresa', admin: 'Admin', gestor: 'Gestor' };
@@ -23,17 +23,8 @@ const rolColors = {
   'admin': 'bg-purple-100 text-purple-700',
 };
 
-const facultadesCarreras = {
-  "1": [
-    { id: "1", nombre: "Software" },
-    { id: "2", nombre: "Ciencias de Datos e Inteligencia Artificial" }
-  ],
-  "2": [
-    { id: "3", nombre: "Ingeniería de la Producción" }
-  ]
-};
-
 export default function AdminUsuarios() {
+  const { facultadesCarreras, facultadNames, metadataLoading } = useMetadata();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('');
@@ -49,6 +40,7 @@ export default function AdminUsuarios() {
   const [editForm, setEditForm] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [createErrors, setCreateErrors] = useState({});
   // Crear usuario
   const [createModal, setCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', facultad_id: '1', carrera_id: '', semestre: '' });
@@ -98,6 +90,18 @@ export default function AdminUsuarios() {
   }, [usuarios, roleFilter, statusFilter, facultadFilter, carreraFilter, sortBy]);
 
   useEffect(() => { loadUsers(); }, []);
+
+  const onlyDigits = (value) => /^\d+$/.test(String(value || '').trim());
+  const onlyLetters = (value) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(String(value || '').trim());
+
+  function validateCreateUserForm() {
+    const errors = {};
+    if (createForm.cedula && !onlyDigits(createForm.cedula)) errors.cedula = 'La cédula debe contener solo dígitos';
+    if (createForm.nombre && !onlyLetters(createForm.nombre)) errors.nombre = 'El nombre debe contener solo letras';
+    if (createForm.apellido && !onlyLetters(createForm.apellido)) errors.apellido = 'El apellido debe contener solo letras';
+    if (createForm.telefono && !onlyDigits(createForm.telefono)) errors.telefono = 'El teléfono debe contener solo dígitos';
+    return errors;
+  }
 
   // Cargar detalle completo al abrir modal
   async function handleViewDetail(row) {
@@ -244,6 +248,13 @@ export default function AdminUsuarios() {
 
   // Crear usuario
   async function handleCreateUser() {
+    const fieldErrors = validateCreateUserForm();
+    if (Object.keys(fieldErrors).length > 0) {
+      setCreateErrors(fieldErrors);
+      setToast({ type: 'error', message: 'Corrige los campos marcados antes de continuar' });
+      return;
+    }
+
     const missingFields = [];
     if (!createForm.cedula) missingFields.push('Cédula');
     if (!createForm.nombre) missingFields.push('Nombre');
@@ -279,12 +290,15 @@ export default function AdminUsuarios() {
       if (res.result) {
         setToast({ type: 'success', message: 'Usuario creado exitosamente' });
         setCreateModal(false);
+        setCreateErrors({});
         setCreateForm({ cedula: '', nombre: '', apellido: '', correo: '', contrasena: '', rol: 'estudiante', telefono: '', carrera_id: '', semestre: '' });
         loadUsers();
       } else {
+        if (res.data?.field_errors) setCreateErrors(res.data.field_errors);
         setToast({ type: 'error', message: res.message || 'Error al crear usuario' });
       }
     } catch (err) {
+      if (err.response?.data?.data?.field_errors) setCreateErrors(err.response.data.data.field_errors);
       setToast({ type: 'error', message: err.response?.data?.message || 'Error al conectar' });
     } finally {
       setActionLoading(false);
@@ -300,10 +314,13 @@ export default function AdminUsuarios() {
   }, [toast]);
 
   const columns = [
-    { key: 'creado_en', label: 'Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
+     {
+      key: 'cedula', label: 'Cédula / RUC',
+      render: (val) => <span className="text-slate-700">{val || '-'}</span>
+    },
+    { key: 'creado_en', label: 'F. Registro', render: (val) => val ? new Date(val).toLocaleDateString('es-EC') : '-' },
     {
-      key: 'nombre',
-      label: 'Nombre',
+      key: 'nombre', label: 'Nombre',
       render: (val, row) => (
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0 border ${row.activo ? 'bg-[#3c8dbc] border-[#2f6f92]' : 'bg-slate-400 border-slate-500'}`}>
@@ -317,13 +334,7 @@ export default function AdminUsuarios() {
       ),
     },
     {
-      key: 'cedula',
-      label: 'Cédula / RUC',
-      render: (val) => <span className="text-slate-700">{val || '-'}</span>
-    },
-    {
-      key: 'rol_nombre',
-      label: 'Rol',
+      key: 'rol_nombre', label: 'Rol',
       render: (val) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${rolColors[val] || 'bg-slate-100 text-slate-700'}`}>
           {rolLabels[val] || val}
@@ -394,8 +405,9 @@ export default function AdminUsuarios() {
               className="px-2 py-1.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400 max-w-[140px] truncate"
             >
               <option value="">Todas las Facultades</option>
-              <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-              <option value="2">INGENIERÍA QUÍMICA</option>
+              {Object.entries(facultadNames).map(([id, name]) => (
+                <option key={id} value={id}>{name.toUpperCase()}</option>
+              ))}
             </select>
             <select
               value={carreraFilter}
@@ -632,8 +644,10 @@ export default function AdminUsuarios() {
                     onChange={(e) => setEditForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                   >
-                    <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-                    <option value="2">INGENIERÍA QUÍMICA</option>
+                    <option value="">Seleccione Facultad</option>
+                    {Object.entries(facultadNames).map(([id, name]) => (
+                      <option key={id} value={id}>{name.toUpperCase()}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={editModal.rol_nombre === 'estudiante' ? '' : 'col-span-2'}>
@@ -691,7 +705,7 @@ export default function AdminUsuarios() {
       </Modal>
 
       {/* Create User Modal */}
-      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Crear Nuevo Usuario" size="sm">
+      <Modal isOpen={createModal} onClose={() => { setCreateModal(false); setCreateErrors({}); }} title="Crear Nuevo Usuario" size="sm">
         <div className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Rol *</label>
@@ -705,14 +719,27 @@ export default function AdminUsuarios() {
               <option value="admin">Administrador</option>
             </select>
           </div>
-          <Input label="Cédula *" value={createForm.cedula} onChange={(e) => setCreateForm(p => ({...p, cedula: e.target.value}))} placeholder="0900000000" />
+          <Input label="Cédula *" value={createForm.cedula} error={createErrors.cedula} onChange={(e) => {
+            setCreateErrors(prev => ({ ...prev, cedula: '' }));
+            const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+            setCreateForm(p => ({...p, cedula: digitsOnly}));
+          }} placeholder="0900000000" inputMode="numeric" maxLength={10} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Nombre *" value={createForm.nombre} onChange={(e) => setCreateForm(p => ({...p, nombre: e.target.value}))} />
-            <Input label="Apellido *" value={createForm.apellido} onChange={(e) => setCreateForm(p => ({...p, apellido: e.target.value}))} />
+            <Input label="Nombre *" value={createForm.nombre} error={createErrors.nombre} onChange={(e) => {
+              setCreateErrors(prev => ({ ...prev, nombre: '' }));
+              setCreateForm(p => ({...p, nombre: e.target.value}));
+            }} />
+            <Input label="Apellido *" value={createForm.apellido} error={createErrors.apellido} onChange={(e) => {
+              setCreateErrors(prev => ({ ...prev, apellido: '' }));
+              setCreateForm(p => ({...p, apellido: e.target.value}));
+            }} />
           </div>
           <Input label="Correo Electrónico *" type="email" value={createForm.correo} onChange={(e) => setCreateForm(p => ({...p, correo: e.target.value}))} placeholder="correo@ejemplo.com" />
           <Input label="Contraseña *" type="password" value={createForm.contrasena} onChange={(e) => setCreateForm(p => ({...p, contrasena: e.target.value}))} />
-          <Input label="Teléfono *" type="tel" value={createForm.telefono} onChange={(e) => setCreateForm(p => ({...p, telefono: e.target.value}))} />
+          <Input label="Teléfono *" type="tel" value={createForm.telefono} error={createErrors.telefono} onChange={(e) => {
+            setCreateErrors(prev => ({ ...prev, telefono: '' }));
+            setCreateForm(p => ({...p, telefono: e.target.value}));
+          }} inputMode="numeric" />
 
 
           {(createForm.rol === 'estudiante' || createForm.rol === 'gestor') && (
@@ -724,8 +751,10 @@ export default function AdminUsuarios() {
                   onChange={(e) => setCreateForm(p => ({...p, facultad_id: e.target.value, carrera_id: ''}))}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md bg-white outline-none focus:border-primary-400"
                 >
-                  <option value="1">CIENCIAS MATEMÁTICAS Y FÍSICAS</option>
-                  <option value="2">INGENIERÍA QUÍMICA</option>
+                  <option value="">Seleccione Facultad</option>
+                  {Object.entries(facultadNames).map(([id, name]) => (
+                    <option key={id} value={id}>{name.toUpperCase()}</option>
+                  ))}
                 </select>
               </div>
               <div className={createForm.rol === 'estudiante' ? '' : 'col-span-2'}>
@@ -758,7 +787,7 @@ export default function AdminUsuarios() {
           )}
 
           <div className="flex justify-end gap-3 mt-4">
-            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => setCreateModal(false)}>Cancelar</button>
+            <button className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer" onClick={() => { setCreateModal(false); setCreateErrors({}); }}>Cancelar</button>
             <button
               className="px-4 py-2 text-sm font-semibold text-white bg-primary-600 rounded-md flex items-center justify-center min-w-[120px] cursor-pointer disabled:opacity-50"
               onClick={handleCreateUser}

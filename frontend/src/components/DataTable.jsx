@@ -1,4 +1,3 @@
-
 /**
  * DataTable — Tabla de datos reutilizable con búsqueda y paginación.
  * Demuestra: Composición avanzada, estado local, renderizado condicional.
@@ -12,10 +11,10 @@ export default function DataTable({
   data,           // Array de objetos
   actions,        // (row) => JSX — acciones por fila
   searchKeys,     // ['nombre', 'email'] — campos para buscar
-  pageSize = 8,
+  pageSize = 7,
   emptyMessage = 'No hay datos para mostrar',
   emptyIcon: EmptyIcon = FiInbox,
-  filters,        // React node para filtros adicionales
+  filters,        
 }) {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);

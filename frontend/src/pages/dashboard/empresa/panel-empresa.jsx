@@ -1,4 +1,3 @@
-
 /**
  * Dashboard Empresa — Panel con estadísticas y feed de matching bidireccional.
  * Módulo 3: Gestión de Vacantes + Módulo 4: Matching Bidireccional (vista empresa)

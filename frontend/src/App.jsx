@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from 'context/AuthContext';
+import { MetadataProvider } from 'context/MetadataContext';
 
 import LoginPage from 'pages/login';
 
@@ -34,7 +35,8 @@ import CambiarClave from 'pages/dashboard/CambiarClave';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <MetadataProvider>
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
@@ -73,6 +75,7 @@ function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </MetadataProvider>
     </BrowserRouter>
   );
 }

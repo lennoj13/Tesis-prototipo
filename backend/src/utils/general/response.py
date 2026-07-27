@@ -23,11 +23,11 @@ def response_success(datos):
         'status_code': 200,
     }, 200
 
-def response_error(mensaje):
+def response_error(mensaje, data=None):
     return {
         'result': False,
         'message': mensaje,
-        'data': {},
+        'data': data or {},
         'status_code': 500,
     }, 500
 

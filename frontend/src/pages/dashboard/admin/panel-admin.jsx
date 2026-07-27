@@ -1,4 +1,3 @@
-
 /**
  * Dashboard Admin — Panel con estadísticas reales.
  * Módulo 1: Gestión de Usuarios (rol Admin)

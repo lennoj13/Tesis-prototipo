@@ -1,6 +1,5 @@
 from flask import request
 from flask_restful import Resource
-
 from ...api.Components.admin_component import AdminComponent
 from ...api.Components.auth_component import AuthComponent
 from ...utils.general.logs import HandleLogs
@@ -148,7 +147,7 @@ class AdminDeleteUserService(Resource):
             
             if result['result']:
                 return response_success(None)
-            return response_error(result['message'])
+            return response_error(result['message'], result.get('data'))
 
         except Exception as err:
             HandleLogs.write_error(err)
@@ -209,7 +208,7 @@ class AdminCreateUserService(Resource):
             result = AdminComponent.create_user(cedula, nombre, apellido, correo, contrasena, rol, telefono, extra_data=rq)
             if result['result']:
                 return response_success(result['data'])
-            return response_error(result['message'])
+            return response_error(result['message'], result.get('data'))
 
         except Exception as err:
             HandleLogs.write_error(err)
@@ -258,7 +257,7 @@ class AdminCreateCompanyService(Resource):
             )
             if result['result']:
                 return response_success(result['data'])
-            return response_error(result['message'])
+            return response_error(result['message'], result.get('data'))
 
         except Exception as err:
             HandleLogs.write_error(err)
@@ -323,7 +322,7 @@ class AdminCompanyDetailService(Resource):
             
             if result['result']:
                 return response_success(None)
-            return response_error(result['message'])
+            return response_error(result['message'], result.get('data'))
 
         except Exception as err:
             HandleLogs.write_error(err)

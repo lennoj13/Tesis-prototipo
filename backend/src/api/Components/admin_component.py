@@ -1,6 +1,8 @@
+import bcrypt
 from ...utils.database.connection_db import DataBaseHandle
 from ...utils.general.logs import HandleLogs
 from ...utils.general.response import internal_response
+from ...utils.general.validation import add_field_error, has_only_digits, has_only_letters
 
 class AdminComponent:
     @staticmethod
@@ -201,7 +203,7 @@ class AdminComponent:
 
     @staticmethod
     def delete_user(user_id, admin_user_id):
-        """Desactivar (soft delete) un usuario por su ID."""
+        """Desactivar un usuario por su ID."""
         try:
             if str(user_id) == str(admin_user_id):
                 return internal_response(False, None, "No puedes eliminar tu propia cuenta")
@@ -225,7 +227,7 @@ class AdminComponent:
 
     @staticmethod
     def get_report_data(facultad_id=None, carrera_id=None):
-        """Obtener datos reales para los gráficos de reportes."""
+        """Obtener datos de la base para los gráficos de reportes."""
         try:
             report = {}
             params = {}
@@ -327,6 +329,14 @@ class AdminComponent:
         """Crear un nuevo usuario desde el panel admin."""
         import bcrypt
         try:
+            field_errors = {}
+            add_field_error(field_errors, 'cedula', cedula, has_only_digits, 'La cédula debe contener solo dígitos')
+            add_field_error(field_errors, 'nombre', nombre, has_only_letters, 'El nombre debe contener solo letras')
+            add_field_error(field_errors, 'apellido', apellido, has_only_letters, 'El apellido debe contener solo letras')
+            add_field_error(field_errors, 'telefono', telefono, has_only_digits, 'El teléfono debe contener solo dígitos')
+            if field_errors:
+                return internal_response(False, {'field_errors': field_errors}, 'Revisa los campos del formulario')
+
             # Verificar que el rol exista
             sql_rol = "SELECT rol_id FROM public.roles WHERE nombre = %s"
             rol_result = DataBaseHandle.getRecords(sql_rol, 1, (rol_nombre,))
@@ -403,6 +413,14 @@ class AdminComponent:
     def update_user(user_id, data):
         """Actualizar datos completos de un usuario desde el panel admin."""
         try:
+            field_errors = {}
+            add_field_error(field_errors, 'cedula', data.get('cedula'), has_only_digits, 'La cédula debe contener solo dígitos')
+            add_field_error(field_errors, 'nombre', data.get('nombre'), has_only_letters, 'El nombre debe contener solo letras')
+            add_field_error(field_errors, 'apellido', data.get('apellido'), has_only_letters, 'El apellido debe contener solo letras')
+            add_field_error(field_errors, 'telefono', data.get('telefono'), has_only_digits, 'El teléfono debe contener solo dígitos')
+            if field_errors:
+                return internal_response(False, {'field_errors': field_errors}, 'Revisa los campos del formulario')
+
             # Check if user exists and get role
             sql_check = """
                 SELECT u.usuario_id, r.nombre as rol_nombre 
@@ -484,8 +502,18 @@ class AdminComponent:
                        facultad_id=1, telefono_empresa=None, fecha_limite_convenio=None,
                        codigo_convenio=None, tipo_convenio=None, fecha_inicio_convenio=None, nombre_abreviado=None):
         """Crear una empresa con su usuario representante desde el panel admin."""
-        import bcrypt
         try:
+            field_errors = {}
+            add_field_error(field_errors, 'cedula_representante', cedula_representante, has_only_digits, 'La cédula debe contener solo dígitos')
+            add_field_error(field_errors, 'nombre_representante', nombre_representante, has_only_letters, 'El nombre debe contener solo letras')
+            add_field_error(field_errors, 'apellido_representante', apellido_representante, has_only_letters, 'El apellido debe contener solo letras')
+            add_field_error(field_errors, 'telefono', telefono, has_only_digits, 'El teléfono del representante debe contener solo dígitos')
+            add_field_error(field_errors, 'ruc', ruc, has_only_digits, 'El RUC debe contener solo dígitos')
+            add_field_error(field_errors, 'telefono_empresa', telefono_empresa, has_only_digits, 'El teléfono de la empresa debe contener solo dígitos')
+
+            if field_errors:
+                return internal_response(False, {'field_errors': field_errors}, 'Revisa los campos numéricos del formulario')
+
             # Verificar duplicados de usuario
             sql_dup = "SELECT usuario_id FROM public.usuarios WHERE cedula = %s OR correo = %s"
             dup_result = DataBaseHandle.getRecords(sql_dup, 1, (cedula_representante, correo))
@@ -555,6 +583,16 @@ class AdminComponent:
     def update_company(institucion_id, data):
         """Actualizar datos de una empresa y su representante."""
         try:
+            field_errors = {}
+            add_field_error(field_errors, 'ruc', data.get('ruc'), has_only_digits, 'El RUC debe contener solo dígitos')
+            add_field_error(field_errors, 'telefono_empresa', data.get('telefono_empresa'), has_only_digits, 'El teléfono de la empresa debe contener solo dígitos')
+            add_field_error(field_errors, 'cedula_representante', data.get('cedula_representante'), has_only_digits, 'La cédula debe contener solo dígitos')
+            add_field_error(field_errors, 'nombre_representante', data.get('nombre_representante'), has_only_letters, 'El nombre debe contener solo letras')
+            add_field_error(field_errors, 'apellido_representante', data.get('apellido_representante'), has_only_letters, 'El apellido debe contener solo letras')
+            add_field_error(field_errors, 'telefono', data.get('telefono'), has_only_digits, 'El teléfono del representante debe contener solo dígitos')
+            if field_errors:
+                return internal_response(False, {'field_errors': field_errors}, 'Revisa los campos del formulario')
+
             # Primero, obtener el usuario_id de la institucion
             sql_get_user = "SELECT usuario_id FROM public.instituciones WHERE institucion_id = %s"
             user_res = DataBaseHandle.getRecords(sql_get_user, 1, (institucion_id,))

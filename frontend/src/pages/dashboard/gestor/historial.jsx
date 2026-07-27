@@ -7,7 +7,8 @@ import EmptyState from 'components/EmptyState';
 import DataTable from 'components/DataTable';
 import SolicitudDetalleView from 'components/SolicitudDetalleView';
 import applicationService from 'services/applicationService';
-import { FiEye, FiLoader, FiCheckCircle, FiXCircle, FiMinusCircle } from 'react-icons/fi';
+import { FiEye, FiLoader, FiCheckCircle, FiXCircle, FiMinusCircle, FiDownload } from 'react-icons/fi';
+import { exportHistorialToExcel } from 'utils/exportUtils';
 
 export default function GestorHistorial() {
   const [applications, setApplications] = useState([]);
@@ -19,6 +20,17 @@ export default function GestorHistorial() {
   const [detailModal, setDetailModal] = useState(null);
   const [solicitudData, setSolicitudData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  function formatDate(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('es-EC', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
 
   useEffect(() => {
     loadApplications();
@@ -92,6 +104,10 @@ export default function GestorHistorial() {
     return true;
   });
 
+  const handleExport = () => {
+    exportHistorialToExcel(filteredApps);
+  };
+
   const columns = [
     {
       key: 'nro_solicitud',
@@ -101,7 +117,7 @@ export default function GestorHistorial() {
     {
       key: 'fecha_respuesta_gestor',
       label: 'F. Resolución',
-      render: (_, app) => app.fecha_respuesta_gestor ? <span className="text-sm font-medium text-slate-700">{app.fecha_respuesta_gestor}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
+      render: (_, app) => app.fecha_respuesta_gestor ? <span className="text-sm font-medium text-slate-700">{formatDate(app.fecha_respuesta_gestor)}</span> : <span className="text-sm text-slate-400 font-medium">-</span>,
     },
     {
       key: 'estudiante',
@@ -164,6 +180,15 @@ export default function GestorHistorial() {
       <PageHeader
         title="Historial de Postulaciones"
         subtitle={loading ? 'Cargando historial...' : `${filteredApps.length} solicitudes en historial`}
+        action={
+          <button
+            onClick={handleExport}
+            className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-md transition-colors"
+            title="Exportar a CSV"
+          >
+            <FiDownload size={16} /> Exportar
+          </button>
+        }
       />
 
       <div className="flex gap-2 mt-4 mb-6 flex-wrap">
