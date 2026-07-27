@@ -8,13 +8,17 @@ from ...utils.general.logs import HandleLogs
 from ...utils.general.response import internal_response
 
 
+import os
+
 def conn_db():
+    sslmode = os.getenv('DB_SSLMODE', 'prefer')
     connection = psycopg2.connect(
         host=Parametros.db_host,
         port=int(Parametros.db_port),
         user=Parametros.db_user,
         password=Parametros.db_pass,
         database=Parametros.db_name,
+        sslmode=sslmode,
         cursor_factory=RealDictCursor,
         options='-c client_encoding=UTF8'
     )
