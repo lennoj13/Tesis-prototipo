@@ -45,6 +45,10 @@ swagger = Swagger(app, config=swagger_config, template=swagger_template)
 # Registrar rutas
 load_routes(api)
 
+@app.route('/')
+def home():
+    return {"status": "ok", "message": "MatchPP Backend API está funcionando correctamente", "documentation": "/apidocs/"}, 200
+
 if __name__ == '__main__':
     try:
         HandleLogs.write_log("Servicio MatchPP API Iniciado")
