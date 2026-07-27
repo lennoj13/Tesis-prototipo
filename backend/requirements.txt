@@ -10,6 +10,7 @@ bcrypt==4.2.1
 pytz==2024.2
 marshmallow==3.21.1
 flasgger==0.9.7.1
+python-dotenv==1.0.1
 
 # NLP dependencies
 torch>=2.0.0
