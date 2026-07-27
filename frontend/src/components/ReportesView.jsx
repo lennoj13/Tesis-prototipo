@@ -45,7 +45,16 @@ export default function ReportesView({
   ];
 
   const postulacionesEstado = reports?.postulaciones_por_estado || [];
-  const vacantesPorArea = reports?.vacantes_por_area || [];
+  const rawVacantesPorArea = reports?.vacantes_por_area || [];
+  const vacantesPorArea = (() => {
+    if (!rawVacantesPorArea || rawVacantesPorArea.length <= 5) return rawVacantesPorArea;
+    const top5 = rawVacantesPorArea.slice(0, 5);
+    const otrosTotal = rawVacantesPorArea.slice(5).reduce((acc, curr) => acc + (curr.valor || 0), 0);
+    if (otrosTotal > 0) {
+      top5.push({ nombre: 'Otras Áreas', valor: otrosTotal });
+    }
+    return top5;
+  })();
   const habilidadesDemandadas = reports?.habilidades_demandadas || [];
   const topEmpresas = reports?.top_empresas || [];
 

@@ -48,7 +48,16 @@ export default function PrintReportTemplate({ stats, reports, user, contextData,
   const kpi4 = s.total_empresas || 0;
 
   const postulaciones = reports?.postulaciones_por_estado || [];
-  const vacantes = reports?.vacantes_por_area || [];
+  const rawVacantes = reports?.vacantes_por_area || [];
+  const vacantes = (() => {
+    if (!rawVacantes || rawVacantes.length <= 5) return rawVacantes;
+    const top5 = rawVacantes.slice(0, 5);
+    const otrosTotal = rawVacantes.slice(5).reduce((acc, curr) => acc + (curr.valor || 0), 0);
+    if (otrosTotal > 0) {
+      top5.push({ nombre: 'Otras Áreas', valor: otrosTotal });
+    }
+    return top5;
+  })();
   const habilidades = reports?.habilidades_demandadas || [];
   const empresas = reports?.top_empresas || [];
 

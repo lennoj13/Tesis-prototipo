@@ -284,7 +284,18 @@ class AdminComponent:
                 ORDER BY valor DESC
             """
             r2 = DataBaseHandle.getRecords(sql_areas, 0, params)
-            report['vacantes_por_area'] = [dict(r) for r in r2['data']] if r2['result'] and r2['data'] else []
+            if r2['result'] and r2['data']:
+                raw_areas = [dict(r) for r in r2['data']]
+                if len(raw_areas) > 5:
+                    top_areas = raw_areas[:5]
+                    otras_val = sum(item['valor'] for item in raw_areas[5:])
+                    if otras_val > 0:
+                        top_areas.append({'nombre': 'Otras Áreas', 'valor': otras_val})
+                    report['vacantes_por_area'] = top_areas
+                else:
+                    report['vacantes_por_area'] = raw_areas
+            else:
+                report['vacantes_por_area'] = []
 
             # 3. Habilidades más demandadas en vacantes activas
             sql_skills = f"""
