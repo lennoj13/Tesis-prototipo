@@ -257,14 +257,12 @@ class RecomendacionHibridaComponent:
         return guardar_cache_afinidad(estudiante_id, afinidades)
 
     # =========================================================
-    # MOTOR NLP: Cálculo de afinidad con XGBoost
+    # MOTOR NLP: Cálculo de afinidad
     # =========================================================
     @staticmethod
     def _calcular_afinidad(usuario_id, estudiante_id, facultad_id, vacantes_data):
         """
-        Ejecuta el motor NLP XGBoost para calcular afinidad estudiante ↔ vacantes.
-        Replica exactamente la lógica de servicio_recomendacion_db.py pero usando DataBaseHandle.
-        
+        Ejecuta el motor NLP para calcular afinidad estudiante ↔ vacantes.
         Returns:
             dict {vacante_id: porcentaje_afinidad} o None si hay error
         """
@@ -325,19 +323,12 @@ class RecomendacionHibridaComponent:
                 f"{perfil.get('intereses', '')} {' '.join(habilidades)}"
             )
             usuario_limpio = RecomendacionHibridaComponent._limpiar_texto(texto_usuario)
-            
+
+            #dataframe para vacantes
             df_vacantes = pd.DataFrame(vacantes_data)
             textos_vacantes = []
             for _, row in df_vacantes.iterrows():
                 habs = habilidades_por_vacante.get(row['vacante_id'], [])
-                #con area
-                # texto_v = (
-                #     f"{row.get('titulo', '')} {row.get('area', '')} "
-                #     f"{row.get('descripcion', '')} {row.get('requisitos', '')} "
-                #     f"{' '.join(habs)}"
-                # )
-                # textos_vacantes.append(texto_v)
-                #sin area
                 texto_v = (
                     f"{row.get('titulo', '')} "
                     f"{row.get('descripcion', '')} {row.get('requisitos', '')} "
@@ -367,7 +358,7 @@ class RecomendacionHibridaComponent:
             for idx, row in df_vacantes.iterrows():
                 emb_v = embs_vacantes[idx]
                 
-                # Obtener habilidades de la vacante (usar SOLO habilidades_por_vacante)
+                # Obtener habilidades de la vacante
                 habs_vac = habilidades_por_vacante.get(row['vacante_id'], [])
                 
                 # Construir vector features
@@ -383,7 +374,7 @@ class RecomendacionHibridaComponent:
                     'comp_score': comp_score,
                     'vacante_id': row['vacante_id']
                 })
-                        # 7. Inferencia HIBRIDA (XGBoost + SVR) con reglas mejoradas
+            # 7. Inferencia HIBRIDA (XGBoost + SVR)
             svr_model = RecomendacionHibridaComponent._svr_model
             svr_scaler = RecomendacionHibridaComponent._svr_scaler
 
@@ -432,14 +423,13 @@ class RecomendacionHibridaComponent:
                 # Normalizar match_score a 0-1 para las reglas
                 match_normalized = match_score / 100.0
                 
-                # --- REGLAS LÓGICAS MEJORADAS ---
+                # --- REGLAS LÓGICAS
                 
                 # REGLA 1: BAJA SIMILITUD CONTEXTUAL
                 if sim_coseno < COSENO_BAJO:
-                    # Si el contexto semántico es bajísimo, XGBoost tiende a alucinar
                     base_score = min(p_xgb, p_svr)
-                    if match_score < 1.0:  # Prácticamente 0 match
-                        # Castigo fuerte por texto basura
+                    if match_score < 1.0:  # Prácticamente 0 de match
+                        # Castigo por texto basura
                         score = base_score * 0.3
                     elif match_score < MATCH_MINIMO:
                         # Match bajo, castigo moderado
@@ -454,7 +444,7 @@ class RecomendacionHibridaComponent:
                     # Normalizar coseno a escala 0-100
                     coseno_score = sim_coseno * 100
             
-                    # Calcular base (el menor de los modelos)
+                    # Calcular como base al menor de los modelos
                     base_score = min(p_xgb, p_svr)
                     
                     if match_score < 1.0:
@@ -465,11 +455,10 @@ class RecomendacionHibridaComponent:
                             weight_base = 1.0 - weight_coseno
                             score = (coseno_score * weight_coseno) + (base_score * weight_base)
                             
-                            # Si SVR es alto, darle más peso (es más confiable)
+                            # Mayor confianza si SVR confirma la afinidad
                             if p_svr > 45:
                                 score = (score * 0.7) + (p_svr * 0.3)
                         else:
-                            # Coseno bajo-moderado: podría ser inflación
                             score = base_score * 0.4
                     else:
                         # Hay algo de match (1-14%)
