@@ -290,7 +290,14 @@ export default function SolicitudDetalleView({
             </Card>
 
             <Card>
-              <h3 className="text-sm font-bold text-slate-700 mb-3">Perfil del Estudiante</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-slate-700 m-0">Perfil del Estudiante</h3>
+                {practica.porcentaje_afinidad !== undefined && practica.porcentaje_afinidad !== null && (
+                  <span className="inline-flex items-center px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-bold shadow-sm">
+                    Afinidad: {Math.round(practica.porcentaje_afinidad)}%
+                  </span>
+                )}
+              </div>
               
               {estudiante.intereses && (
                 <div className="mb-4">
