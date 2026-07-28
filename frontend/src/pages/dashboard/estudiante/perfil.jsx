@@ -1,6 +1,5 @@
-
 /**
- * Estudiante Perfil — Perfil real cargado de la API.
+ * Estudiante Perfil — Perfil cargado desde la API.
  * Módulo 2: Perfil Académico
  */
 
@@ -15,11 +14,8 @@ import SkillSelector from 'components/SkillSelector';
 import Modal from 'components/Modal';
 import { FiSave, FiPlus, FiX, FiCheckCircle } from 'react-icons/fi';
 
-
-
 export default function EstudiantePerfil() {
   const { user } = useAuth();
-
   const [form, setForm] = useState({
     name: '', lastname: '', email: '', phone: '',
     career: '', semester: '', university: 'Universidad de Guayaquil',

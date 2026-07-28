@@ -155,7 +155,7 @@ export default function SkillSelector({
       {allSkills.length > 0 && (
         <div className="mt-1">
           <div className="flex flex-wrap gap-2">
-            {allSkills.slice(0, 15).map((skill) => {
+            {allSkills.slice(0, 35).map((skill) => {
               const isSelected = selectedSkills.some(h => skillKey(h.name) === skillKey(skill.name));
               return (
                 <button
