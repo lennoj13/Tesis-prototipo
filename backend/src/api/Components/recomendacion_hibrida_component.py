@@ -341,15 +341,41 @@ class RecomendacionHibridaComponent:
                 RecomendacionHibridaComponent._limpiar_texto
             )
 
-            # 5. Generar embeddings 
+            # 5. Generar embeddings (Optimizado con caché en memoria RAM para vacantes)
             emb_usuario = embedding_model.encode(
                 [usuario_limpio], convert_to_numpy=True, normalize_embeddings=True
             )[0]
-            embs_vacantes = embedding_model.encode(
-                df_vacantes['texto_limpio'].tolist(),
-                convert_to_numpy=True,
-                normalize_embeddings=True
-            )
+
+            if not hasattr(RecomendacionHibridaComponent, '_vacante_embeddings_cache'):
+                RecomendacionHibridaComponent._vacante_embeddings_cache = {}
+
+            v_cache = RecomendacionHibridaComponent._vacante_embeddings_cache
+            embs_vacantes_list = [None] * len(df_vacantes)
+            textos_a_calcular = []
+            indices_a_calcular = []
+
+            for idx, row in df_vacantes.iterrows():
+                v_id = row['vacante_id']
+                t_limpio = row['texto_limpio']
+                cached = v_cache.get(v_id)
+                if cached and cached.get('texto') == t_limpio:
+                    embs_vacantes_list[idx] = cached['emb']
+                else:
+                    textos_a_calcular.append(t_limpio)
+                    indices_a_calcular.append(idx)
+
+            if textos_a_calcular:
+                nuevos_embs = embedding_model.encode(
+                    textos_a_calcular, convert_to_numpy=True, normalize_embeddings=True
+                )
+                for i, idx in enumerate(indices_a_calcular):
+                    v_id = df_vacantes.iloc[idx]['vacante_id']
+                    t_limpio = df_vacantes.iloc[idx]['texto_limpio']
+                    emb_val = nuevos_embs[i]
+                    v_cache[v_id] = {'texto': t_limpio, 'emb': emb_val}
+                    embs_vacantes_list[idx] = emb_val
+
+            embs_vacantes = np.array(embs_vacantes_list)
 
             # 6. Construir vectores 
             features_inferencia = []

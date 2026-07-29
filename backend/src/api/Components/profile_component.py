@@ -123,8 +123,6 @@ class ProfileComponent:
                         def precalcular():
                             try:
                                 HandleLogs.write_log(f"[*] Iniciando recálculo NLP en segundo plano para estudiante {perfil_id}...")
-
-                                time.sleep(3)
                                 RecomendacionHibridaComponent.get_recomendaciones(user_id, facultad_id, force_recalculate=True)
                                 HandleLogs.write_log(f"[*] Recálculo NLP completado con éxito para estudiante {perfil_id}.")
                             except Exception as e:
