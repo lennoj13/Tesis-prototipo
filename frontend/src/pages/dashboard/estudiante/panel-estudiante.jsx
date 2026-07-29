@@ -86,7 +86,7 @@ export default function EstudianteDashboard() {
               } catch (e) {
                 console.error("Error polling NLP:", e);
               }
-            }, 3000); // 3 segundos
+            }, 500); // 500ms polling ultrarrápido
           }
         } else {
           setIsCalculating(false);
