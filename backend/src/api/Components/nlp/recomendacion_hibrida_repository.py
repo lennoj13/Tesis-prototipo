@@ -71,16 +71,23 @@ def obtener_cache_afinidad(estudiante_id, vacante_ids):
 
 
 def guardar_cache_afinidad(estudiante_id, afinidades):
-    """Guarda las afinidades calculadas en el caché."""
+    """Guarda las afinidades calculadas en el caché en una sola consulta batch ultrarrápida."""
+    if not afinidades:
+        return
     try:
+        value_tuples = []
+        params = []
         for vacante_id, porcentaje in afinidades.items():
-            sql = """
-                INSERT INTO public.cache_afinidad (estudiante_id, vacante_id, porcentaje_afinidad)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (estudiante_id, vacante_id)
-                DO UPDATE SET porcentaje_afinidad = EXCLUDED.porcentaje_afinidad, calculado_en = NOW()
-            """
-            DataBaseHandle.ExecuteNonQuery(sql, (estudiante_id, vacante_id, round(porcentaje, 2)))
+            value_tuples.append("(%s, %s, %s)")
+            params.extend([estudiante_id, vacante_id, round(porcentaje, 2)])
+
+        sql = f"""
+            INSERT INTO public.cache_afinidad (estudiante_id, vacante_id, porcentaje_afinidad)
+            VALUES {', '.join(value_tuples)}
+            ON CONFLICT (estudiante_id, vacante_id)
+            DO UPDATE SET porcentaje_afinidad = EXCLUDED.porcentaje_afinidad, calculado_en = NOW()
+        """
+        DataBaseHandle.ExecuteNonQuery(sql, tuple(params))
     except Exception as err:
         HandleLogs.write_error(err)
 
