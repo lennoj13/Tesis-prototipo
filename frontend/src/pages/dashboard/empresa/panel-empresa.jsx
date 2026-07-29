@@ -85,7 +85,7 @@ export default function EmpresaDashboard() {
           if (matchRes.result) {
             const data = matchRes.data || [];
             setMatchingData(data);
-            const totalApplied = data.reduce((sum, v) => sum + (v.candidates?.filter(c => c.already_applied)?.length || 0), 0);
+            const totalApplied = data.reduce((sum, v) => sum + (v.candidates?.filter(c => c.already_applied && c.application_status !== 'cancelada' && c.application_status !== 'anulada')?.length || 0), 0);
             setStats(prev => ({ ...prev, candidatos: totalApplied }));
           }
           setMatchingLoading(false);
