@@ -10,3 +10,7 @@ matplotlib
 seaborn
 joblib
 stopwords
+gensim
+tensorflow
+tensorflow-hub
+scipy
